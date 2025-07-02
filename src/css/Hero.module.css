@@ -1,0 +1,69 @@
+.ballOuter {
+    aspect-ratio: 1 / 1;
+    width: 71vw;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: linear-gradient(to bottom, #ffffff6c, #4d4d4d44, #5500ff1d);
+    box-shadow: 0 0 100px 10px rgb(40, 0, 75);
+    opacity: 0;
+
+    animation:
+        dropDown 2s ease 0.5s forwards,
+        outRotate 13s linear 2.5s infinite,
+        ballPulse 5s linear 2.5s infinite;
+}
+
+.mainTextFade {
+    opacity: 0;
+    animation: textFade 2.5s ease 2.5s forwards;
+    /* ⬅ delay matches dropDown + offset */
+}
+
+@keyframes ballPulse {
+    0% {
+        box-shadow: 0 0 100px 10px rgb(40, 0, 75);
+    }
+
+    50% {
+        box-shadow: 0 0 150px 45px rgb(40, 0, 75);
+    }
+
+    100% {
+        box-shadow: 0 0 100px 10px rgb(40, 0, 75);
+    }
+}
+
+/* Animations */
+@keyframes dropDown {
+    0% {
+        transform: translateY(-100%);
+        opacity: 0;
+    }
+
+    100% {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+@keyframes outRotate {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes textFade {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}

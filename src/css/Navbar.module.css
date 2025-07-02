@@ -1,0 +1,26 @@
+.nav {
+    position: fixed;
+    width: 100%;
+    left: 0;
+    z-index: 100;
+    top: 0;
+    opacity: 0;
+    backdrop-filter: blur(30px);
+    /* start hidden */
+    animation-name: fade;
+    animation-delay: 4s;
+    animation-duration: 2s;
+    animation-fill-mode: forwards;
+    /* keep final state */
+    animation-timing-function: ease-in-out;
+}
+
+@keyframes fade {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
