@@ -1,0 +1,501 @@
+.nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  background: rgba(252, 252, 252, 0.233);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: transform, opacity, backdrop-filter;
+}
+
+/* Navbar fade-in animation on page load */
+.navbarFade {
+  opacity: 0;
+  transform: translateY(-20px);
+  animation: navbarSlideIn 1s cubic-bezier(0.4, 0, 0.2, 1) 0.2s forwards;
+}
+
+/* Navbar scroll state - enhanced backdrop blur and opacity */
+.nav.scrolled {
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  background: rgba(255, 255, 255, 0.9);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 32px rgba(0, 0, 0, 0.05);
+}
+
+/* Navbar hide animation when scrolling down */
+.nav.hidden {
+  transform: translateY(-100%);
+  opacity: 0.8;
+}
+
+/* Navbar show animation when scrolling up */
+.nav.visible {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+/* Navigation menu items fade-in stagger animation */
+.navItem {
+  opacity: 0;
+  transform: translateY(10px);
+  animation: navItemFadeIn 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.navItem:nth-child(1) {
+  animation-delay: 0.1s;
+}
+
+.navItem:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.navItem:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+.navItem:nth-child(4) {
+  animation-delay: 0.4s;
+}
+
+.navItem:nth-child(5) {
+  animation-delay: 0.5s;
+}
+
+/* Logo animation */
+.logo {
+  opacity: 0;
+  transform: scale(0.8) translateX(-20px);
+  animation: logoFadeIn 0.8s cubic-bezier(0.4, 0, 0.2, 1) 0.1s forwards;
+}
+
+/* Action buttons animation */
+.actionButtons {
+  opacity: 0;
+  transform: translateX(20px);
+  animation: buttonsFadeIn 0.8s cubic-bezier(0.4, 0, 0.2, 1) 0.3s forwards;
+}
+
+/* Mobile menu button animation */
+.mobileMenuButton {
+  opacity: 0;
+  transform: scale(0.8);
+  animation: mobileButtonFadeIn 0.6s cubic-bezier(0.4, 0, 0.2, 1) 0.4s forwards;
+}
+
+/* Navigation dropdown animations */
+.navDropdown {
+  opacity: 0;
+  transform: translateY(-10px) scale(0.95);
+  animation: dropdownFadeIn 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  transform-origin: top center;
+}
+
+.navDropdown.closing {
+  animation: dropdownFadeOut 0.2s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+/* Navigation link hover animations */
+.navLink {
+  position: relative;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+}
+
+.navLink::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(0, 0, 0, 0.05), transparent);
+  transition: left 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.navLink:hover::before {
+  left: 100%;
+}
+
+/* Button hover glow effect */
+.glowButton {
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.glowButton::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(45deg, transparent, rgba(99, 102, 241, 0.1), transparent);
+  opacity: 0;
+  transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: inherit;
+}
+
+.glowButton:hover::before {
+  opacity: 1;
+}
+
+.glowButton:hover {
+  box-shadow: 0 0 20px rgba(99, 102, 241, 0.2);
+  transform: translateY(-1px);
+}
+
+/* Mobile menu overlay animation */
+.mobileOverlay {
+  opacity: 0;
+  backdrop-filter: blur(0px);
+  animation: overlayFadeIn 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.mobileOverlay.closing {
+  animation: overlayFadeOut 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+/* Mobile menu slide animation */
+.mobileMenu {
+  transform: translateX(100%);
+  animation: mobileMenuSlideIn 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.mobileMenu.closing {
+  animation: mobileMenuSlideOut 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+/* Mobile menu items stagger animation */
+.mobileMenuItem {
+  opacity: 0;
+  transform: translateX(30px);
+  animation: mobileItemFadeIn 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.mobileMenuItem:nth-child(1) {
+  animation-delay: 0.1s;
+}
+
+.mobileMenuItem:nth-child(2) {
+  animation-delay: 0.15s;
+}
+
+.mobileMenuItem:nth-child(3) {
+  animation-delay: 0.2s;
+}
+
+.mobileMenuItem:nth-child(4) {
+  animation-delay: 0.25s;
+}
+
+.mobileMenuItem:nth-child(5) {
+  animation-delay: 0.3s;
+}
+
+.mobileMenuItem:nth-child(6) {
+  animation-delay: 0.35s;
+}
+
+/* Keyframe Animations */
+@keyframes navbarSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes navItemFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes logoFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.8) translateX(-20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1) translateX(0);
+  }
+}
+
+@keyframes buttonsFadeIn {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes mobileButtonFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes dropdownFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px) scale(0.95);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes dropdownFadeOut {
+  from {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+
+  to {
+    opacity: 0;
+    transform: translateY(-10px) scale(0.95);
+  }
+}
+
+@keyframes overlayFadeIn {
+  from {
+    opacity: 0;
+    backdrop-filter: blur(0px);
+  }
+
+  to {
+    opacity: 1;
+    backdrop-filter: blur(8px);
+  }
+}
+
+@keyframes overlayFadeOut {
+  from {
+    opacity: 1;
+    backdrop-filter: blur(8px);
+  }
+
+  to {
+    opacity: 0;
+    backdrop-filter: blur(0px);
+  }
+}
+
+@keyframes mobileMenuSlideIn {
+  from {
+    transform: translateX(100%);
+  }
+
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes mobileMenuSlideOut {
+  from {
+    transform: translateX(0);
+  }
+
+  to {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes mobileItemFadeIn {
+  from {
+    opacity: 0;
+    transform: translateX(30px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Pulse animation for live indicators */
+@keyframes pulse {
+
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 0.7;
+    transform: scale(1.1);
+  }
+}
+
+.pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Shimmer effect for loading states */
+@keyframes shimmer {
+  0% {
+    background-position: -200px 0;
+  }
+
+  100% {
+    background-position: calc(200px + 100%) 0;
+  }
+}
+
+.shimmer {
+  background: linear-gradient(90deg, transparent, rgba(0, 0, 0, 0.05), transparent);
+  background-size: 200px 100%;
+  animation: shimmer 2s infinite;
+}
+
+/* Floating animation for decorative elements */
+@keyframes float {
+
+  0%,
+  100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+
+  50% {
+    transform: translateY(-10px) rotate(2deg);
+  }
+}
+
+.float {
+  animation: float 3s ease-in-out infinite;
+}
+
+/* Bounce animation for notifications */
+@keyframes bounce {
+
+  0%,
+  20%,
+  53%,
+  80%,
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+
+  40%,
+  43% {
+    transform: translate3d(0, -8px, 0);
+  }
+
+  70% {
+    transform: translate3d(0, -4px, 0);
+  }
+
+  90% {
+    transform: translate3d(0, -2px, 0);
+  }
+}
+
+.bounce {
+  animation: bounce 1s ease-in-out;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .navbarFade {
+    animation-duration: 0.8s;
+  }
+
+  .navItem {
+    animation-duration: 0.4s;
+  }
+
+  .mobileMenuItem {
+    animation-duration: 0.3s;
+  }
+}
+
+/* Reduced motion preferences */
+@media (prefers-reduced-motion: reduce) {
+
+  .nav,
+  .navbarFade,
+  .navItem,
+  .logo,
+  .actionButtons,
+  .mobileMenuButton,
+  .navDropdown,
+  .navLink,
+  .glowButton,
+  .mobileOverlay,
+  .mobileMenu,
+  .mobileMenuItem {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .navLink::before,
+  .glowButton::before {
+    transition: none !important;
+  }
+}
+
+/* High contrast mode adjustments */
+@media (prefers-contrast: high) {
+  .nav {
+    background: rgba(255, 255, 255, 0.95);
+    border-bottom: 2px solid rgba(0, 0, 0, 0.2);
+  }
+
+  .nav.scrolled {
+    background: rgba(255, 255, 255, 0.98);
+    border-bottom: 2px solid rgba(0, 0, 0, 0.3);
+  }
+}
+
+/* Performance optimizations */
+.nav,
+.navItem,
+.logo,
+.actionButtons,
+.mobileMenuButton,
+.navDropdown,
+.mobileMenu {
+  will-change: transform, opacity;
+}
+
+/* GPU acceleration for smooth animations */
+.navLink,
+.glowButton,
+.mobileMenuItem {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  perspective: 1000px;
+}
