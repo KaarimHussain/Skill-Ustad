@@ -3,6 +3,7 @@ import { ArrowUpRight, Sparkle } from "lucide-react";
 import style from "../css/Hero.module.css";
 import { GridPattern } from "./magicui/grid-pattern";
 import { Link } from "react-router-dom";
+import SplitText from "../components/reactbits/SplitText/SplitText"
 
 export default function HeroComponent() {
     return (
@@ -27,10 +28,9 @@ export default function HeroComponent() {
                 </div>
 
                 {/* Main Heading */}
-                <div className="text-white text-center">
-                    <h1 className="font-semibold text-4xl sm:text-5xl md:text-6xl lg:text-7xl leading-tight mb-3">
-                        Master In-Demand Skills.
-                    </h1>
+                <div className="text-white text-center flex flex-col items-center">
+                    <SplitText splitType="chars" ease={"elastic.out(1,0.3)"} delay={10} duration={2} threshold={0.2} text="Master In-Demand Skills." className="font-semibold text-4xl sm:text-5xl md:text-6xl lg:text-7xl leading-tight mb-3" />
+
                     <span className="bg-indigo-500 rounded-2xl px-4 py-2 sm:px-6 sm:py-3 text-xl sm:text-3xl font-light inline-block">
                         Build. Launch. Grow.
                     </span>

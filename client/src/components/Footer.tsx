@@ -30,7 +30,7 @@ import Logo from "./Logo"
 const FooterBackground = memo(() => (
     <>
         {/* Gradient background matching hero */}
-        <div className="absolute inset-0 bg-gradient-to-b from-indigo-100 via-indigo-200 to-white" />
+        <div className="absolute inset-0 bg-gradient-to-t from-indigo-100 via-indigo-200 to-white" />
 
         {/* Light rays effect similar to hero */}
         <div className="absolute bottom-0 left-0 w-full h-full overflow-hidden pointer-events-none">

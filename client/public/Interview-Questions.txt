@@ -1,0 +1,19 @@
+1. How do you approach component state management in React applications, and when would you choose local state versus a global state management solution like Redux or Zustand?
+
+2. Explain the difference between server-side rendering (SSR), static site generation (SSG), and client-side rendering (CSR). When would you use each approach?
+
+3. Describe your strategy for optimizing web application performance, including techniques for reducing bundle size, improving load times, and handling large datasets.
+
+4. How do you ensure accessibility (a11y) in your frontend applications? What tools and practices do you use to test and maintain accessibility standards?
+
+5. Walk me through how you would implement responsive design for a complex dashboard that needs to work seamlessly across desktop, tablet, and mobile devices.
+
+6. What is your experience with TypeScript in frontend development? How does it improve code quality and developer experience compared to vanilla JavaScript?
+
+7. Explain how you would handle API integration, including error handling, loading states, caching, and managing concurrent requests in a modern frontend application.
+
+8. Describe your approach to testing frontend applications. What types of tests do you write, and what testing frameworks and tools do you prefer?
+
+9. How do you stay current with rapidly evolving frontend technologies and frameworks? Can you discuss a recent technology you've adopted and why?
+
+10. Explain the concept of micro-frontends. What are the benefits and challenges of this architecture, and when would you recommend implementing it?
