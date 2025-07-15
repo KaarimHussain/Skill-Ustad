@@ -1,0 +1,30 @@
+export const IT_FIELDS = [
+    "Web Development",
+    "Mobile App Development",
+    "Data Science",
+    "Machine Learning",
+    "Artificial Intelligence",
+    "Cybersecurity",
+    "Cloud Computing",
+    "DevOps",
+    "Software Engineering",
+    "Database Administration",
+    "Network Administration",
+    "UI/UX Design",
+    "Game Development",
+    "Blockchain Development",
+    "IoT Development",
+    "Quality Assurance",
+    "Product Management",
+    "Digital Marketing",
+    "System Administration",
+    "Other",
+]
+
+export const PASSWORD_REQUIREMENTS = [
+    { key: "length", text: "At least 8 characters" },
+    { key: "uppercase", text: "One uppercase letter" },
+    { key: "lowercase", text: "One lowercase letter" },
+    { key: "number", text: "One number" },
+    { key: "special", text: "One special character" },
+] as const

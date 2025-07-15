@@ -8,19 +8,35 @@ namespace SkillUstad.Service
 {
     public class TokenService
     {
-        public void GenerateToken(UserTokenDto user)
+        private readonly IConfiguration _config;
+        public TokenService(IConfiguration config)
         {
-            var tokenHandler = new JwtSecurityTokenHandler();
-            var key = Encoding.UTF8.GetBytes("your_super_secret_key");
-            var tokenDescriptor = new SecurityTokenDescriptor
+            _config = config;
+        }
+
+        public string GenerateToken(UserTokenDto user)
+        {
+
+            var jwtConfig = _config.GetSection("Jwt");
+            var claims = new[]
             {
-                Subject = new ClaimsIdentity(new Claim[] {
-                    new(ClaimTypes.Name, user.Name)
-                }),
-                Expires = DateTime.UtcNow.AddHours(1),
-                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
-            };
-            var token = tokenHandler.CreateToken(tokenDescriptor);
+            new Claim(JwtRegisteredClaimNames.Sub, user.Name),
+            new Claim(JwtRegisteredClaimNames.Email, user.Email),
+            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+        };
+
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtConfig["Key"]));
+            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+
+            var token = new JwtSecurityToken(
+                issuer: jwtConfig["Issuer"],
+                audience: jwtConfig["Audience"],
+                claims: claims,
+                expires: DateTime.UtcNow.AddMinutes(int.Parse(jwtConfig["ExpiresInMinutes"])),
+                signingCredentials: creds
+            );
+
+            return new JwtSecurityTokenHandler().WriteToken(token);
         }
     }
 }

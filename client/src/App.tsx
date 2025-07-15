@@ -6,10 +6,14 @@ import Home from './views/Home'
 import Login from './views/Login'
 import Signup from './views/Signup'
 import OTPVerification from './views/OTPVerification'
+import ScrollToTop from './components/ScrollToTop'
+import InterviewSimulator from './views/InterviewSimulator'
+import { ConversationInterface } from './components/interview/ConversationInterface'
 
 function App() {
   return (
     <Router>
+      <ScrollToTop /> {/* <- Place this inside Router */}
       <Navbar />
       {/*  */}
       <Routes>
@@ -18,6 +22,9 @@ function App() {
         <Route path='/login' element={<Login />} />
         <Route path='/signup' element={<Signup />} />
         <Route path='/otp' element={<OTPVerification />} />
+        {/*  */}
+        {/* Public Routes */}
+        <Route path='/interview' element={<InterviewSimulator />} />
         {/*  */}
       </Routes>
       {/*  */}

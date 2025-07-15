@@ -8,7 +8,7 @@ import { memo } from "react"
 const ReadyToLearnBackground = memo(() => (
     <>
         {/* Gradient background matching hero */}
-        <div className="absolute inset-0 bg-gradient-to-br from-white via-purple-50 to-indigo-100" />
+        <div className="absolute inset-0 bg-gradient-to-t from-white via-purple-200 to-indigo-100" />
 
         {/* Light rays effect similar to hero */}
         <div className="absolute top-0 right-0 w-full h-full overflow-hidden pointer-events-none">
