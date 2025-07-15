@@ -294,7 +294,7 @@ const DesktopNavigationContent = memo(() => (
                         <li>
                             <NavigationMenuLink asChild>
                                 <Link
-                                    to="/ai/interview-simulator"
+                                    to={"/ai/interview"}
                                     className="block p-4 rounded-xl bg-blue-50/60 hover:bg-blue-100/60 border border-blue-200/60 hover:border-blue-300/60 transition-all duration-200 group backdrop-blur-sm"
                                 >
                                     <div className="flex items-start gap-3">
