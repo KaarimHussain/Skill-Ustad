@@ -138,3 +138,32 @@ These features were designed to be **AI-focused**, **UX/UI-enhanced**, and **mar
 - **Database:** PostgreSQL
 - **Auth:** JWT or Identity, Google Auth
 - **Real-time:** SignalR
+
+# ============================================================
+## Dev Guide Overview
+# ============================================================
+
+
+Folder Structure:
+
+Skill-Ustad
+├───README.md
+├──Brain
+│   ├───venv
+│   ├───main.py - Entry Point
+├──Server - ASP .NET Core API
+├──Client - Frontend React + Vite
+
+so there are actually 2 servers as part of backend
+
+1) .NET Web API - Primary Database - For Data processing
+2) Python FastAPI - For TTS
+
+**How to run the backend & frontend servers**
+
+1) Python - Redirects to brain folder
+   1) cd ./brain && python main.py
+2) .NET - Redirects to server folder
+   1) cd ./server && dotnet watch run
+3) React - Redirects to client folder
+   1) cd ./client && npm run dev
