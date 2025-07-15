@@ -162,7 +162,7 @@ so there are actually 2 servers as part of backend
 **How to run the backend & frontend servers**
 
 1) Python - Redirects to brain folder
-   1) cd ./brain && python main.py
+   1) cd ./brain && python main.py OR python -m uvicorn main:app --reload
 2) .NET - Redirects to server folder
    1) cd ./server && dotnet watch run
 3) React - Redirects to client folder
