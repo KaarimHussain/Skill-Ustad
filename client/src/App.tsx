@@ -7,7 +7,8 @@ import Login from './views/Login'
 import Signup from './views/Signup'
 import OTPVerification from './views/OTPVerification'
 import ScrollToTop from './components/ScrollToTop'
-import InterviewSimulator from './views/InterviewSimulator'
+// import InterviewSimulator from './views/InterviewSimulator'
+import VoiceInterviewSimulator from './views/InterviewSimulator'
 function App() {
   return (
     <Router>
@@ -22,7 +23,7 @@ function App() {
         <Route path='/otp' element={<OTPVerification />} />
         {/*  */}
         {/* Public Routes */}
-        <Route path='/ai/interview' element={<InterviewSimulator />} />
+        <Route path='/ai/interview' element={<VoiceInterviewSimulator />} />
         {/*  */}
       </Routes>
       {/*  */}
