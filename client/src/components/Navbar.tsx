@@ -273,11 +273,13 @@ const DesktopNavigationContent = memo(() => (
                 </NavigationMenuContent>
             </NavigationMenuItem>
             <NavigationMenuItem>
-                <NavigationMenuTrigger className="bg-transparent p-0 m-0 border-none hover:bg-transparent">
-                    <Button className="py-3 border-none bg-transparent shadow-transparent text-gray-700 hover:text-gray-900 hover:bg-gray-100/50 rounded-full cursor-pointer">
-                        AI Tools
-                    </Button>
-                </NavigationMenuTrigger>
+                <NavigationMenuLink className="bg-transparent p-0 m-0 border-none hover:bg-transparent">
+                    <Link to={"/ai/tools"}>
+                        <Button className="py-3 border-none bg-transparent shadow-transparent text-gray-700 hover:text-gray-900 hover:bg-gray-100/50 rounded-full cursor-pointer">
+                            AI Tools
+                        </Button>
+                    </Link>
+                </NavigationMenuLink>
                 <NavigationMenuContent className="bg-white">
                     <ul className="grid gap-3 w-[400px] bg-white p-3">
                         <li className="mb-2">

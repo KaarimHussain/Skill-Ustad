@@ -3,9 +3,10 @@ import { ArrowUpRight, Sparkle } from "lucide-react";
 import style from "../css/Hero.module.css";
 import { GridPattern } from "./magicui/grid-pattern";
 import { Link } from "react-router-dom";
-import SplitText from "../components/reactbits/SplitText/SplitText"
+import { Announcement, AnnouncementTag, AnnouncementTitle } from "./ui/kibo-ui/announcement";
 
 export default function HeroComponent() {
+
     return (
         <div className="min-h-[100vh] w-full relative overflow-hidden bg-black/30">
             <GridPattern x={-1} y={-1} height={70} width={70} />
@@ -18,19 +19,18 @@ export default function HeroComponent() {
 
             <main className={`${style.heroSection} px-4 sm:px-6`}>
                 {/* Hero Tip */}
-                <div className={`${style.heroTip} ps-1 py-1 pe-3 mb-4 flex-wrap justify-center`}>
-                    <div className="bg-white px-3 sm:mb-0 me-3 rounded-full text-black text-sm sm:text-base">
-                        Learn Fast
-                    </div>
-                    <span className="text-white/95 text-sm sm:text-base text-center">
+
+                <Announcement className="cursor-pointer" variant={"secondary"}>
+                    <AnnouncementTag>Learn Fast</AnnouncementTag>
+                    <AnnouncementTitle>
                         Build skills that make you money 💸
-                    </span>
-                </div>
+                    </AnnouncementTitle>
+                </Announcement>
 
                 {/* Main Heading */}
                 <div className="text-white text-center flex flex-col items-center">
-                    <SplitText splitType="chars" ease={"elastic.out(1,0.3)"} delay={10} duration={2} threshold={0.2} text="Master In-Demand Skills." className="font-semibold text-4xl sm:text-5xl md:text-6xl lg:text-7xl leading-tight mb-3" />
-
+                    <h1 className="lg:text-7xl md:text-5xl sm:text-3xl text-4xl font-bold lg:my-5 md:my-4 sm:my-2 my-2 text-black flex items-center justify-center gap-1 text-nowrap"><div className="font-2">Master In-Demand </div>
+                        <span className="bg-indigo-500 rounded-full md:px-7 md:py-4 sm:px-4 sm:py-2 px-3 py-1 text-white lg:text-6xl md:text-5xl sm:text-3xl text-4xl font-2">Skills</span></h1>
                     <span className="bg-indigo-500 rounded-2xl px-4 py-2 sm:px-6 sm:py-3 text-xl sm:text-3xl font-light inline-block">
                         Build. Launch. Grow.
                     </span>

@@ -54,3 +54,5 @@ C:\Users\HP\OneDrive\Desktop\Skill-Ustad\server\obj\Debug\net9.0\refint\server.d
 C:\Users\HP\OneDrive\Desktop\Skill-Ustad\server\obj\Debug\net9.0\server.pdb
 C:\Users\HP\OneDrive\Desktop\Skill-Ustad\server\obj\Debug\net9.0\server.genruntimeconfig.cache
 C:\Users\HP\OneDrive\Desktop\Skill-Ustad\server\obj\Debug\net9.0\ref\server.dll
+C:\Users\HP\OneDrive\Desktop\Skill-Ustad\server\bin\Debug\net9.0\CloudinaryDotNet.dll
+C:\Users\HP\OneDrive\Desktop\Skill-Ustad\server\bin\Debug\net9.0\Newtonsoft.Json.dll

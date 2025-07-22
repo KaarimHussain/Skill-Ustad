@@ -79,7 +79,7 @@ const BenefitCard = memo(
         delay?: number
     }) => (
         <div
-            className={`${className} bg-white/70 backdrop-blur-sm border border-white/60 rounded-2xl p-6 group hover:bg-white/80 hover:border-white/80 transition-all duration-300 relative overflow-hidden hover:scale-[1.02] hover:shadow-xl hover:shadow-indigo-100/50 opacity-0 translate-y-8 animate-fade-in-up`}
+            className={`${className} bg-white/70 backdrop-blur-sm border border-white/60 rounded-2xl p-6 group hover:bg-white/80 hover:border-white/80 transition-all duration-300 relative overflow-hidden hover:scale-[1.02] hover:shadow-xl hover:shadow-indigo-100/50 translate-y-8 animate-fade-in-up`}
             style={{
                 animationDelay: `${delay}ms`,
                 animationFillMode: "forwards",
@@ -95,12 +95,11 @@ export default function Benefits() {
     return (
         <section className="relative min-h-screen w-full flex flex-col items-center justify-center py-20 px-4 overflow-hidden">
             <BackgroundElements />
-            <div className="relative z-10 max-w-7xl mx-auto w-full">
+            <div className="relative z-20 max-w-7xl mx-auto w-full">
                 {/* Header */}
                 <div className="text-center mb-16">
                     <div
-                        className="opacity-0 translate-y-8 animate-fade-in-up"
-                        style={{ animationDelay: "200ms", animationFillMode: "forwards" }}
+                        className="translate-y-8 animate-fade-in-up"
                     >
                         <h1 className="font-bold text-5xl md:text-6xl text-gray-900 mb-4">Built Different — Here's How</h1>
                         <p className="text-gray-600 text-lg md:text-xl max-w-3xl mx-auto leading-relaxed">
@@ -112,7 +111,7 @@ export default function Benefits() {
                 {/* Bento Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-6 lg:grid-cols-8 gap-4 md:gap-6 auto-rows-[200px]">
                     {/* AI-Powered Learning - Large Card */}
-                    <BenefitCard className="md:col-span-3 lg:col-span-3 md:row-span-2" delay={400}>
+                    <BenefitCard className="md:col-span-3 lg:col-span-3 md:row-span-2">
                         <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-200/30 to-transparent rounded-full blur-2xl"></div>
                         <div className="flex items-center gap-3 mb-4">
                             <div className="p-2 bg-blue-100 rounded-lg group-hover:bg-blue-200 transition-colors">
@@ -130,7 +129,7 @@ export default function Benefits() {
                     </BenefitCard>
 
                     {/* Skill-Focused Tracks */}
-                    <BenefitCard className="md:col-span-3 lg:col-span-2" delay={500}>
+                    <BenefitCard className="md:col-span-3 lg:col-span-2">
                         <div className="absolute -top-10 -right-10 w-20 h-20 bg-gradient-to-br from-green-200/40 to-transparent rounded-full blur-xl"></div>
                         <div className="p-2 bg-green-100 rounded-lg w-fit mb-4 group-hover:bg-green-200 transition-colors">
                             <Target className="w-6 h-6 text-green-600" />
@@ -142,7 +141,7 @@ export default function Benefits() {
                     </BenefitCard>
 
                     {/* Mentor Access */}
-                    <BenefitCard className="md:col-span-3 lg:col-span-3" delay={600}>
+                    <BenefitCard className="md:col-span-3 lg:col-span-3">
                         <div className="absolute -bottom-10 -left-10 w-24 h-24 bg-gradient-to-tr from-purple-200/20 to-transparent rounded-full blur-xl"></div>
                         <div className="flex items-center gap-3 mb-4">
                             <div className="p-2 bg-purple-100 rounded-lg group-hover:bg-purple-200 transition-colors">
@@ -167,7 +166,7 @@ export default function Benefits() {
                     </BenefitCard>
 
                     {/* Smart Projects */}
-                    <BenefitCard className="md:col-span-3 lg:col-span-2 md:row-span-2" delay={700}>
+                    <BenefitCard className="md:col-span-3 lg:col-span-2 md:row-span-2">
                         <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-orange-100/20 to-transparent"></div>
                         <div className="p-2 bg-orange-100 rounded-lg w-fit mb-4 group-hover:bg-orange-200 transition-colors">
                             <Code className="w-6 h-6 text-orange-600" />
@@ -190,7 +189,7 @@ export default function Benefits() {
                     </BenefitCard>
 
                     {/* Progress Tracking */}
-                    <BenefitCard className="md:col-span-6 lg:col-span-3" delay={800}>
+                    <BenefitCard className="md:col-span-6 lg:col-span-3">
                         <div className="absolute -top-5 -right-5 w-16 h-16 bg-gradient-to-br from-cyan-200/40 to-transparent rounded-full blur-lg"></div>
                         <div className="flex items-center justify-between mb-4">
                             <div className="flex items-center gap-3">
@@ -213,7 +212,7 @@ export default function Benefits() {
                     </BenefitCard>
 
                     {/* Certificates */}
-                    <BenefitCard className="md:col-span-3 lg:col-span-3" delay={900}>
+                    <BenefitCard className="md:col-span-3 lg:col-span-3">
                         <div className="absolute -bottom-5 -right-5 w-16 h-16 bg-gradient-to-tl from-yellow-200/40 to-transparent rounded-full blur-lg"></div>
                         <div className="p-2 bg-yellow-100 rounded-lg w-fit mb-4 group-hover:bg-yellow-200 transition-colors">
                             <Award className="w-6 h-6 text-yellow-600" />
@@ -225,7 +224,7 @@ export default function Benefits() {
                     </BenefitCard>
 
                     {/* Community Learning */}
-                    <BenefitCard className="md:col-span-3 lg:col-span-3" delay={1000}>
+                    <BenefitCard className="md:col-span-3 lg:col-span-3">
                         <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-indigo-100/20 to-transparent"></div>
                         <div>
                             <div className="flex items-center gap-3 mb-4">
@@ -249,8 +248,7 @@ export default function Benefits() {
 
                 {/* CTA Section */}
                 <div
-                    className="text-center mt-16 opacity-0 translate-y-8 animate-fade-in-up"
-                    style={{ animationDelay: "1200ms", animationFillMode: "forwards" }}
+                    className="text-center mt-16 translate-y-8 animate-fade-in-up"
                 >
                     <Button
                         size="lg"
