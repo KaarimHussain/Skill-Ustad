@@ -15,8 +15,15 @@ namespace SkillUstad.Models
         [Required, EmailAddress, NotNull]
         public string Email { get; set; } = null!;
 
-        [Required, NotNull, DataType(DataType.Password)]
-        public string Password { get; set; } = null!;
+        // Make Password optional (null if OAuth)
+        [DataType(DataType.Password)]
+        public string? Password { get; set; } = null;
+
+        // NEW: OAuth provider (google, github, etc.)
+        public string? OAuthProvider { get; set; } = null;
+
+        // NEW: OAuth unique ID from the provider
+        public string? OAuthId { get; set; } = null;
 
         // Profile Picture can be null 
         // The Profile Picture will be stored on cloud the service name is Cloudinary
