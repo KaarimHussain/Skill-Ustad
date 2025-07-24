@@ -158,7 +158,7 @@ export default function Login() {
   }, [])
 
   return (
-    <section className="min-h-[100vh] pt-32 pb-10 w-full flex items-center justify-center p-4 relative overflow-hidden">
+    <section className="min-h-screen pt-32 pb-10 w-full flex items-center justify-center p-4 relative overflow-hidden">
       <LoginBackground />
 
       {/* Main Form Container */}
@@ -196,11 +196,9 @@ export default function Login() {
                     value={formData.email}
                     onChange={(e) => handleInputChange("email", e.target.value)}
                     onBlur={() => handleBlur("email")}
-                    className={`pl-14 pr-4 py-6 text-base bg-white/60 border-gray-300 focus:border-indigo-500 focus:bg-white/80 text-gray-900 placeholder-gray-500 rounded-xl transition-all duration-200 backdrop-blur-sm h-14 hover:bg-white/70 ${
-                      errors.email ? "border-red-500 focus:border-red-500" : ""
-                    } ${
-                      touched.email && !errors.email && formData.email ? "border-green-500 focus:border-green-500" : ""
-                    }`}
+                    className={`pl-14 pr-4 py-6 text-base bg-white/60 border-gray-300 focus:border-indigo-500 focus:bg-white/80 text-gray-900 placeholder-gray-500 rounded-xl transition-all duration-200 backdrop-blur-sm h-14 hover:bg-white/70 ${errors.email ? "border-red-500 focus:border-red-500" : ""
+                      } ${touched.email && !errors.email && formData.email ? "border-green-500 focus:border-green-500" : ""
+                      }`}
                     autoComplete="email"
                   />
                   {/* Success/Error Icon */}
@@ -234,13 +232,11 @@ export default function Login() {
                     value={formData.password}
                     onChange={(e) => handleInputChange("password", e.target.value)}
                     onBlur={() => handleBlur("password")}
-                    className={`pl-14 pr-14 py-6 text-base bg-white/60 border-gray-300 focus:border-indigo-500 focus:bg-white/80 text-gray-900 placeholder-gray-500 rounded-xl transition-all duration-200 backdrop-blur-sm h-14 hover:bg-white/70 ${
-                      errors.password ? "border-red-500 focus:border-red-500" : ""
-                    } ${
-                      touched.password && !errors.password && formData.password
+                    className={`pl-14 pr-14 py-6 text-base bg-white/60 border-gray-300 focus:border-indigo-500 focus:bg-white/80 text-gray-900 placeholder-gray-500 rounded-xl transition-all duration-200 backdrop-blur-sm h-14 hover:bg-white/70 ${errors.password ? "border-red-500 focus:border-red-500" : ""
+                      } ${touched.password && !errors.password && formData.password
                         ? "border-green-500 focus:border-green-500"
                         : ""
-                    }`}
+                      }`}
                     autoComplete="current-password"
                   />
                   <button
@@ -270,12 +266,13 @@ export default function Login() {
                     Remember me
                   </Label>
                 </div>
-                <button
+                <Link
+                  to={"/forget-password"}
                   type="button"
                   className="text-indigo-600 hover:text-indigo-700 text-base font-medium transition-colors hover:underline"
                 >
                   Forgot password?
-                </button>
+                </Link>
               </div>
 
               {/* Login Button */}

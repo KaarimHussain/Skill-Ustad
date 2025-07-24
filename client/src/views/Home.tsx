@@ -12,7 +12,7 @@ export default function Home() {
             <Benefits />
             <TrustedByLearners />
             <TopSkillCourses />
-            <RoadmapShowcase/>
+            <RoadmapShowcase />
             <ReadyToLearn />
         </>
     )
