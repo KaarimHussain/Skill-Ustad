@@ -1,14 +1,33 @@
-import img from "@/assets/img/Signup-Form-Background.png";
-import Logo from "@/assets/Logos/Light.png";
-import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { AlertCircle, ArrowRight, CheckCircle, Chrome, Github, Mail, Lock, Eye, EyeOff, User } from "lucide-react";
-import { useState, useCallback } from "react";
-import { Link } from "react-router-dom";
-// Google OAuth Imports
-import { useGoogleLogin } from '@react-oauth/google';
+"use client"
+
+import type React from "react"
+
+import img from "@/assets/img/Signup-Form-Background.png"
+import Logo from "@/assets/Logos/Light.png"
+import { Button } from "@/components/ui/button"
+import { Checkbox } from "@/components/ui/checkbox"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import {
+    AlertCircle,
+    ArrowRight,
+    CheckCircle,
+    Chrome,
+    Github,
+    Mail,
+    Lock,
+    Eye,
+    EyeOff,
+    User,
+    User2Icon,
+    GraduationCap,
+    Loader2,
+} from "lucide-react"
+import { useState, useCallback } from "react"
+import { Link, useNavigate } from "react-router-dom"
+import { useGoogleLogin } from "@react-oauth/google"
+import AuthService, { type RegisterRequest, type ApiError } from "@/services/auth.service"
+import { Alert, AlertDescription } from "@/components/ui/alert"
 
 // Validation functions
 const validateFullname = (fullname: string): string => {
@@ -51,26 +70,26 @@ const calculatePasswordStrength = (password: string) => {
     }
 
     const score = Object.values(requirements).filter(Boolean).length
-    let strength: 'weak' | 'fair' | 'good' | 'strong' = 'weak'
-    let color = 'bg-red-500'
-    let width = '20%'
+    let strength: "weak" | "fair" | "good" | "strong" = "weak"
+    let color = "bg-red-500"
+    let width = "20%"
 
     if (score >= 5) {
-        strength = 'strong'
-        color = 'bg-green-500'
-        width = '100%'
+        strength = "strong"
+        color = "bg-green-500"
+        width = "100%"
     } else if (score >= 4) {
-        strength = 'good'
-        color = 'bg-blue-500'
-        width = '75%'
+        strength = "good"
+        color = "bg-blue-500"
+        width = "75%"
     } else if (score >= 3) {
-        strength = 'fair'
-        color = 'bg-yellow-500'
-        width = '50%'
+        strength = "fair"
+        color = "bg-yellow-500"
+        width = "50%"
     } else if (score >= 1) {
-        strength = 'weak'
-        color = 'bg-red-500'
-        width = '25%'
+        strength = "weak"
+        color = "bg-red-500"
+        width = "25%"
     }
 
     return { requirements, score, strength, color, width }
@@ -99,17 +118,17 @@ const PasswordStrengthIndicator = ({ password }: { password: string }) => {
     const { requirements, strength, color, width } = calculatePasswordStrength(password)
 
     const strengthLabels = {
-        weak: 'Weak',
-        fair: 'Fair',
-        good: 'Good',
-        strong: 'Strong'
+        weak: "Weak",
+        fair: "Fair",
+        good: "Good",
+        strong: "Strong",
     }
 
     const strengthColors = {
-        weak: 'text-red-600',
-        fair: 'text-yellow-600',
-        good: 'text-blue-600',
-        strong: 'text-green-600'
+        weak: "text-red-600",
+        fair: "text-yellow-600",
+        good: "text-blue-600",
+        strong: "text-green-600",
     }
 
     return (
@@ -118,15 +137,10 @@ const PasswordStrengthIndicator = ({ password }: { password: string }) => {
             <div className="space-y-2">
                 <div className="flex items-center justify-between">
                     <span className="text-sm text-gray-600">Password strength</span>
-                    <span className={`text-sm font-medium ${strengthColors[strength]}`}>
-                        {strengthLabels[strength]}
-                    </span>
+                    <span className={`text-sm font-medium ${strengthColors[strength]}`}>{strengthLabels[strength]}</span>
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-2">
-                    <div
-                        className={`h-2 rounded-full transition-all duration-300 ${color}`}
-                        style={{ width }}
-                    />
+                    <div className={`h-2 rounded-full transition-all duration-300 ${color}`} style={{ width }} />
                 </div>
             </div>
 
@@ -134,26 +148,11 @@ const PasswordStrengthIndicator = ({ password }: { password: string }) => {
             <div className="space-y-2">
                 <span className="text-sm text-gray-600 font-medium">Password must contain:</span>
                 <div className="grid grid-cols-1 gap-1">
-                    <RequirementItem
-                        met={requirements.length}
-                        text="At least 8 characters"
-                    />
-                    <RequirementItem
-                        met={requirements.lowercase}
-                        text="One lowercase letter (a-z)"
-                    />
-                    <RequirementItem
-                        met={requirements.uppercase}
-                        text="One uppercase letter (A-Z)"
-                    />
-                    <RequirementItem
-                        met={requirements.number}
-                        text="One number (0-9)"
-                    />
-                    <RequirementItem
-                        met={requirements.special}
-                        text="One special character (!@#$%^&*)"
-                    />
+                    <RequirementItem met={requirements.length} text="At least 8 characters" />
+                    <RequirementItem met={requirements.lowercase} text="One lowercase letter (a-z)" />
+                    <RequirementItem met={requirements.uppercase} text="One uppercase letter (A-Z)" />
+                    <RequirementItem met={requirements.number} text="One number (0-9)" />
+                    <RequirementItem met={requirements.special} text="One special character (!@#$%^&*)" />
                 </div>
             </div>
         </div>
@@ -162,24 +161,29 @@ const PasswordStrengthIndicator = ({ password }: { password: string }) => {
 
 // Individual requirement item component
 const RequirementItem = ({ met, text }: { met: boolean; text: string }) => (
-    <div className={`flex items-center gap-2 text-xs transition-colors duration-200 ${met ? 'text-green-600' : 'text-gray-500'
-        }`}>
-        <div className={`w-4 h-4 rounded-full flex items-center justify-center transition-colors duration-200 ${met ? 'bg-green-100' : 'bg-gray-100'
-            }`}>
-            {met ? (
-                <CheckCircle className="w-3 h-3 text-green-600" />
-            ) : (
-                <div className="w-2 h-2 rounded-full bg-gray-400" />
-            )}
+    <div
+        className={`flex items-center gap-2 text-xs transition-colors duration-200 ${met ? "text-green-600" : "text-gray-500"
+            }`}
+    >
+        <div
+            className={`w-4 h-4 rounded-full flex items-center justify-center transition-colors duration-200 ${met ? "bg-green-100" : "bg-gray-100"
+                }`}
+        >
+            {met ? <CheckCircle className="w-3 h-3 text-green-600" /> : <div className="w-2 h-2 rounded-full bg-gray-400" />}
         </div>
-        <span className={met ? 'line-through' : ''}>{text}</span>
+        <span className={met ? "line-through" : ""}>{text}</span>
     </div>
 )
 
 export default function Signup() {
+    const navigate = useNavigate();
     const [showPassword, setShowPassword] = useState(false)
     const [showConfirmPassword, setShowConfirmPassword] = useState(false)
     const [isLoading, setIsLoading] = useState(false)
+    const [socialAuthLoading, setSocialAuthLoading] = useState(false)
+    const [apiError, setApiError] = useState<string>("")
+    const [successMessage, setSuccessMessage] = useState<string>("")
+
     const [touched, setTouched] = useState({
         fullname: false,
         email: false,
@@ -193,10 +197,9 @@ export default function Signup() {
         password: "",
         confirmPassword: "",
         profilePicture: null,
-        agreeToTerms: false
+        agreeToTerms: false,
+        role: "student", // Default role set to student
     })
-    //  Social Auth Signup State Management
-    const [socialAuthLoading, setSocialAuthLoading] = useState(false);
 
     // Password strength calculation
     const passwordStrength = calculatePasswordStrength(formData.password)
@@ -206,20 +209,99 @@ export default function Signup() {
         fullname: touched.fullname ? validateFullname(formData.fullname) : "",
         email: touched.email ? validateEmail(formData.email) : "",
         password: touched.password ? validatePassword(formData.password) : "",
-        confirmPassword: touched.confirmPassword ? validateConfirmPassword(formData.password, formData.confirmPassword) : "",
+        confirmPassword: touched.confirmPassword
+            ? validateConfirmPassword(formData.password, formData.confirmPassword)
+            : "",
     }
 
-    const isFormValid = !errors.fullname && !errors.email && !errors.password && !errors.confirmPassword &&
-        formData.fullname && formData.email && formData.password && formData.confirmPassword &&
-        passwordStrength.strength !== 'weak'
+    const isFormValid =
+        !errors.fullname &&
+        !errors.email &&
+        !errors.password &&
+        !errors.confirmPassword &&
+        formData.fullname &&
+        formData.email &&
+        formData.password &&
+        formData.confirmPassword &&
+        passwordStrength.strength !== "weak" &&
+        formData.agreeToTerms
 
-    const handleInputChange = useCallback((field: string, value: string) => {
-        setFormData((prev) => ({ ...prev, [field]: value }))
-    }, [])
+    const handleInputChange = useCallback(
+        (field: string, value: string) => {
+            setFormData((prev) => ({ ...prev, [field]: value }))
+            // Clear API error when user starts typing
+            if (apiError) setApiError("")
+        },
+        [apiError],
+    )
 
     const handleBlur = useCallback((field: string) => {
         setTouched((prev) => ({ ...prev, [field]: true }))
     }, [])
+
+    // Role selection handler
+    const handleRoleSelection = useCallback((role: string) => {
+        setFormData((prev) => ({ ...prev, role: role.toLowerCase() }))
+    }, [])
+
+    // Clear messages after timeout
+    const clearMessages = useCallback(() => {
+        setTimeout(() => {
+            setApiError("")
+            setSuccessMessage("")
+        }, 5000)
+    }, [])
+
+    // Handle normal registration
+    const handleNormalRegistration = useCallback(
+        async (registrationData: RegisterRequest) => {
+            try {
+                const response = await AuthService.register(registrationData)
+                setSuccessMessage(response.message || "Registration successful!")
+                console.log("✅ Registration successful:", response)
+
+                // Optionally redirect to login or dashboard
+                navigate('/login')
+                clearMessages()
+            } catch (error) {
+                const apiError = error as ApiError
+                setApiError(apiError.message || "Registration failed. Please try again.")
+                console.error("❌ Registration error:", apiError)
+                clearMessages()
+            }
+        },
+        [clearMessages],
+    )
+
+    // Handle OAuth registration
+    const handleOAuthRegistration = useCallback(
+        async (registrationData: RegisterRequest) => {
+            try {
+                const response = await AuthService.register(registrationData)
+                setSuccessMessage(response.message || "OAuth registration successful!")
+                console.log("✅ OAuth registration successful:", response)
+
+                // For OAuth registration, we get a token immediately, so redirect to dashboard
+                if (response.token && response.user) {
+                    const redirectUrl = AuthService.getRedirectUrl(response.userType)
+                    console.log("🔄 Redirecting to:", redirectUrl)
+
+                    // Small delay to show success message
+                    setTimeout(() => {
+                        navigate(redirectUrl)
+                    }, 1500)
+                }
+
+                clearMessages()
+            } catch (error) {
+                const apiError = error as ApiError
+                setApiError(apiError.message || "OAuth registration failed. Please try again.")
+                console.error("❌ OAuth registration error:", apiError)
+                clearMessages()
+            }
+        },
+        [clearMessages, navigate],
+    )
 
     const handleSubmit = useCallback(
         async (e: React.FormEvent) => {
@@ -229,93 +311,229 @@ export default function Signup() {
 
             // Check if form is valid
             if (!isFormValid) {
+                setApiError("Please fix all validation errors before submitting.")
+                clearMessages()
                 return
             }
 
             setIsLoading(true)
+            setApiError("")
+            setSuccessMessage("")
+
             try {
-                // Simulate API call
-                await new Promise((resolve) => setTimeout(resolve, 2000))
-                console.log("Signup submitted:", formData)
-                // Handle successful signup here
+                // Prepare the final data for normal registration
+                const registrationData: RegisterRequest = {
+                    Name: formData.fullname.trim(),
+                    Email: formData.email.trim().toLowerCase(),
+                    Password: formData.password,
+                    UserType: formData.role === "student" ? "Student" : "Mentor",
+                    OAuthProvider: undefined,
+                    OAuthId: undefined,
+                    ProfilePicture: undefined,
+                }
+
+                // Validate data before sending
+                const validationErrors = AuthService.validateRegistrationData(registrationData)
+                if (validationErrors.length > 0) {
+                    setApiError(validationErrors.join(", "))
+                    clearMessages()
+                    return
+                }
+
+                console.log("🚀 Submitting normal registration:", registrationData)
+                await handleNormalRegistration(registrationData)
             } catch (error) {
-                console.error("Signup failed:", error)
-                // Handle signup error here
+                console.error("❌ Unexpected error during registration:", error)
+                setApiError("An unexpected error occurred. Please try again.")
+                clearMessages()
             } finally {
                 setIsLoading(false)
             }
         },
-        [formData, isFormValid],
+        [formData, isFormValid, handleNormalRegistration, clearMessages],
     )
 
     const googleLogin = useGoogleLogin({
         onSuccess: async (tokenResponse) => {
-            console.table(tokenResponse);
+            console.log("🔑 Google token received:", tokenResponse)
+
             try {
                 const res = await fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
                     headers: {
                         Authorization: `Bearer ${tokenResponse.access_token}`,
                     },
-                });
+                })
 
-                const profile = await res.json();
-                console.log("👤 Google User Info:", profile);
+                if (!res.ok) {
+                    throw new Error("Failed to fetch Google user info")
+                }
 
+                const profile = await res.json()
+                console.log("👤 Google User Info:", profile)
+
+                // Prepare the registration request for OAuth
+                const registrationData: RegisterRequest = {
+                    Name: profile.name || "",
+                    Email: profile.email || "",
+                    Password: undefined,
+                    OAuthProvider: "Google",
+                    OAuthId: profile.sub || "",
+                    ProfilePicture: profile.picture || "",
+                    UserType: formData.role === "student" ? "Student" : "Mentor",
+                }
+
+                // Validate OAuth data
+                const validationErrors = AuthService.validateRegistrationData(registrationData)
+                if (validationErrors.length > 0) {
+                    setApiError(validationErrors.join(", "))
+                    clearMessages()
+                    return
+                }
+
+                console.log("🚀 Submitting OAuth registration:", registrationData)
+                await handleOAuthRegistration(registrationData)
             } catch (error) {
-                console.error("Failed to fetch user info", error);
+                console.error("❌ Failed to process Google OAuth:", error)
+                setApiError("Failed to process Google authentication. Please try again.")
+                clearMessages()
+            } finally {
+                setSocialAuthLoading(false)
             }
-            setSocialAuthLoading(false);
         },
         onError: (error) => {
-            console.error("Google Login Failed", error);
-            setSocialAuthLoading(false);
+            console.error("❌ Google Login Failed:", error)
+            setApiError("Google authentication failed. Please try again.")
+            setSocialAuthLoading(false)
+            clearMessages()
         },
-    });
+    })
 
-    const handleSocialLogin = useCallback((provider: string) => {
-        if (provider == "GitHub") {
-            setSocialAuthLoading(true);
-            return;
-        } else if (provider == "Google") {
-            setSocialAuthLoading(true);
-            googleLogin();
-        } else {
-            setSocialAuthLoading(false);
-        }
-    }, [googleLogin])
+    const handleSocialLogin = useCallback(
+        (provider: string) => {
+            if (!formData.role) {
+                setApiError("Please select your role before using social authentication.")
+                clearMessages()
+                return
+            }
+
+            setApiError("")
+            setSuccessMessage("")
+
+            if (provider === "GitHub") {
+                setSocialAuthLoading(true)
+                setApiError("GitHub authentication is not yet implemented.")
+                setSocialAuthLoading(false)
+                clearMessages()
+                return
+            } else if (provider === "Google") {
+                setSocialAuthLoading(true)
+                googleLogin()
+            }
+        },
+        [formData.role, googleLogin, clearMessages],
+    )
 
     return (
         <>
-            <div className="min-h-screen w-full lg:px-20 md:px-15 sm:px-10 px-5 py-20 grid grid-flow-col lg:grid-cols-2 md:grid-cols-1 sm:grid-cols-1 grid-cols-1 gap-3">
+            <div className="min-h-screen w-full px-5 py-20 grid grid-flow-col lg:grid-cols-2 md:grid-cols-1 sm:grid-cols-1 grid-cols-1 gap-3">
                 <div className="p-10">
                     <div className="py-3">
-                        <img src={Logo} className="h-15 w-15 aspect-square object-cover" alt="Logo" />
+                        <img src={Logo || "/placeholder.svg"} className="h-15 w-15 aspect-square object-cover" alt="Logo" />
                     </div>
                     <h1 className="font-bold text-5xl">Get Started</h1>
                     <p className="font-light pt-2">Enter your credentials to access your account and features!</p>
+
+                    {/* API Error/Success Messages */}
+                    {apiError && (
+                        <Alert className="mt-4 border-red-200 bg-red-50">
+                            <AlertCircle className="h-4 w-4 text-red-600" />
+                            <AlertDescription className="text-red-600">{apiError}</AlertDescription>
+                        </Alert>
+                    )}
+
+                    {successMessage && (
+                        <Alert className="mt-4 border-green-200 bg-green-50">
+                            <CheckCircle className="h-4 w-4 text-green-600" />
+                            <AlertDescription className="text-green-600">{successMessage}</AlertDescription>
+                        </Alert>
+                    )}
+
+                    {/* Role Selection */}
+                    <div className="py-6">
+                        <div className="mb-3">
+                            <h3 className="text-lg font-medium text-gray-800 mb-1">Choose your role</h3>
+                            <p className="text-sm text-gray-600">
+                                Select how you'll be using our platform. this is one time only and cannot be changed later!
+                            </p>
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full">
+                            <button
+                                disabled={socialAuthLoading || isLoading}
+                                type="button"
+                                onClick={() => handleRoleSelection("student")}
+                                className={`w-full cursor-pointer flex items-center justify-center gap-3 py-4 px-4 border rounded-xl transition-all duration-200 backdrop-blur-sm group h-14 hover:shadow-lg text-sm sm:text-base ${formData.role === "student"
+                                    ? "bg-indigo-50 border-indigo-500 text-indigo-700 shadow-lg shadow-indigo-200/50"
+                                    : "bg-white/60 hover:bg-white/80 border-gray-300 hover:border-gray-400 text-gray-700 hover:text-gray-900 hover:shadow-gray-200/50"
+                                    } ${socialAuthLoading || isLoading ? "opacity-50 cursor-not-allowed" : ""}`}
+                            >
+                                <User2Icon
+                                    className={`w-4 h-4 sm:w-5 sm:h-5 group-hover:scale-110 transition-transform ${formData.role === "student" ? "text-indigo-600" : ""
+                                        }`}
+                                />
+                                <span className="font-medium">Student</span>
+                                {formData.role === "student" && <CheckCircle className="w-4 h-4 text-indigo-600 ml-auto" />}
+                            </button>
+                            <button
+                                disabled={socialAuthLoading || isLoading}
+                                type="button"
+                                onClick={() => handleRoleSelection("mentor")}
+                                className={`w-full cursor-pointer flex items-center justify-center gap-3 py-4 px-4 border rounded-xl transition-all duration-200 backdrop-blur-sm group h-14 hover:shadow-lg text-sm sm:text-base ${formData.role === "mentor"
+                                    ? "bg-indigo-50 border-indigo-500 text-indigo-700 shadow-lg shadow-indigo-200/50"
+                                    : "bg-white/60 hover:bg-white/80 border-gray-300 hover:border-gray-400 text-gray-700 hover:text-gray-900 hover:shadow-gray-200/50"
+                                    } ${socialAuthLoading || isLoading ? "opacity-50 cursor-not-allowed" : ""}`}
+                            >
+                                <GraduationCap
+                                    className={`w-4 h-4 sm:w-5 sm:h-5 group-hover:scale-110 transition-transform ${formData.role === "mentor" ? "text-indigo-600" : ""
+                                        }`}
+                                />
+                                <span className="font-medium">Mentor</span>
+                                {formData.role === "mentor" && <CheckCircle className="w-4 h-4 text-indigo-600 ml-auto" />}
+                            </button>
+                        </div>
+                    </div>
+
                     {/* Social Logins */}
                     <div className="flex gap-2 py-4 items-center justify-start">
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full">
                             <button
-                                disabled={socialAuthLoading}
+                                disabled={socialAuthLoading || isLoading}
                                 type="button"
                                 onClick={() => handleSocialLogin("GitHub")}
-                                className="w-full cursor-pointer flex items-center justify-center gap-3 py-4 px-4 bg-white/60 hover:bg-white/80 border border-gray-300 hover:border-gray-400 rounded-xl text-gray-700 hover:text-gray-900 transition-all duration-200 backdrop-blur-sm group h-14 hover:shadow-lg hover:shadow-gray-200/50 text-sm sm:text-base"
+                                className={`w-full cursor-pointer flex items-center justify-center gap-3 py-4 px-4 bg-white/60 hover:bg-white/80 border border-gray-300 hover:border-gray-400 rounded-xl text-gray-700 hover:text-gray-900 transition-all duration-200 backdrop-blur-sm group h-14 hover:shadow-lg hover:shadow-gray-200/50 text-sm sm:text-base ${socialAuthLoading || isLoading ? "opacity-50 cursor-not-allowed" : ""}`}
                             >
-                                <Github className="w-4 h-4 sm:w-5 sm:h-5 group-hover:scale-110 transition-transform" />
+                                {socialAuthLoading ? (
+                                    <Loader2 className="w-4 h-4 sm:w-5 sm:h-5 animate-spin" />
+                                ) : (
+                                    <Github className="w-4 h-4 sm:w-5 sm:h-5 group-hover:scale-110 transition-transform" />
+                                )}
                                 <span className="font-medium">GitHub</span>
                             </button>
                             <button
-                                disabled={socialAuthLoading}
+                                disabled={socialAuthLoading || isLoading}
                                 type="button"
                                 onClick={() => handleSocialLogin("Google")}
-                                className="w-full cursor-pointer flex items-center justify-center gap-3 py-4 px-4 bg-white/60 hover:bg-white/80 border border-gray-300 hover:border-gray-400 rounded-xl text-gray-700 hover:text-gray-900 transition-all duration-200 backdrop-blur-sm group h-14 hover:shadow-lg hover:shadow-gray-200/50 text-sm sm:text-base"
+                                className={`w-full cursor-pointer flex items-center justify-center gap-3 py-4 px-4 bg-white/60 hover:bg-white/80 border border-gray-300 hover:border-gray-400 rounded-xl text-gray-700 hover:text-gray-900 transition-all duration-200 backdrop-blur-sm group h-14 hover:shadow-lg hover:shadow-gray-200/50 text-sm sm:text-base ${socialAuthLoading || isLoading ? "opacity-50 cursor-not-allowed" : ""}`}
                             >
-                                <Chrome className="w-4 h-4 sm:w-5 sm:h-5 group-hover:scale-110 transition-transform" />
+                                {socialAuthLoading ? (
+                                    <Loader2 className="w-4 h-4 sm:w-5 sm:h-5 animate-spin" />
+                                ) : (
+                                    <Chrome className="w-4 h-4 sm:w-5 sm:h-5 group-hover:scale-110 transition-transform" />
+                                )}
                                 <span className="font-medium">Google</span>
                             </button>
                         </div>
                     </div>
+
                     {/* Divider */}
                     <div className="relative">
                         <div className="absolute inset-0 flex items-center">
@@ -325,8 +543,8 @@ export default function Signup() {
                             <span className="px-4 bg-white/70 text-gray-600 backdrop-blur-sm">Or continue with</span>
                         </div>
                     </div>
-                    {/* Form Field */}
 
+                    {/* Form Field */}
                     <form onSubmit={handleSubmit} className="space-y-8">
                         {/* Full Name Field */}
                         <div className="space-y-3">
@@ -344,9 +562,12 @@ export default function Signup() {
                                     value={formData.fullname}
                                     onChange={(e) => handleInputChange("fullname", e.target.value)}
                                     onBlur={() => handleBlur("fullname")}
+                                    disabled={isLoading || socialAuthLoading}
                                     className={`pl-14 pr-4 py-6 text-base bg-white/60 border-gray-300 focus:border-indigo-500 focus:bg-white/80 text-gray-900 placeholder-gray-500 rounded-xl transition-all duration-200 backdrop-blur-sm h-14 hover:bg-white/70 ${errors.fullname ? "border-red-500 focus:border-red-500" : ""
-                                        } ${touched.fullname && !errors.fullname && formData.fullname ? "border-green-500 focus:border-green-500" : ""
-                                        }`}
+                                        } ${touched.fullname && !errors.fullname && formData.fullname
+                                            ? "border-green-500 focus:border-green-500"
+                                            : ""
+                                        } ${isLoading || socialAuthLoading ? "opacity-50 cursor-not-allowed" : ""}`}
                                     autoComplete="name"
                                 />
                                 {/* Success/Error Icon */}
@@ -361,7 +582,9 @@ export default function Signup() {
                                 )}
                             </div>
                             {errors.fullname && <ErrorMessage message={errors.fullname} />}
-                            {touched.fullname && !errors.fullname && formData.fullname && <SuccessMessage message="Name looks good!" />}
+                            {touched.fullname && !errors.fullname && formData.fullname && (
+                                <SuccessMessage message="Name looks good!" />
+                            )}
                         </div>
 
                         {/* Email Field */}
@@ -380,9 +603,10 @@ export default function Signup() {
                                     value={formData.email}
                                     onChange={(e) => handleInputChange("email", e.target.value)}
                                     onBlur={() => handleBlur("email")}
+                                    disabled={isLoading || socialAuthLoading}
                                     className={`pl-14 pr-4 py-6 text-base bg-white/60 border-gray-300 focus:border-indigo-500 focus:bg-white/80 text-gray-900 placeholder-gray-500 rounded-xl transition-all duration-200 backdrop-blur-sm h-14 hover:bg-white/70 ${errors.email ? "border-red-500 focus:border-red-500" : ""
                                         } ${touched.email && !errors.email && formData.email ? "border-green-500 focus:border-green-500" : ""
-                                        }`}
+                                        } ${isLoading || socialAuthLoading ? "opacity-50 cursor-not-allowed" : ""}`}
                                     autoComplete="email"
                                 />
                                 {/* Success/Error Icon */}
@@ -416,29 +640,29 @@ export default function Signup() {
                                     value={formData.password}
                                     onChange={(e) => handleInputChange("password", e.target.value)}
                                     onBlur={() => handleBlur("password")}
+                                    disabled={isLoading || socialAuthLoading}
                                     className={`pl-14 pr-14 py-6 text-base bg-white/60 border-gray-300 focus:border-indigo-500 focus:bg-white/80 text-gray-900 placeholder-gray-500 rounded-xl transition-all duration-200 backdrop-blur-sm h-14 hover:bg-white/70 ${errors.password ? "border-red-500 focus:border-red-500" : ""
                                         } ${touched.password && !errors.password && formData.password
                                             ? "border-green-500 focus:border-green-500"
                                             : ""
-                                        }`}
+                                        } ${isLoading || socialAuthLoading ? "opacity-50 cursor-not-allowed" : ""}`}
                                     autoComplete="new-password"
                                 />
                                 <button
                                     type="button"
                                     onClick={() => setShowPassword(!showPassword)}
-                                    className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 transition-colors"
+                                    disabled={isLoading || socialAuthLoading}
+                                    className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 transition-colors disabled:opacity-50"
                                 >
                                     {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                                 </button>
                             </div>
                             {errors.password && <ErrorMessage message={errors.password} />}
-                            {touched.password && !errors.password && formData.password && passwordStrength.strength === 'strong' && (
+                            {touched.password && !errors.password && formData.password && passwordStrength.strength === "strong" && (
                                 <SuccessMessage message="Password is strong!" />
                             )}
                             {/* Password Strength Indicator */}
-                            {(touched.password || formData.password) && (
-                                <PasswordStrengthIndicator password={formData.password} />
-                            )}
+                            {(touched.password || formData.password) && <PasswordStrengthIndicator password={formData.password} />}
                         </div>
 
                         {/* Confirm Password Field */}
@@ -457,17 +681,19 @@ export default function Signup() {
                                     value={formData.confirmPassword}
                                     onChange={(e) => handleInputChange("confirmPassword", e.target.value)}
                                     onBlur={() => handleBlur("confirmPassword")}
+                                    disabled={isLoading || socialAuthLoading}
                                     className={`pl-14 pr-14 py-6 text-base bg-white/60 border-gray-300 focus:border-indigo-500 focus:bg-white/80 text-gray-900 placeholder-gray-500 rounded-xl transition-all duration-200 backdrop-blur-sm h-14 hover:bg-white/70 ${errors.confirmPassword ? "border-red-500 focus:border-red-500" : ""
                                         } ${touched.confirmPassword && !errors.confirmPassword && formData.confirmPassword
                                             ? "border-green-500 focus:border-green-500"
                                             : ""
-                                        }`}
+                                        } ${isLoading || socialAuthLoading ? "opacity-50 cursor-not-allowed" : ""}`}
                                     autoComplete="new-password"
                                 />
                                 <button
                                     type="button"
                                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                                    className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 transition-colors"
+                                    disabled={isLoading || socialAuthLoading}
+                                    className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 transition-colors disabled:opacity-50"
                                 >
                                     {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                                 </button>
@@ -493,16 +719,23 @@ export default function Signup() {
                             <Checkbox
                                 id="terms"
                                 checked={formData.agreeToTerms}
-                                onCheckedChange={(checked) => setFormData((prev) => ({ ...prev, rememberMe: !!checked }))}
+                                onCheckedChange={(checked) => setFormData((prev) => ({ ...prev, agreeToTerms: !!checked }))}
+                                disabled={isLoading || socialAuthLoading}
                                 className="border-gray-400 data-[state=checked]:bg-indigo-500 data-[state=checked]:border-indigo-500 w-5 h-5 mt-0.5"
                             />
                             <Label htmlFor="terms" className="text-gray-600 cursor-pointer leading-relaxed text-sm text-nowrap">
                                 I agree to the{" "}
-                                <Link to="/terms" className="text-indigo-600 hover:text-indigo-700 font-medium transition-colors hover:underline text-nowrap">
+                                <Link
+                                    to="/terms"
+                                    className="text-indigo-600 hover:text-indigo-700 font-medium transition-colors hover:underline text-nowrap"
+                                >
                                     Terms of Service
                                 </Link>{" "}
                                 and{" "}
-                                <Link to="/privacy" className="text-indigo-600 hover:text-indigo-700 font-medium transition-colors hover:underline text-nowrap">
+                                <Link
+                                    to="/privacy"
+                                    className="text-indigo-600 hover:text-indigo-700 font-medium transition-colors hover:underline text-nowrap"
+                                >
                                     Privacy Policy
                                 </Link>
                             </Label>
@@ -511,12 +744,12 @@ export default function Signup() {
                         {/* Signup Button */}
                         <Button
                             type="submit"
-                            disabled={isLoading || !isFormValid}
+                            disabled={isLoading || socialAuthLoading || !isFormValid}
                             className="w-full bg-indigo-500 hover:bg-indigo-600 text-white py-6 text-base rounded-xl font-medium transition-all duration-200 hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 group h-14 shadow-lg hover:shadow-xl hover:shadow-indigo-200/50"
                         >
                             {isLoading ? (
                                 <div className="flex items-center justify-center gap-3">
-                                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                    <Loader2 className="w-5 h-5 animate-spin" />
                                     Creating account...
                                 </div>
                             ) : (
@@ -528,31 +761,38 @@ export default function Signup() {
                         </Button>
 
                         {/* Form Validation Summary */}
-                        {(touched.fullname || touched.email || touched.password || touched.confirmPassword) && !isFormValid && (
-                            <div className="bg-red-50 border border-red-200 rounded-xl p-4">
-                                <div className="flex items-center gap-2 text-red-600 text-sm">
-                                    <AlertCircle className="w-4 h-4 flex-shrink-0" />
-                                    <span>Please fix the errors above to continue</span>
+                        {(touched.fullname || touched.email || touched.password || touched.confirmPassword) &&
+                            !isFormValid &&
+                            !isLoading && (
+                                <div className="bg-red-50 border border-red-200 rounded-xl p-4">
+                                    <div className="flex items-center gap-2 text-red-600 text-sm">
+                                        <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                                        <span>Please fix the errors above and agree to the terms to continue</span>
+                                    </div>
                                 </div>
-                            </div>
-                        )}
+                            )}
+
                         {/* Sign In Link */}
                         <div className="text-center pt-6 border-t border-gray-200">
                             <p className="text-gray-600 text-base">
                                 Already have an account?{" "}
-                                <Link to={"/login"} className="text-indigo-600 hover:text-indigo-700 font-medium transition-colors hover:underline">
+                                <Link
+                                    to={"/login"}
+                                    className="text-indigo-600 hover:text-indigo-700 font-medium transition-colors hover:underline"
+                                >
                                     Sign in
                                 </Link>
                             </p>
                         </div>
                     </form>
                 </div>
+
                 {/* Abstract Image and Quote Section */}
                 <div className="p-7 lg:block md:hidden sm:hidden hidden relative w-full overflow-hidden">
                     {/* Background Image with Overlay */}
-                    <div className="grayscale hover:grayscale-0 transition-all duration-500 relative rounded-4xl h-[100vh] w-full overflow-hidden">
+                    <div className="grayscale hover:grayscale-0 transition-all duration-500 relative rounded-4xl min-h-[100vh] w-full overflow-hidden">
                         <img
-                            src={img}
+                            src={img || "/placeholder.svg"}
                             className="h-full w-full object-cover object-center"
                             alt="Background Image"
                         />
@@ -571,9 +811,7 @@ export default function Signup() {
                                 </div>
 
                                 {/* Main Quote */}
-                                <h1 className="font-extralight text-white text-4xl xl:text-5xl mb-6">
-                                    Your Skills, Your Future.
-                                </h1>
+                                <h1 className="font-extralight text-white text-4xl xl:text-5xl mb-6">Your Skills, Your Future.</h1>
 
                                 {/* Supporting Text */}
                                 <p className="text-white/90 text-lg xl:text-xl font-medium leading-relaxed mb-6">
@@ -583,9 +821,7 @@ export default function Signup() {
                                 {/* Attribution */}
                                 <div className="flex items-center gap-3">
                                     <div className="w-12 h-0.5 bg-gradient-to-r from-indigo-400 to-purple-400 rounded-full"></div>
-                                    <small className="text-white/70 text-sm font-medium">
-                                        Robert Greene, Author of Mastery
-                                    </small>
+                                    <small className="text-white/70 text-sm font-medium">Robert Greene, Author of Mastery</small>
                                 </div>
                             </div>
 
@@ -601,5 +837,5 @@ export default function Signup() {
                 </div>
             </div>
         </>
-    );
+    )
 }

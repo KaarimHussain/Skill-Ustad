@@ -8,5 +8,6 @@ namespace SkillUstad.Dto
         public string? OAuthProvider { get; set; } = null;
         public string? OAuthId { get; set; } = null;
         public string? ProfilePicture { get; set; } = null;
+        public string? UserType { get; set; } = null; // "Student" or "Mentor"
     }
 }
