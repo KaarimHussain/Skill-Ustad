@@ -60,10 +60,13 @@ function App() {
           <Route path="/signup" element={<Signup />} />
           <Route path="/otp" element={<OTPVerification />} />
           <Route path="/forget-password" element={<ForgetPassword />} />
-          {/* LoggedIn URL */}
+          {/* LoggedIn User URL */}
           <Route path="/user/dashboard" element={<UserDashboard />} />
 
-          {/* Testing */}
+          {/* LoggedIn Mentor URL */}
+          <Route path="/mentor/dashboard" element={<UserDashboard />} />
+
+          {/* LoggedIn Companies URL */}
         </Routes>
         <Footer />
       </Router>
