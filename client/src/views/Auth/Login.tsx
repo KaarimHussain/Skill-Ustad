@@ -12,6 +12,7 @@ import { memo } from "react"
 import { Link, useNavigate } from "react-router-dom"
 import { useGoogleLogin } from "@react-oauth/google"
 import AuthService, { type LoginRequest, type ApiError } from "@/services/auth.service"
+import { useAuth } from "@/context/AuthContext"
 
 // Background elements with reduced brightness and added visual interest
 const LoginBackground = memo(() => (
@@ -98,6 +99,7 @@ const SuccessMessage = ({ message }: { message: string }) => (
 
 export default function Login() {
   const navigate = useNavigate()
+  const { isAuthenticated, userType, refreshAuth } = useAuth();
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [socialAuthLoading, setSocialAuthLoading] = useState(false)
@@ -172,11 +174,13 @@ export default function Login() {
 
         // Handle success - use correct property names from AuthService response
         setSuccessMessage(response.message || "Login successful!")
-
         setTimeout(() => {
           if (response.userType == "Mentor") {
+            refreshAuth(); // Update auth context immediately
             navigate("/mentor/dashboard");
+
           } else {
+            refreshAuth(); // Update auth context immediately
             navigate("/user/dashboard");
           }
           setIsLoading(false);
