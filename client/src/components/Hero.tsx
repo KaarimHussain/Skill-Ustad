@@ -6,7 +6,6 @@ import { Link } from "react-router-dom";
 import { Announcement, AnnouncementTag, AnnouncementTitle } from "./ui/kibo-ui/announcement";
 
 export default function HeroComponent() {
-
     return (
         <div className="min-h-[100vh] w-full relative overflow-hidden bg-black/30">
             <GridPattern x={-1} y={-1} height={70} width={70} />

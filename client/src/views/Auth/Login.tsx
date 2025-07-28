@@ -13,6 +13,7 @@ import { Link, useNavigate } from "react-router-dom"
 import { useGoogleLogin } from "@react-oauth/google"
 import AuthService, { type LoginRequest, type ApiError } from "@/services/auth.service"
 import { useAuth } from "@/context/AuthContext"
+import type GoogleLoginRequest from "@/dtos/GoogleLoginRequest"
 
 // Background elements with reduced brightness and added visual interest
 const LoginBackground = memo(() => (
@@ -205,68 +206,82 @@ export default function Login() {
   )
 
   // Handle OAuth login (for users who registered with OAuth)
-  const handleOAuthLogin = useCallback(async (profile: any, provider: string) => {
-    try {
-      // For OAuth users, we need to check if they exist and get their token
-      // Since OAuth users don't have passwords, we'll use a special OAuth login flow
-      // This would require a separate OAuth login endpoint in your backend
-
-      console.log("🔍 OAuth login not yet implemented for existing users")
-      setApiError("OAuth login for existing users is not yet implemented. Please use your email and password.")
-
-      setTimeout(() => {
-        setApiError("")
-      }, 8000)
-    } catch (error) {
-      console.error("❌ OAuth login error:", error)
-      setApiError("OAuth login failed. Please try again.")
-
-      setTimeout(() => {
-        setApiError("")
-      }, 8000)
-    }
-  }, [])
-
-  const googleLogin = useGoogleLogin({
-    onSuccess: async (tokenResponse) => {
-      console.log("🔑 Google token received:", tokenResponse)
-
+  // Handle Google OAuth login: send token to backend, handle response
+  const handleOAuthLogin = useCallback(
+    async (loginResponse: GoogleLoginRequest) => {
+      setApiError("");
+      setSuccessMessage("");
+      setSocialAuthLoading(true);
       try {
-        const res = await fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
-          headers: {
-            Authorization: `Bearer ${tokenResponse.access_token}`,
-          },
-        })
+        // Send OAuth login request to backend
+        const response = await AuthService.googleLogin(loginResponse);
+        console.log("✅ OAuth login successful:", response);
 
-        if (!res.ok) {
-          throw new Error("Failed to fetch Google user info")
-        }
-
-        const profile = await res.json()
-        console.log("👤 Google User Info:", profile)
-
-        await handleOAuthLogin(profile, "Google")
-      } catch (error) {
-        console.error("❌ Failed to process Google OAuth:", error)
-        setApiError("Failed to process Google authentication. Please try again.")
-
+        // Handle success - use correct property names from AuthService response
+        setSuccessMessage(response.message || "Login successful!");
         setTimeout(() => {
-          setApiError("")
-        }, 8000)
-      } finally {
-        setSocialAuthLoading(false)
+          if (response.userType == "Mentor") {
+            refreshAuth(); // Update auth context immediately
+            navigate("/mentor/dashboard");
+          } else {
+            refreshAuth(); // Update auth context immediately
+            navigate("/user/dashboard");
+          }
+          setSocialAuthLoading(false);
+        }, 1500);
+      } catch (error) {
+        console.error("❌ OAuth login error:", error);
+        const apiError = error as ApiError;
+
+        // Set error message
+        setApiError(apiError.message || "Failed to authenticate with Google. Please try again.");
+
+        // Clear error after delay
+        setTimeout(() => {
+          setApiError("");
+          setSocialAuthLoading(false);
+        }, 8000);
+      }
+    }, [navigate, refreshAuth]);
+
+  // Google login: get id_token, send to backend
+  const googleLogin = useGoogleLogin({
+    flow: "implicit",
+    onSuccess: async (tokenResponse) => {
+      try {
+        // Get Google id_token (JWT) from OAuth response
+        if (tokenResponse && tokenResponse.access_token) {
+          // Exchange access_token for id_token
+          const res = await fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
+            headers: {
+              Authorization: `Bearer ${tokenResponse.access_token}`,
+            },
+          });
+          if (!res.ok) throw new Error("Failed to fetch Google user info");
+          const profile = await res.json();
+          console.log("Google profile:", profile);
+          var loginRequest: GoogleLoginRequest = {
+            IdToken: profile.sub, // Use access_token as id_token
+            Email: profile.email,
+            Name: profile.name,
+            Picture: profile.picture,
+          }
+          await handleOAuthLogin(loginRequest);
+        } else {
+          throw new Error("No Google access token received");
+        }
+      } catch (error: any) {
+        setApiError(error.message || "Failed to process Google authentication. Please try again.");
+        setTimeout(() => setApiError(""), 8000);
+        setSocialAuthLoading(false);
       }
     },
     onError: (error) => {
-      console.error("❌ Google Login Failed:", error)
-      setApiError("Google authentication failed. Please try again.")
-      setSocialAuthLoading(false)
-
-      setTimeout(() => {
-        setApiError("")
-      }, 8000)
+      setApiError("Google authentication failed. Please try again.");
+      setSocialAuthLoading(false);
+      setTimeout(() => setApiError(""), 8000);
     },
-  })
+  });
 
   const handleSocialLogin = useCallback(
     (provider: string) => {

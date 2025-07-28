@@ -17,6 +17,15 @@ export interface LoginRequest {
     Password: string
 }
 
+// Types for Google login payload
+export interface GoogleLoginPayload {
+    IdToken: string // This will be the JWT ID token from Google
+    Email: string
+    Name: string
+    Picture: string
+    UserType?: string // Optional, for initial signup flow if needed
+}
+
 // Types for API responses
 export interface AuthResponse {
     message: string
@@ -43,6 +52,18 @@ export interface StoredUser {
     profilePicture?: string
     userType: string
     token: string
+}
+
+interface GoogleProfile {
+    id: string;
+    email: string;
+    verified_email: boolean;
+    name: string;
+    given_name: string;
+    family_name: string;
+    picture: string;
+    locale: string;
+    // Add other fields you might get from the Google API if needed
 }
 
 export default class AuthService {
@@ -170,6 +191,60 @@ export default class AuthService {
             }
 
             // Handle non-axios errors
+            throw {
+                message: "Network error occurred. Please check your connection.",
+                status: 0,
+            } as ApiError
+        }
+    }
+
+    /**
+     * Login user with Google OAuth
+     */
+    static async googleLogin(data: GoogleLoginPayload): Promise<AuthResponse> {
+        try {
+            console.log("🚀 Sending Google login request for:", data.Email)
+
+            const response = await axios.post<AuthResponse>(`${this.API_BASE}/google-login`, data, {
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                timeout: 10000,
+            })
+
+            console.log("✅ Google login successful:", response.data)
+
+            // Store token and user data
+            if (response.data.token && response.data.user) {
+                this.storeAuthData(response.data.token, response.data.user, response.data.userType)
+            }
+
+            return response.data
+        } catch (error) {
+            console.error("❌ Google login failed:", error)
+
+            if (axios.isAxiosError(error)) {
+                let errorMessage = "Google login failed. Please try again."
+
+                if (error.response?.data) {
+                    if (typeof error.response.data === "string") {
+                        errorMessage = error.response.data
+                    } else if (error.response.data.message) {
+                        errorMessage = error.response.data.message
+                    } else if (error.response.data.Message) {
+                        errorMessage = error.response.data.Message
+                    }
+                } else if (error.message) {
+                    errorMessage = error.message
+                }
+
+                const apiError: ApiError = {
+                    message: errorMessage,
+                    status: error.response?.status || 500,
+                }
+                throw apiError
+            }
+
             throw {
                 message: "Network error occurred. Please check your connection.",
                 status: 0,
@@ -359,6 +434,28 @@ export default class AuthService {
         } catch (error) {
             console.error("❌ Failed to decode token:", error)
             return null
+        }
+    }
+
+    static async decodeGoogleToken(accessToken: string): Promise<GoogleProfile> {
+        try {
+            const response = await axios.get<GoogleProfile>(
+                'https://www.googleapis.com/oauth2/v3/userinfo', // Or 'https://openidconnect.googleapis.com/v1/userinfo'
+                {
+                    headers: {
+                        Authorization: `Bearer ${accessToken}`,
+                    },
+                }
+            );
+            return response.data;
+        } catch (error) {
+            if (axios.isAxiosError(error)) {
+                console.error('Error fetching Google profile:', error.response?.data || error.message);
+                throw new Error(`Failed to fetch Google profile: ${error.response?.data?.error_description || error.message}`);
+            } else {
+                console.error('An unexpected error occurred:', error);
+                throw new Error('An unexpected error occurred while fetching Google profile.');
+            }
         }
     }
 

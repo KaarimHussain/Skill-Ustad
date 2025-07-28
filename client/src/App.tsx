@@ -48,38 +48,6 @@ function App() {
   }, [])
 
   return (
-    // <GoogleOAuthProvider clientId={googleClientId}>
-    //   <Router>
-    //     <AuthProvider>
-    //       <ScrollToTop />
-    //       <Navbar />
-    //       <Routes>
-    //         {/* Public URL */}
-    //         <Route path="/" element={<Home />} />
-    //         <Route path="/ai/interview" element={<VoiceInterviewSimulator />} />
-    //         <Route path="/ai/tools" element={<ToolsView />} />
-    //         {/* Auth URL */}
-    //         <Route path="/login" element={<Login />} />
-    //         <Route path="/signup" element={<Signup />} />
-    //         <Route path="/otp" element={<OTPVerification />} />
-    //         <Route path="/forget-password" element={<ForgetPassword />} />
-    //         {/* LoggedIn User URL */}
-    //         <Route element={<ProtectedRoute allowedRoles={["student"]} />}>
-    //           <Route path="/user/dashboard" element={<UserDashboard />} />
-    //         </Route>
-
-    //         {/* LoggedIn Mentor URL */}
-    //         <Route element={<ProtectedRoute allowedRoles={["mentor"]} />}>
-    //           <Route path="/mentor/dashboard" element={<UserDashboard />} />
-    //         </Route>
-
-    //         {/* LoggedIn Companies URL */}
-    //         {/* Coming Soon */}
-    //       </Routes>
-    //       <Footer />
-    //     </AuthProvider>
-    //   </Router>
-    // </GoogleOAuthProvider>
     <GoogleOAuthProvider clientId={googleClientId}>
       <Router>
         <AuthProvider>
@@ -112,12 +80,12 @@ function App() {
             <Route path="/forget-password" element={<ForgetPassword />} />
 
             {/* 🧑‍🎓 Student-only route */}
-            <Route element={<ProtectedRoute allowedRoles={["student"]} />}>
+            <Route element={<ProtectedRoute allowedRoles={["Student"]} />}>
               <Route path="/user/dashboard" element={<UserDashboard />} />
             </Route>
 
             {/* 🧑‍🏫 Mentor-only route */}
-            <Route element={<ProtectedRoute allowedRoles={["mentor"]} />}>
+            <Route element={<ProtectedRoute allowedRoles={["Mentor"]} />}>
               <Route path="/mentor/dashboard" element={<UserDashboard />} />
             </Route>
 

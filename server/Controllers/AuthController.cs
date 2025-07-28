@@ -105,6 +105,86 @@ namespace SkillUstad.Controller
             return Unauthorized("Invalid email or password.");
         }
 
+        [HttpPost("google-login")]
+        public async Task<IActionResult> GoogleLogin([FromBody] GoogleLoginRequest request)
+        {
+            if (string.IsNullOrEmpty(request.IdToken))
+            {
+                return BadRequest("Google ID token is required.");
+            }
+            System.Console.WriteLine("Google ID Token: " + request.IdToken);
+            // Check if user already exists in Users table
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.OAuthId == request.IdToken);
+            var mentor = await _context.Mentors.FirstOrDefaultAsync(m => m.OAuthId == request.IdToken);
+            System.Console.WriteLine("Founded User :" + user?.Name);
+            System.Console.WriteLine("Founded Mentor :" + mentor?.Name);
+            if (user != null)
+            {
+                // If user exists, generate JWT token
+                return await GoogleLoginUser(user);
+            }
+            else if (mentor != null)
+            {
+                // If mentor exists, generate JWT token
+                return await GoogleLoginMentor(mentor);
+            }
+            else
+            {
+                // if user does not exist, send an error message
+                return BadRequest("User not found. Please register first.");
+            }
+        }
+
+        private async Task<IActionResult> GoogleLoginUser(Users user)
+        {
+            var userType = await GetUserTypeByEmail(user.Email);
+            if (userType == null)
+            {
+                return BadRequest("User type not found. Please register first.");
+            }
+            // Generate JWT token for existing user
+            var token = GenerateJwtToken(user.Id.ToString(), user.Email, user.Name, userType);
+
+            return Ok(new
+            {
+                Message = "Login successful",
+                UserType = userType,
+                Token = token,
+                User = new
+                {
+                    user.Id,
+                    user.Name,
+                    user.Email,
+                    user.ProfilePicture
+                }
+            });
+        }
+
+        private async Task<IActionResult> GoogleLoginMentor(Mentor mentor)
+        {
+            var userType = await GetUserTypeByEmail(mentor.Email);
+            if (userType == null)
+            {
+                return BadRequest("User type not found. Please register first.");
+            }
+            // Generate JWT token for existing user
+            var token = GenerateJwtToken(mentor.Id.ToString(), mentor.Email, mentor.Name, userType);
+
+            return Ok(new
+            {
+                Message = "Login successful",
+                UserType = userType,
+                Token = token,
+                User = new
+                {
+                    mentor.Id,
+                    mentor.Name,
+                    mentor.Email,
+                    mentor.ProfilePicture
+                }
+            });
+        }
+
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] RegisterRequest request)
         {
