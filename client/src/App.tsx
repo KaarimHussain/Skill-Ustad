@@ -21,6 +21,9 @@ import UserDashboard from './views/User/Dashboard';
 import ProtectedRoute from '@/routes/ProtectedRoute';
 import PublicOnlyRoute from '@/routes/PublicOnlyRoute';
 import ChatbotBuilder from './views/AI/ChatbotBuilder';
+import GenerateRoadmap from './views/User/GenerateRoadmap';
+import RoadmapProcessing from './views/User/RoadmapProcessing';
+import RoadmapViewer from './views/User/RoadmapViewer';
 
 function App() {
   const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_KEY_TWO;
@@ -85,6 +88,9 @@ function App() {
             {/* 🧑‍🎓 Student-only route */}
             <Route element={<ProtectedRoute allowedRoles={["Student"]} />}>
               <Route path="/user/dashboard" element={<UserDashboard />} />
+              <Route path="/user/roadmap-gen" element={<GenerateRoadmap />} />
+              <Route path="/user/process-roadmap" element={<RoadmapProcessing />} />
+              <Route path="/user/roadmap/:id" element={<RoadmapViewer />} />
             </Route>
 
             {/* 🧑‍🏫 Mentor-only route */}

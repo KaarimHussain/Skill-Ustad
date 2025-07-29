@@ -108,7 +108,7 @@ export default function ChatbotBuilder() {
                 <div className="text-center mb-12">
                     <div className="flex items-center justify-center flex-col gap-3 mb-6">
                         <div className="p-3">
-                            <img src="/placeholder.png?height=60&width=60" className="aspect-square h-15" alt="Chatbot Logo" />
+                            <img src="" className="aspect-square h-15" alt="Chatbot Logo" />
                         </div>
                         <h1 className="text-5xl md:text-5xl font-bold text-black">Chatbot Builder</h1>
                     </div>

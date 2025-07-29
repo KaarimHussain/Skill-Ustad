@@ -175,6 +175,7 @@ async def generate_example():
             "Generate 4 to 5 really simple and short chatbot prompts that are ready to pass the chatbox for different use cases, such as "
             "Customer Support, Education, Healthcare, E-commerce, and Finance. "
             "Each use case should contain a single and short line of prompts. which explain the use case. "
+            "Don't provide anything else other than the structured data of yours not even your explaination just plain text"
             "Return everything in valid JSON as instructed."
         )
         system_prompt = ""

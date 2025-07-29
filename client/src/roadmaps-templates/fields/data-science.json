@@ -1,0 +1,35 @@
+{
+    "beginner": [
+        {
+            "id": "python",
+            "label": "Learn Python",
+            "type": "skill"
+        },
+        {
+            "id": "numpy",
+            "label": "Learn NumPy",
+            "type": "skill"
+        }
+    ],
+    "intermediate": [
+        {
+            "id": "pandas",
+            "label": "Learn Pandas",
+            "type": "skill"
+        },
+        {
+            "id": "matplotlib",
+            "label": "Data Visualization"
+        }
+    ],
+    "advanced": [
+        {
+            "id": "ml",
+            "label": "Intro to Machine Learning"
+        },
+        {
+            "id": "deep",
+            "label": "Deep Learning (TensorFlow)"
+        }
+    ]
+}

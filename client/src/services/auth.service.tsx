@@ -420,7 +420,7 @@ export default class AuthService {
     /**
      * Decode JWT token (client-side only for display purposes)
      */
-    static decodeToken(token: string): any {
+    public static decodeToken(token: string): any {
         try {
             const base64Url = token.split(".")[1]
             const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/")
