@@ -20,6 +20,7 @@ import UserDashboard from './views/User/Dashboard';
 // Routes
 import ProtectedRoute from '@/routes/ProtectedRoute';
 import PublicOnlyRoute from '@/routes/PublicOnlyRoute';
+import ChatbotBuilder from './views/AI/ChatbotBuilder';
 
 function App() {
   const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_KEY_TWO;
@@ -46,7 +47,6 @@ function App() {
       lenis.destroy()
     }
   }, [])
-
   return (
     <GoogleOAuthProvider clientId={googleClientId}>
       <Router>
@@ -58,6 +58,9 @@ function App() {
             <Route path="/" element={<Home />} />
             <Route path="/ai/interview" element={<VoiceInterviewSimulator />} />
             <Route path="/ai/tools" element={<ToolsView />} />
+            <Route path="/ai/chatbot" element={<ChatbotBuilder />} />
+
+            {/* 🔒 Protected URLs */}
 
             {/* 👤 Auth URLs - public only if NOT logged in */}
             <Route
