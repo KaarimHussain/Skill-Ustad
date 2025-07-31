@@ -90,8 +90,8 @@ function App() {
               <Route path="/user/dashboard" element={<UserDashboard />} />
               <Route path="/user/roadmap-gen" element={<GenerateRoadmap />} />
               <Route path="/user/process-roadmap" element={<RoadmapProcessing />} />
-              <Route path="/user/roadmap/:id" element={<RoadmapViewer />} />
             </Route>
+            <Route path="/user/roadmap/:id" element={<RoadmapViewer />} />
 
             {/* 🧑‍🏫 Mentor-only route */}
             <Route element={<ProtectedRoute allowedRoles={["Mentor"]} />}>
