@@ -29,9 +29,17 @@ import {
     Share2,
     MoreHorizontal,
     Plus,
+    MapPin,
+    Eye,
+    EyeOff,
+    GitBranch,
+    CheckCircle2,
 } from "lucide-react"
 import DashboardService from "@/services/dashboard.service"
 import { Link } from "react-router-dom"
+import RoadmapService from "@/services/roadmap.service"
+import type { FirebaseRoadmapDto } from "@/dtos/firebase.roadmap"
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel"
 
 // Mock service data (replace with your actual service)
 const skillCourses = [
@@ -205,12 +213,14 @@ export default function UserDashboard() {
     const [name, setName] = useState<string>("User")
     const [currentSlide, setCurrentSlide] = useState(0)
     const [animatedStats, setAnimatedStats] = useState(stats.map(() => 0))
+    const [roadmapData, setRoadmapData] = useState<FirebaseRoadmapDto[]>([])
+    const [isLoadingRoadmaps, setIsLoadingRoadmaps] = useState(true)
     const carouselRef = useRef<HTMLDivElement>(null)
 
     const getUserName = () => {
-        const dashboardService = new DashboardService();
+        const dashboardService = new DashboardService()
         dashboardService.getUserBasicData().then((name) => {
-            setName(name);
+            setName(name)
         })
     }
 
@@ -233,8 +243,95 @@ export default function UserDashboard() {
             }, 50)
         })
 
-        getUserName();
+        getUserName()
+        getRoadmapData()
     }, [])
+
+    const getRoadmapData = async () => {
+        try {
+            setIsLoadingRoadmaps(true)
+            const data = await RoadmapService.getCurrentUserRoadmapData()
+            console.log("✅ User Roadmap Data:", data)
+            setRoadmapData(data as FirebaseRoadmapDto[])
+        } catch (err) {
+            console.error("❌ Error fetching roadmap data:", err)
+        } finally {
+            setIsLoadingRoadmaps(false)
+        }
+    }
+
+    // Calculate roadmap progress based on completed nodes
+    const calculateRoadmapProgress = (roadmap: FirebaseRoadmapDto) => {
+        if (!roadmap.nodes || roadmap.nodes.length === 0) return 0
+
+        const completedNodes = roadmap.nodes.filter((node: any) => node.completed || node.status === "completed")
+        return Math.round((completedNodes.length / roadmap.nodes.length) * 100)
+    }
+
+    // Get next milestone for roadmap
+    const getNextMilestone = (roadmap: FirebaseRoadmapDto) => {
+        if (!roadmap.nodes || roadmap.nodes.length === 0) return "Start your journey"
+
+        const nextNode = roadmap.nodes.find((node: any) => !node.completed && node.status !== "completed")
+        return nextNode ? nextNode.title || nextNode.label || "Next milestone" : "Roadmap completed!"
+    }
+
+    // Get roadmap difficulty based on node count and complexity
+    const getRoadmapDifficulty = (roadmap: FirebaseRoadmapDto) => {
+        const nodeCount = roadmap.nodes?.length || 0
+        if (nodeCount <= 5) return "Easy"
+        if (nodeCount <= 15) return "Medium"
+        return "Hard"
+    }
+
+    // Get roadmap category icon
+    const getRoadmapIcon = (title: string) => {
+        const titleLower = title.toLowerCase()
+        if (titleLower.includes("web") || titleLower.includes("frontend") || titleLower.includes("backend")) return Code
+        if (titleLower.includes("design") || titleLower.includes("ui") || titleLower.includes("ux")) return Palette
+        if (titleLower.includes("data") || titleLower.includes("analytics")) return BarChart3
+        if (titleLower.includes("ai") || titleLower.includes("machine") || titleLower.includes("ml")) return Brain
+        if (titleLower.includes("marketing") || titleLower.includes("seo")) return TrendingUp
+        if (titleLower.includes("business") || titleLower.includes("freelance")) return DollarSign
+        return Target
+    }
+
+    // Get roadmap color scheme
+    const getRoadmapColorScheme = (index: number) => {
+        const schemes = [
+            {
+                color: "from-blue-500/20 to-cyan-500/20",
+                iconColor: "text-blue-600",
+                borderColor: "hover:border-blue-500/50",
+                bgColor: "bg-blue-50",
+            },
+            {
+                color: "from-purple-500/20 to-pink-500/20",
+                iconColor: "text-purple-600",
+                borderColor: "hover:border-purple-500/50",
+                bgColor: "bg-purple-50",
+            },
+            {
+                color: "from-green-500/20 to-emerald-500/20",
+                iconColor: "text-green-600",
+                borderColor: "hover:border-green-500/50",
+                bgColor: "bg-green-50",
+            },
+            {
+                color: "from-orange-500/20 to-red-500/20",
+                iconColor: "text-orange-600",
+                borderColor: "hover:border-orange-500/50",
+                bgColor: "bg-orange-50",
+            },
+            {
+                color: "from-yellow-500/20 to-amber-500/20",
+                iconColor: "text-yellow-600",
+                borderColor: "hover:border-yellow-500/50",
+                bgColor: "bg-yellow-50",
+            },
+        ]
+        return schemes[index % schemes.length]
+    }
 
     const handleQuickAction = (action: string) => {
         console.log(`Quick action: ${action}`)
@@ -242,6 +339,11 @@ export default function UserDashboard() {
 
     const handleStartCourse = (courseTitle: string) => {
         console.log(`Starting course: ${courseTitle}`)
+    }
+
+    const handleContinueRoadmap = (roadmapId: string) => {
+        console.log(`Continuing roadmap: ${roadmapId}`)
+        // Navigate to roadmap detail page
     }
 
     const nextSlide = () => {
@@ -262,6 +364,21 @@ export default function UserDashboard() {
                 return "bg-red-100 text-red-700 border-red-200"
             default:
                 return "bg-gray-100 text-gray-700 border-gray-200"
+        }
+    }
+
+    const formatDate = (timestamp: any) => {
+        if (!timestamp) return "Recently"
+
+        try {
+            const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp)
+            return date.toLocaleDateString("en-US", {
+                month: "short",
+                day: "numeric",
+                year: "numeric",
+            })
+        } catch {
+            return "Recently"
         }
     }
 
@@ -360,13 +477,179 @@ export default function UserDashboard() {
                     </div>
                 </div>
 
+                {/* Continue where you left off */}
+                <div className="mb-12">
+                    <div className="flex items-center justify-between mb-8">
+                        <div>
+                            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">Start where you left</h2>
+                            <p className="text-zinc-500 text-sm mt-1">Don't let laziness get in your way!</p>
+                        </div>
+                        {roadmapData.length > 6 && (
+                            <Button variant="outline" className="hidden sm:flex bg-white/80 hover:bg-white">
+                                View All Roadmaps
+                                <ArrowRight className="w-4 h-4 ml-2" />
+                            </Button>
+                        )}
+                        <Link to={"/user/roadmap-gen"}>
+                            <Button className="bg-indigo-500 hover:bg-indigo-600 text-white cursor-pointer">
+                                <Plus />
+                                New Roadmap
+                            </Button>
+                        </Link>
+                    </div>
+
+                    {isLoadingRoadmaps ? (
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            {[1, 2, 3].map((i) => (
+                                <Card key={i} className="animate-pulse">
+                                    <CardContent className="p-6">
+                                        <div className="flex items-start gap-4 mb-4">
+                                            <div className="w-12 h-12 bg-gray-200 rounded-xl"></div>
+                                            <div className="flex-1">
+                                                <div className="h-4 bg-gray-200 rounded mb-2"></div>
+                                                <div className="h-3 bg-gray-200 rounded w-2/3"></div>
+                                            </div>
+                                        </div>
+                                        <div className="h-2 bg-gray-200 rounded mb-4"></div>
+                                        <div className="h-10 bg-gray-200 rounded"></div>
+                                    </CardContent>
+                                </Card>
+                            ))}
+                        </div>
+                    ) : roadmapData.length === 0 ? (
+                        <Card className="bg-gradient-to-br from-gray-50 to-gray-100 border-dashed border-2 border-gray-300">
+                            <CardContent className="p-12 text-center">
+                                <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-4">
+                                    <MapPin className="w-8 h-8 text-gray-400" />
+                                </div>
+                                <h3 className="text-lg font-semibold text-gray-900 mb-2">No roadmaps yet</h3>
+                                <p className="text-gray-600 mb-6">Create your first learning roadmap to get started on your journey!</p>
+                                <Link to="/user/roadmap-gen">
+                                    <Button className="bg-indigo-500 hover:bg-indigo-600 text-white">
+                                        <Plus className="w-4 h-4 mr-2" />
+                                        Create Your First Roadmap
+                                    </Button>
+                                </Link>
+                            </CardContent>
+                        </Card>
+                    ) : (
+                        <Carousel className="w-full">
+                            <CarouselContent className="-ml-2 md:-ml-4">
+                                {roadmapData.map((roadmap, index) => {
+                                    const progress = calculateRoadmapProgress(roadmap)
+                                    const nextMilestone = getNextMilestone(roadmap)
+                                    const difficulty = getRoadmapDifficulty(roadmap)
+                                    const RoadmapIcon = getRoadmapIcon(roadmap.title)
+                                    const colorScheme = getRoadmapColorScheme(index)
+
+                                    return (
+                                        <CarouselItem key={roadmap.id} className="pl-2 md:pl-4 md:basis-1/2 lg:basis-1/3">
+                                            <Card
+                                                className={`bg-white/90 backdrop-blur-sm border border-white/60 ${colorScheme.borderColor} transition-all duration-300 group hover:transform hover:-translate-y-3 relative overflow-hidden hover:shadow-2xl hover:shadow-indigo-100/50 h-full`}
+                                            >
+                                                {/* Background Gradient */}
+                                                <div className={`absolute inset-0 bg-gradient-to-br ${colorScheme.color} opacity-60`}></div>
+
+                                                {/* Visibility Badge */}
+                                                <div className="absolute top-4 right-4 z-10">
+                                                    <Badge className="bg-white/80 text-gray-700 border-0 text-xs font-medium">
+                                                        {roadmap.visibility === "public" ? (
+                                                            <>
+                                                                <Eye className="w-3 h-3 mr-1" />
+                                                                Public
+                                                            </>
+                                                        ) : (
+                                                            <>
+                                                                <EyeOff className="w-3 h-3 mr-1" />
+                                                                Private
+                                                            </>
+                                                        )}
+                                                    </Badge>
+                                                </div>
+
+                                                <CardContent className="p-6 relative z-10 h-full flex flex-col">
+                                                    {/* Header */}
+                                                    <div className="flex items-start gap-4 mb-4">
+                                                        <div className="p-3 bg-white/90 backdrop-blur-sm rounded-xl shadow-sm group-hover:scale-110 transition-transform duration-300">
+                                                            <RoadmapIcon className={`w-6 h-6 ${colorScheme.iconColor}`} />
+                                                        </div>
+                                                        <div className="flex-1 min-w-0">
+                                                            <h3 className="text-lg font-bold text-gray-900 mb-1 group-hover:text-gray-800 transition-colors truncate">
+                                                                {roadmap.title}
+                                                            </h3>
+                                                            <div className="flex items-center gap-2 text-xs text-gray-600 mb-2">
+                                                                <Calendar className="w-3 h-3" />
+                                                                <span>Created {formatDate(roadmap.createdAt)}</span>
+                                                            </div>
+                                                            <Badge className={`text-xs ${getDifficultyColor(difficulty)}`}>{difficulty}</Badge>
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Stats */}
+                                                    <div className="grid grid-cols-2 gap-3 mb-4">
+                                                        <div className="bg-white/50 rounded-lg p-2 text-center">
+                                                            <div className="flex items-center justify-center gap-1 text-xs text-gray-600 mb-1">
+                                                                <GitBranch className="w-3 h-3" />
+                                                                Nodes
+                                                            </div>
+                                                            <div className="font-semibold text-gray-900">{roadmap.nodes?.length || 0}</div>
+                                                        </div>
+                                                        <div className="bg-white/50 rounded-lg p-2 text-center">
+                                                            <div className="flex items-center justify-center gap-1 text-xs text-gray-600 mb-1">
+                                                                <CheckCircle2 className="w-3 h-3" />
+                                                                Progress
+                                                            </div>
+                                                            <div className="font-semibold text-gray-900">{progress}%</div>
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Progress Bar */}
+                                                    <div className="mb-4">
+                                                        <div className="flex items-center justify-between mb-2">
+                                                            <span className="text-sm font-medium text-gray-700">Learning Progress</span>
+                                                            <span className="text-sm text-gray-600">{progress}%</span>
+                                                        </div>
+                                                        <Progress value={progress} className="h-2" />
+                                                        <p className="text-xs text-gray-500 mt-1">
+                                                            {progress === 100 ? "🎉 Completed!" : `Next: ${nextMilestone}`}
+                                                        </p>
+                                                    </div>
+
+                                                    {/* Action Buttons */}
+                                                    <div className="flex gap-2 mt-auto">
+                                                        <Button
+                                                            className="flex-1 bg-indigo-500 hover:bg-indigo-600 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-200 group-hover:scale-[1.02]"
+                                                            onClick={() => handleContinueRoadmap(roadmap.id)}
+                                                        >
+                                                            <PlayCircle className="w-4 h-4 mr-2" />
+                                                            {progress === 0 ? "Start Journey" : progress === 100 ? "Review" : "Continue"}
+                                                        </Button>
+                                                        <Button variant="outline" size="icon" className="bg-white/80 hover:bg-white">
+                                                            <BookmarkPlus className="w-4 h-4" />
+                                                        </Button>
+                                                        <Button variant="outline" size="icon" className="bg-white/80 hover:bg-white">
+                                                            <Share2 className="w-4 h-4" />
+                                                        </Button>
+                                                    </div>
+                                                </CardContent>
+                                            </Card>
+                                        </CarouselItem>
+                                    )
+                                })}
+                            </CarouselContent>
+                            <CarouselPrevious className="hidden md:flex" />
+                            <CarouselNext className="hidden md:flex" />
+                        </Carousel>
+                    )}
+                </div>
+
                 {/* Learning Roadmaps Carousel Section */}
                 <div>
                     <div className="flex items-center justify-between mb-8">
                         <div className="flex items-center justify-between">
                             <div>
                                 <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">Learning Roadmaps</h2>
-                                <p className="text-gray-600 mt-1">Structured paths to master new skills</p>
+                                <p className="text-zinc-500 text-sm mt-1">Structured paths to master new skills</p>
                             </div>
                         </div>
                         <div className="flex items-center gap-4">
@@ -392,12 +675,6 @@ export default function UserDashboard() {
                                 View All Paths
                                 <ArrowRight className="w-4 h-4 ml-2" />
                             </Button>
-                            <Link to={"/user/roadmap-gen"}>
-                                <Button className="bg-indigo-500 hover:bg-indigo-600 text-white cursor-pointer">
-                                    <Plus />
-                                    New Roadmap
-                                </Button>
-                            </Link>
                         </div>
                     </div>
 

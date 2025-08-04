@@ -1,7 +1,7 @@
 import logging
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from routers import tts, ai_chat, gemini_ai
+from routers import tts, ai_chat, gemini_ai, lms, web_search
 from pathlib import Path
 import tempfile
 import os
@@ -19,7 +19,7 @@ app = FastAPI(
 # CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # In production, specify exact origins
+    allow_origins=["*"],  # specific origin(s)
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -29,6 +29,8 @@ app.add_middleware(
 app.include_router(tts.router, prefix="/tts", tags=["Text-to-Speech"])
 app.include_router(ai_chat.router, prefix="/ai", tags=["AI Chat"])
 app.include_router(gemini_ai.router, prefix="/gen-ai", tags=["Gemini Service"])
+app.include_router(lms.router, prefix="/lms", tags=["LM Studios Service"])
+app.include_router(web_search.router, prefix="/web", tags=["Web Search Service"])
 
 @app.get("/", response_model=dict)
 async def root():

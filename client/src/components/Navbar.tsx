@@ -31,7 +31,7 @@ import {
     NavigationMenuTrigger,
 } from "@/components/ui/navigation-menu"
 import { Sheet, SheetContent, SheetTrigger } from "./ui/sheet"
-import { useState, useCallback, memo, useEffect } from "react"
+import { useState, useCallback, memo } from "react"
 import { Button } from "./ui/button"
 import Logo from "./Logo"
 import {
@@ -47,6 +47,7 @@ import {
 } from "@/components/ui/alert-dialog"
 import AuthService from "@/services/auth.service"
 import { useAuth } from "@/context/AuthContext"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./ui/tooltip"
 
 // Memoized navigation item component to prevent unnecessary re-renders
 const NavigationItem = memo(
@@ -143,7 +144,7 @@ const DesktopNavigationContent = memo(
                             <li>
                                 <NavigationMenuLink asChild>
                                     <Link
-                                        to="/roadmaps"
+                                        to="/public/roadmaps"
                                         className="block p-4 rounded-xl bg-blue-50/60 hover:bg-blue-100/80 border border-gray-200/60 hover:border-gray-300/60 transition-all duration-200 group backdrop-blur-sm"
                                     >
                                         <div className="flex items-start gap-3">
@@ -299,87 +300,6 @@ const DesktopNavigationContent = memo(
                             </Button>
                         </Link>
                     </NavigationMenuLink>
-                    <NavigationMenuContent className="bg-white">
-                        <ul className="grid gap-3 w-[400px] bg-white p-3">
-                            <li className="mb-2">
-                                <div className="flex items-center gap-2 mb-2">
-                                    <div className="p-1.5 bg-indigo-100 rounded-lg">
-                                        <Brain className="w-4 h-4 text-indigo-600" />
-                                    </div>
-                                    <h3 className="font-semibold text-gray-900 text-sm">AI-Powered Tools</h3>
-                                </div>
-                                <p className="text-gray-600 text-xs leading-relaxed">
-                                    Leverage artificial intelligence to accelerate your learning journey
-                                </p>
-                            </li>
-                            <li>
-                                <NavigationMenuLink asChild>
-                                    <Link
-                                        to={"/ai/interview"}
-                                        className="block p-4 rounded-xl bg-blue-50/60 hover:bg-blue-100/60 border border-blue-200/60 hover:border-blue-300/60 transition-all duration-200 group backdrop-blur-sm"
-                                    >
-                                        <div className="flex items-start gap-3">
-                                            <div className="p-2 bg-blue-100 rounded-lg group-hover:bg-blue-200 transition-colors">
-                                                <MessageSquare className="w-5 h-5 text-blue-600" />
-                                            </div>
-                                            <div className="flex-1">
-                                                <div className="font-medium text-gray-900 text-sm mb-1 group-hover:text-blue-800 transition-colors">
-                                                    Interview Simulator
-                                                </div>
-                                                <p className="text-gray-600 text-xs leading-relaxed">
-                                                    Practice real interviews with AI feedback and personalized improvement tips
-                                                </p>
-                                            </div>
-                                        </div>
-                                    </Link>
-                                </NavigationMenuLink>
-                            </li>
-                            <li>
-                                <NavigationMenuLink asChild>
-                                    <Link
-                                        to="/ai/quiz-taker"
-                                        className="block p-4 rounded-xl bg-green-50/60 hover:bg-green-100/60 border border-green-200/60 hover:border-green-300/60 transition-all duration-200 group backdrop-blur-sm"
-                                    >
-                                        <div className="flex items-start gap-3">
-                                            <div className="p-2 bg-green-100 rounded-lg group-hover:bg-green-200 transition-colors">
-                                                <HelpCircle className="w-5 h-5 text-green-600" />
-                                            </div>
-                                            <div className="flex-1">
-                                                <div className="font-medium text-gray-900 text-sm mb-1 group-hover:text-green-800 transition-colors">
-                                                    AI Quiz Taker
-                                                </div>
-                                                <p className="text-gray-600 text-xs leading-relaxed">
-                                                    Generate adaptive quizzes that adjust to your skill level and learning pace
-                                                </p>
-                                            </div>
-                                        </div>
-                                    </Link>
-                                </NavigationMenuLink>
-                            </li>
-                            <li>
-                                <NavigationMenuLink asChild>
-                                    <Link
-                                        to="/ai/career-suggestion"
-                                        className="block p-4 rounded-xl bg-purple-50/60 hover:bg-purple-100/60 border border-purple-200/60 hover:border-purple-300/60 transition-all duration-200 group backdrop-blur-sm"
-                                    >
-                                        <div className="flex items-start gap-3">
-                                            <div className="p-2 bg-purple-100 rounded-lg group-hover:bg-purple-200 transition-colors">
-                                                <Target className="w-5 h-5 text-purple-600" />
-                                            </div>
-                                            <div className="flex-1">
-                                                <div className="font-medium text-gray-900 text-sm mb-1 group-hover:text-purple-800 transition-colors">
-                                                    Career Suggestion
-                                                </div>
-                                                <p className="text-gray-600 text-xs leading-relaxed">
-                                                    Get personalized career recommendations based on your skills and interests
-                                                </p>
-                                            </div>
-                                        </div>
-                                    </Link>
-                                </NavigationMenuLink>
-                            </li>
-                        </ul>
-                    </NavigationMenuContent>
                 </NavigationMenuItem>
             </NavigationMenuList>
         </NavigationMenu>
@@ -591,9 +511,8 @@ const MobileMenuContent = memo(
 // Main Navbar Container
 export default function Navbar() {
     const navigate = useNavigate()
-    const { isAuthenticated, userType, refreshAuth } = useAuth();
-
-    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+    const { isAuthenticated, userType, refreshAuth } = useAuth()
+    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
     const handleMobileMenuClose = useCallback(() => {
         setIsMobileMenuOpen(false)
@@ -602,36 +521,54 @@ export default function Navbar() {
     // Actual logout logic
     const doLogout = useCallback(() => {
         AuthService.logout()
-        refreshAuth(); // 👈 this updates Navbar immediately
+        refreshAuth() // 👈 this updates Navbar immediately
         navigate("/login")
-    }, [navigate])
+    }, [navigate, refreshAuth])
 
     return (
         <div className={clsx(navStyle.nav, navStyle.navbarFade)}>
-            <nav className="flex items-center justify-between py-4 lg:px-50 md:px-30 sm-px-5 px-5 border-b border-gray-200/60">
+            <nav className="flex items-center justify-between py-4 lg:px-50 md:px-30 sm:px-5 px-5 border-b border-gray-200/60">
                 <div className="flex items-center gap-2">{<Logo />}</div>
-
                 <div className="md:hidden sm:hidden lg:block hidden">
                     <DesktopNavigationContent />
                 </div>
-
                 <div className="flex gap-2">
                     {isAuthenticated ? (
                         <div className="flex gap-2">
-                            <Link to={AuthService.getRedirectUrl(userType || "student")}>
-                                <Button className="bg-indigo-500 hover:bg-indigo-600 text-white cursor-pointer">
-                                    <User />
-                                </Button>
-                            </Link>
-                            <Link to={AuthService.getRedirectUrl(userType || "student")}>
-                                <Button className="bg-indigo-500 hover:bg-indigo-600 text-white cursor-pointer">
-                                    <LayoutDashboard />
-                                </Button>
-                            </Link>
+                            <TooltipProvider>
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <Link to={"/user/profile"}>
+                                            <Button variant="ghost" size="icon" className="text-gray-700 hover:bg-gray-100/60">
+                                                <User className="w-5 h-5" />
+                                            </Button>
+                                        </Link>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                        <p>View Profile</p>
+                                    </TooltipContent>
+                                </Tooltip>
+                            </TooltipProvider>
+
+                            <TooltipProvider>
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <Link to={AuthService.getRedirectUrl(userType || "student")}>
+                                            <Button variant="ghost" size="icon" className="text-indigo-600 hover:bg-indigo-50/60">
+                                                <LayoutDashboard className="w-5 h-5" />
+                                            </Button>
+                                        </Link>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                        <p>Go to Dashboard</p>
+                                    </TooltipContent>
+                                </Tooltip>
+                            </TooltipProvider>
+
                             <AlertDialog>
                                 <AlertDialogTrigger asChild>
-                                    <Button className="bg-red-500 hover:bg-red-600 text-white cursor-pointer">
-                                        <LogOut className="w-4 h-4" />
+                                    <Button variant="destructive" size="icon">
+                                        <LogOut className="w-5 h-5" />
                                     </Button>
                                 </AlertDialogTrigger>
                                 <AlertDialogContent>
@@ -645,12 +582,18 @@ export default function Navbar() {
                                             </div>
                                         </AlertDialogTitle>
                                         <AlertDialogDescription>
-                                            Are you sure you want to sign out of your account? You'll need to sign in again to access your dashboard.
+                                            Are you sure you want to sign out of your account? You'll need to sign in again to access your
+                                            dashboard.
                                         </AlertDialogDescription>
                                     </AlertDialogHeader>
                                     <AlertDialogFooter>
                                         <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                        <AlertDialogAction className="bg-red-500 hover:bg-red-600 text-white cursor-pointer" onClick={doLogout}>Continue</AlertDialogAction>
+                                        <AlertDialogAction
+                                            className="bg-red-500 hover:bg-red-600 text-white cursor-pointer"
+                                            onClick={doLogout}
+                                        >
+                                            Continue
+                                        </AlertDialogAction>
                                     </AlertDialogFooter>
                                 </AlertDialogContent>
                             </AlertDialog>
@@ -667,7 +610,6 @@ export default function Navbar() {
                             </Link>
                         </>
                     )}
-
                     {/* Mobile Menu Button */}
                     <div className="lg:hidden">
                         <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
@@ -691,7 +633,6 @@ export default function Navbar() {
                     </div>
                 </div>
             </nav>
-
         </div>
     )
 }

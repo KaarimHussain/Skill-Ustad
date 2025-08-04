@@ -303,6 +303,22 @@ export default class AuthService {
         }
     }
 
+    // Get User ID
+    public static getAuthenticatedUserId(): string | null {
+        const isAuthenticated = this.isAuthenticated()
+        if (!isAuthenticated) {
+            return null;
+        } else {
+            const token = this.getUser()?.token;
+            const userId = this.decodeToken(token || "");
+            if (userId) {
+                return userId.UserId;
+            } else {
+                return null
+            }
+        }
+    }
+
     /**
      * Get stored token
      */

@@ -1,5 +1,5 @@
 import { Announcement, AnnouncementTag, AnnouncementTitle } from "@/components/ui/kibo-ui/announcement";
-import { ArrowRight, ArrowUpRightIcon, Bot, Code } from "lucide-react";
+import { ArrowRight, ArrowUpRightIcon, Bot, Briefcase, Code } from "lucide-react";
 import { memo } from "react";
 import { Link } from "react-router-dom";
 
@@ -7,7 +7,7 @@ function ToolsView() {
     const tools = [
         {
             title: "Static Website Builder",
-            description: "Create stunning websites in minutes with our drag-and-drop builder. No coding required.",
+            description: "Create stunning websites in minutes. No coding required.",
             icon: Code,
             gradient: "from-blue-100 to-indigo-200",
             accentColor: "text-blue-600",
@@ -29,7 +29,20 @@ function ToolsView() {
             size: "medium",
             link: "/ai/chatbot",
         },
-    ]
+        {
+            title: "Interview Simulator",
+            description: "Practice real-time mock interviews with AI tailored to your field.",
+            icon: Briefcase, // make sure to import this or use your own
+            gradient: "from-emerald-100 to-teal-200",
+            accentColor: "text-emerald-600",
+            bgGradient: "from-emerald-50 to-teal-100",
+            category: "Career",
+            isPopular: true,
+            size: "medium",
+            link: "/ai/interview",
+        },
+    ];
+
     return (
         <>
             <div className="min-h-screen w-full pt-32 pb-20 bg-conic-180 from-indigo-200 via-indigo-50 to-indigo-200 px-5 flex justify-center items-center">

@@ -77,8 +77,11 @@ async def generate_roadmap(data: RoadmapRequest):
         prompt = (
             f"Create a roadmap for learning {data.prompt}. "
             "Return only a JSON object with two keys: 'nodes' and 'edges'. "
-            "Each node must have id, type, data.label, and position (x, y). "
-            "Each edge must have id, source, and target. No extra explanation."
+            "You must generate at least 10 nodes. "
+            "Nodes should include a variety of 'type' values such as 'start', 'concept', 'task', 'quiz', 'end', etc., not just the same type repeatedly. "
+            "Each node must include: id, type, data.label, and position (x, y). "
+            "Each edge must include: id, source, and target. "
+            "No extra explanation or text outside the JSON object."
         )
 
         result = model.generate_content(prompt)

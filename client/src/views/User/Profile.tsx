@@ -1,9 +1,10 @@
+
+
 export default function Profile() {
+
     return (
-        <>
-        <div className="h-screen w-full">
-            <h1>Profile Screen</h1>
+        <div className="min-h-screen w-full flex items-center justify-center">
+            <h1 className="text-xl font-bold mb-4">Profile Page</h1>
         </div>
-        </>
     );
 }

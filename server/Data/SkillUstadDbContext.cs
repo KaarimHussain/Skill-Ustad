@@ -13,6 +13,7 @@ namespace SkillUstad.Data
         public DbSet<MentorAdditionalInfo> MentorAdditionalInfos { get; set; }
         public DbSet<MentorExpertiseTag> MentorExpertiseTags { get; set; }
         public DbSet<SpokenLanguage> SpokenLanguages { get; set; }
+        // public DbSet<OtpRequest> OtpRequests { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

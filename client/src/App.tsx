@@ -13,7 +13,7 @@ import Home from './views/Home';
 import Login from './views/Auth/Login';
 import Signup from './views/Auth/Signup';
 import OTPVerification from './views/Auth/OTPVerification';
-import VoiceInterviewSimulator from './views/InterviewSimulator';
+import VoiceInterviewSimulator from './views/AI/InterviewSimulator';
 import ToolsView from './views/AI/Tools';
 import ForgetPassword from './views/Auth/ForgetPassword';
 import UserDashboard from './views/User/Dashboard';
@@ -24,6 +24,9 @@ import ChatbotBuilder from './views/AI/ChatbotBuilder';
 import GenerateRoadmap from './views/User/GenerateRoadmap';
 import RoadmapProcessing from './views/User/RoadmapProcessing';
 import RoadmapViewer from './views/User/RoadmapViewer';
+import Profile from './views/User/Profile';
+import Roadmap from './views/Public/Roadmap';
+import CourseGenerator from './views/User/CourseGenerator';
 
 function App() {
   const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_KEY_TWO;
@@ -58,14 +61,22 @@ function App() {
           <Navbar />
           <Routes>
             {/* 🌐 Public URLs */}
-            <Route path="/" element={<Home />} />
             <Route path="/ai/interview" element={<VoiceInterviewSimulator />} />
             <Route path="/ai/tools" element={<ToolsView />} />
             <Route path="/ai/chatbot" element={<ChatbotBuilder />} />
+            <Route path="/user/roadmap/:id" element={<RoadmapViewer />} />
+            <Route path='/public/roadmaps' element={<Roadmap />} />
 
             {/* 🔒 Protected URLs */}
 
             {/* 👤 Auth URLs - public only if NOT logged in */}
+
+            <Route path="/" element={
+              <PublicOnlyRoute>
+                <Home />
+              </PublicOnlyRoute>}
+            />
+
             <Route
               path="/login"
               element={
@@ -90,8 +101,9 @@ function App() {
               <Route path="/user/dashboard" element={<UserDashboard />} />
               <Route path="/user/roadmap-gen" element={<GenerateRoadmap />} />
               <Route path="/user/process-roadmap" element={<RoadmapProcessing />} />
+              <Route path="/user/course-generator" element={<CourseGenerator />} />
+              <Route path="/user/profile" element={<Profile />} />
             </Route>
-            <Route path="/user/roadmap/:id" element={<RoadmapViewer />} />
 
             {/* 🧑‍🏫 Mentor-only route */}
             <Route element={<ProtectedRoute allowedRoles={["Mentor"]} />}>
