@@ -15,7 +15,6 @@ export default function RoadmapProcessing() {
     const prompt = location.state?.prompt?.toLowerCase() || "";
     const [error, setError] = useState<string | null>(null);
     const [smallError, setSmallError] = useState<string | null>(null);
-    const [difficulty, setDifficulty] = useState("");
 
 
     const generateAndSaveRoadmap = async (sessionKey: string) => {
@@ -88,9 +87,9 @@ export default function RoadmapProcessing() {
             } else {
                 // Capitalize first letter to ensure consistent format
                 finalDifficulty = difficultyRes.charAt(0).toUpperCase() + difficultyRes.slice(1).toLowerCase();
-            }
+                console.log("Final Difficulty: ", finalDifficulty);
 
-            setDifficulty(finalDifficulty);
+            }
 
             // Getting the current user Id
             const userId = AuthService.getAuthenticatedUserId();
@@ -102,7 +101,7 @@ export default function RoadmapProcessing() {
                 createdAt: serverTimestamp(),
                 userId: userId,
                 visibility: "Public",
-                difficulty: difficulty  // Use the processed difficulty directly instead of state
+                difficulty: finalDifficulty  // Use the processed difficulty directly instead of state
             };
 
             const docRef = await addDoc(collection(db, "roadmaps"), roadmap);
