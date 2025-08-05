@@ -29,8 +29,6 @@ export interface GeneratedCourse {
 
 export default class CourseGeneratorService {
     private static readonly API_ENDPOINT = "http://127.0.0.1:8000/lms/ai/generate-course"
-
-
     // Prevent duplicate requests
     private static activeRequests = new Map<string, Promise<GeneratedCourse>>()
 
@@ -54,6 +52,8 @@ export default class CourseGeneratorService {
 
         try {
             const result = await requestPromise
+            console.log("Final Course Response: ", result);
+
             return result
         } finally {
             // Clean up the active request

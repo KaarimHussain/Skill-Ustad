@@ -36,6 +36,7 @@ import {
     X,
 } from "lucide-react"
 import { Switch } from "@/components/ui/switch"
+import DifficultyBadge from "@/components/DifficultyBadge"
 
 // Type definitions
 interface NodeData {
@@ -306,7 +307,6 @@ export default function RoadmapViewer() {
                 const touch = e.touches[0]
                 setIsDragging(true)
                 setDragStart({ x: touch.clientX - panOffset.x, y: touch.clientY - panOffset.y })
-                e.preventDefault()
             }
         },
         [panOffset],
@@ -316,7 +316,6 @@ export default function RoadmapViewer() {
         (e: React.TouchEvent) => {
             if (isDragging && e.touches.length === 1) {
                 const touch = e.touches[0]
-                e.preventDefault()
                 setPanOffset({
                     x: touch.clientX - dragStart.x,
                     y: touch.clientY - dragStart.y,
@@ -442,9 +441,7 @@ export default function RoadmapViewer() {
                                         <Cable className="w-4 h-4" />
                                         <span>{roadmapData.edges?.length || 0} connections</span>
                                     </div>
-                                    <div className="bg-gray-300/40 px-4 py-2 rounded-full">
-                                        {difficulty || "Medium"}
-                                    </div>
+                                    <DifficultyBadge difficulty={difficulty || "Medium"} />
                                     <div className="flex items-center gap-1">
                                         <Tooltip>
                                             <TooltipTrigger asChild>

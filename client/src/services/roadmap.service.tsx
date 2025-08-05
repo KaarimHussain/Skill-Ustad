@@ -5,8 +5,6 @@ import axios from "axios";
 
 export default class RoadmapService {
 
-    private static readonly lmsUrl = import.meta.env.VITE_LMSTUDIOS_URL;
-
     static async fetchAll() {
         const snapshot = await getDocs(collection(db, "roadmaps"));
         return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -22,16 +20,17 @@ export default class RoadmapService {
         return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     }
 
-    static async getRoadmapDifficulty(prompt: string, data: any[]): Promise<string> {
+    // Method where response is been coming from
+    static async getRoadmapDifficulty(data: any[]): Promise<string> {
         try {
             const response = await axios.post(
-                "http://127.0.0.1:8000/lms/ai/roadmap-difficulty", // assuming you're proxying through Vite or using full URL like http://localhost:8000
+                "http://127.0.0.1:8000/lms/ai/roadmap-difficulty",
                 {
-                    prompt,
                     data
                 }
             );
             console.log("Difficulty response:", response.data);
+            // Return just the difficulty string, not the entire response object
             return response.data.difficulty;
         } catch (error: any) {
             console.error("Error fetching roadmap difficulty:", error);

@@ -306,24 +306,28 @@ export default function CourseGenerator() {
                                         </CardTitle>
                                     </CardHeader>
                                     <CardContent className="space-y-4">
-                                        {course.resources.videos.map((video: any, index: any) => (
-                                            <div key={index} className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg">
-                                                <div className="w-24 h-16 bg-gray-200 rounded-lg flex items-center justify-center">
-                                                    <Play className="w-6 h-6 text-gray-600" />
-                                                </div>
-                                                <div className="flex-1">
-                                                    <h4 className="font-medium text-gray-900">{video.title}</h4>
-                                                    <div className="flex items-center gap-2 text-sm text-gray-600 mt-1">
-                                                        <Clock className="w-4 h-4" />
-                                                        {video.duration}
+                                        {Array.isArray(course.resources.videos) && course.resources.videos.length > 0 ? (
+                                            course.resources.videos.map((video: any, index: any) => (
+                                                <div key={index} className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg">
+                                                    <div className="w-24 h-16 bg-gray-200 rounded-lg flex items-center justify-center">
+                                                        <Play className="w-6 h-6 text-gray-600" />
                                                     </div>
+                                                    <div className="flex-1">
+                                                        <h4 className="font-medium text-gray-900">{video.title}</h4>
+                                                        <div className="flex items-center gap-2 text-sm text-gray-600 mt-1">
+                                                            <Clock className="w-4 h-4" />
+                                                            {video.duration}
+                                                        </div>
+                                                    </div>
+                                                    <Button size="sm" className="bg-red-500 hover:bg-red-600 text-white">
+                                                        <Play className="w-4 h-4 mr-2" />
+                                                        Watch
+                                                    </Button>
                                                 </div>
-                                                <Button size="sm" className="bg-red-500 hover:bg-red-600 text-white">
-                                                    <Play className="w-4 h-4 mr-2" />
-                                                    Watch
-                                                </Button>
-                                            </div>
-                                        ))}
+                                            ))
+                                        ) : (
+                                            <div className="text-gray-500 text-center py-4">No video tutorials available.</div>
+                                        )}
                                     </CardContent>
                                 </Card>
 
