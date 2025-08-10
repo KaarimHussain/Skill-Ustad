@@ -2,7 +2,7 @@
 
 import type React from "react"
 import { useState, useCallback } from "react"
-import { Eye, EyeOff, Mail, Lock, ArrowRight, Github, Chrome, AlertCircle, CheckCircle, Loader2 } from "lucide-react"
+import { Eye, EyeOff, Mail, Lock, ArrowRight, Chrome, AlertCircle, CheckCircle, Loader2 } from "lucide-react"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -193,7 +193,9 @@ export default function Login() {
 
         // Set error message
         setApiError(apiError.message || "Invalid email or password. Please try again.")
-
+        if (apiError.otpError) {
+          navigate(`/otp?email=${encodeURIComponent(apiError.otpEmail || "")}`)
+        }
         // Clear error after delay
         setTimeout(() => {
           setApiError("")
@@ -235,7 +237,7 @@ export default function Login() {
 
         // Set error message
         setApiError(apiError.message || "Failed to authenticate with Google. Please try again.");
-
+        setSocialAuthLoading(false);
         // Clear error after delay
         setTimeout(() => {
           setApiError("");
@@ -277,6 +279,7 @@ export default function Login() {
       }
     },
     onError: (error) => {
+      console.error("Error Loggin In with Google: " + error);
       setApiError("Google authentication failed. Please try again.");
       setSocialAuthLoading(false);
       setTimeout(() => setApiError(""), 8000);
@@ -496,26 +499,12 @@ export default function Login() {
               </div>
 
               {/* Social Login Buttons */}
-              <div className="grid grid-cols-2 gap-4">
-                <button
-                  type="button"
-                  onClick={() => handleSocialLogin("GitHub")}
-                  disabled={isLoading || socialAuthLoading}
-                  className={`flex items-center justify-center gap-3 py-4 px-4 bg-white/60 hover:bg-white/80 border border-gray-300 hover:border-gray-400 rounded-xl text-gray-700 hover:text-gray-900 transition-all duration-200 backdrop-blur-sm group h-14 hover:shadow-lg hover:shadow-gray-200/50 ${isLoading || socialAuthLoading ? "opacity-50 cursor-not-allowed" : ""
-                    }`}
-                >
-                  {socialAuthLoading ? (
-                    <Loader2 className="w-5 h-5 animate-spin" />
-                  ) : (
-                    <Github className="w-5 h-5 group-hover:scale-110 transition-transform" />
-                  )}
-                  <span className="font-medium">GitHub</span>
-                </button>
+              <div className="grid grid-cols-1 gap-4">
                 <button
                   type="button"
                   onClick={() => handleSocialLogin("Google")}
                   disabled={isLoading || socialAuthLoading}
-                  className={`flex items-center justify-center gap-3 py-4 px-4 bg-white/60 hover:bg-white/80 border border-gray-300 hover:border-gray-400 rounded-xl text-gray-700 hover:text-gray-900 transition-all duration-200 backdrop-blur-sm group h-14 hover:shadow-lg hover:shadow-gray-200/50 ${isLoading || socialAuthLoading ? "opacity-50 cursor-not-allowed" : ""
+                  className={`cursor-pointer flex items-center justify-center gap-3 py-4 px-4 bg-white/60 hover:bg-white/80 border border-gray-300 hover:border-gray-400 rounded-xl text-gray-700 hover:text-gray-900 transition-all duration-200 backdrop-blur-sm group h-14 hover:shadow-lg hover:shadow-gray-200/50 ${isLoading || socialAuthLoading ? "opacity-50 cursor-not-allowed" : ""
                     }`}
                 >
                   {socialAuthLoading ? (

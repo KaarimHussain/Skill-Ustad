@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
 import { Link } from "react-router-dom"
+import EmailService from "@/services/email.service"
 
 
 // Validation function for email
@@ -37,12 +38,15 @@ export default function ForgetPassword() {
     const [isLoading, setIsLoading] = useState(false)
     const [isEmailSent, setIsEmailSent] = useState(false)
     const [touched, setTouched] = useState(false)
+    const [error, setError] = useState("");
+
 
     // Validation state
     const emailError = touched ? validateEmail(email) : ""
     const isFormValid = !emailError && email
 
     const handleInputChange = useCallback((value: string) => {
+        setError("")
         setEmail(value)
     }, [])
 
@@ -50,48 +54,33 @@ export default function ForgetPassword() {
         setTouched(true)
     }, [])
 
-    const handleSubmit = useCallback(
-        async (e: React.FormEvent) => {
-            e.preventDefault()
-            // Mark field as touched to show validation errors
-            setTouched(true)
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setIsLoading(true);
+        setError("");
 
-            // Check if form is valid
-            if (!isFormValid) {
-                return
-            }
-
-            setIsLoading(true)
-            try {
-                // Simulate API call for password recovery
-                await new Promise((resolve) => setTimeout(resolve, 2000))
-                console.log("Password recovery email sent to:", email)
-                setIsEmailSent(true)
-                // Handle successful email sending here
-            } catch (error) {
-                console.error("Failed to send recovery email:", error)
-                // Handle error here
-            } finally {
-                setIsLoading(false)
-            }
-        },
-        [email, isFormValid],
-    )
-
-    const handleResendEmail = useCallback(async () => {
-        setIsLoading(true)
         try {
-            // Simulate API call for resending email
-            await new Promise((resolve) => setTimeout(resolve, 1500))
-            console.log("Recovery email resent to:", email)
-            // Handle successful resend here
-        } catch (error) {
-            console.error("Failed to resend recovery email:", error)
-            // Handle error here
+            await EmailService.sendPasswordReset(email);
+            setIsEmailSent(true);
+        } catch (err: any) {
+            setError(err.message || "Something went wrong. Please try again.");
         } finally {
-            setIsLoading(false)
+            setIsLoading(false);
         }
-    }, [email])
+    };
+
+    const handleResendEmail = async () => {
+        setIsLoading(true);
+        setError("");
+
+        try {
+            await EmailService.resendPasswordReset(email);
+        } catch (err: any) {
+            setError(err.message || "Something went wrong. Please try again.");
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
     const resetForm = useCallback(() => {
         setIsEmailSent(false)
@@ -127,6 +116,12 @@ export default function ForgetPassword() {
                                         No worries! Enter your email address and we'll send you a link to reset your password.
                                     </p>
                                 </div>
+
+                                {error && (
+                                    <div className="my-3 bg-red-500/10 border border-red-500 text-red-500 rounded px-5 py-4">
+                                        {error}
+                                    </div>
+                                )}
 
                                 <form onSubmit={handleSubmit} className="space-y-8">
                                     {/* Email Field */}
@@ -217,6 +212,12 @@ export default function ForgetPassword() {
                                     <p className="text-gray-600 text-base mb-8">
                                         We've sent a password recovery link to <span className="font-medium text-gray-900">{email}</span>
                                     </p>
+
+                                    {error && (
+                                        <div className="my-3 bg-red-500/10 border border-red-500 text-red-500 rounded px-5 py-4">
+                                            {error}
+                                        </div>
+                                    )}
 
                                     <div className="space-y-4">
                                         {/* Resend Email Button */}

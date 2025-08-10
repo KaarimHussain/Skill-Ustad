@@ -27,6 +27,12 @@ import RoadmapViewer from './views/User/RoadmapViewer';
 import Profile from './views/User/Profile';
 import Roadmap from './views/Public/Roadmap';
 import CourseGenerator from './views/User/CourseGenerator';
+import { Toaster } from 'sonner';
+import ResetPassword from './views/Auth/ResetPassword';
+import NotFound from './views/404';
+import Quiz from './views/User/Quiz';
+import MentorDashboard from './views/Mentor/Dashboard';
+import AddtionalInfo from './views/Mentor/AdditionalInfo';
 
 function App() {
   const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_KEY_TWO;
@@ -93,8 +99,31 @@ function App() {
                 </PublicOnlyRoute>
               }
             />
-            <Route path="/otp" element={<OTPVerification />} />
-            <Route path="/forget-password" element={<ForgetPassword />} />
+
+            <Route
+              path="/reset-password"
+              element={
+                <PublicOnlyRoute>
+                  <ResetPassword />
+                </PublicOnlyRoute>
+              }
+            />
+            <Route
+              path="/otp"
+              element={
+                <PublicOnlyRoute>
+                  <OTPVerification />
+                </PublicOnlyRoute>
+              }
+            />
+            <Route
+              path="/forget-password"
+              element={
+                <PublicOnlyRoute>
+                  <ForgetPassword />
+                </PublicOnlyRoute>
+              }
+            />
 
             {/* 🧑‍🎓 Student-only route */}
             <Route element={<ProtectedRoute allowedRoles={["Student"]} />}>
@@ -103,17 +132,24 @@ function App() {
               <Route path="/user/process-roadmap" element={<RoadmapProcessing />} />
               <Route path="/user/course-generator" element={<CourseGenerator />} />
               <Route path="/user/profile" element={<Profile />} />
+              <Route path='/user/quiz' element={<Quiz />} />
+              <Route path='/user/additional-info' element={<AddtionalInfo />} />
             </Route>
 
             {/* 🧑‍🏫 Mentor-only route */}
             <Route element={<ProtectedRoute allowedRoles={["Mentor"]} />}>
-              <Route path="/mentor/dashboard" element={<UserDashboard />} />
+              <Route path="/mentor/dashboard" element={<MentorDashboard />} />
+              <Route path="/mentor/profile" element={<Profile />} />
+              <Route path='/mentor/additional-info' element={<AddtionalInfo />} />
+
             </Route>
 
-            {/* ⛔ Add more protected routes here as needed */}
+            {/* 404 Not Found Route */}
+            <Route path='*' element={<NotFound />} />
           </Routes>
           <Footer />
         </AuthProvider>
+        <Toaster />
       </Router>
     </GoogleOAuthProvider>
   )

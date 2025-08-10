@@ -1,21 +1,25 @@
 using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 
 namespace SkillUstad.Models
 {
-    public class OtpRequest
+    public class PasswordResetRequest
     {
         [Key]
-        public int Id { get; set; }
+        public Guid Id { get; set; }
+
         [Required]
-        public string? OTP { get; set; }
-        public bool IsVerified { get; set; } = false;
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public Guid UserId { get; set; }
+
+        [Required]
+        public string Token { get; set; } = null!;
+
+        [Required]
         public DateTime ExpiresAt { get; set; }
-        // Foreign Key
+
         [Required]
-        public string? UserId { get; set; }
-        [ForeignKey("UserId")]
-        public Users? User { get; set; }  // If you're using Identity
+        public bool IsUsed { get; set; } = false;
+
+        // Navigation Property
+        public virtual Users User { get; set; }
     }
 }

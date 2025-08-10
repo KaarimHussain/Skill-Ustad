@@ -259,9 +259,9 @@ export default function Signup() {
                 const response = await AuthService.register(registrationData)
                 setSuccessMessage(response.message || "Registration successful!")
                 console.log("✅ Registration successful:", response)
+                // Redirect to OTP page with email as URL param
+                navigate(`/otp?email=${encodeURIComponent(registrationData.Email)}`)
 
-                // Optionally redirect to login or dashboard
-                navigate('/login')
                 clearMessages()
             } catch (error) {
                 const apiError = error as ApiError
@@ -504,20 +504,7 @@ export default function Signup() {
 
                     {/* Social Logins */}
                     <div className="flex gap-2 py-4 items-center justify-start">
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full">
-                            <button
-                                disabled={socialAuthLoading || isLoading}
-                                type="button"
-                                onClick={() => handleSocialLogin("GitHub")}
-                                className={`w-full cursor-pointer flex items-center justify-center gap-3 py-4 px-4 bg-white/60 hover:bg-white/80 border border-gray-300 hover:border-gray-400 rounded-xl text-gray-700 hover:text-gray-900 transition-all duration-200 backdrop-blur-sm group h-14 hover:shadow-lg hover:shadow-gray-200/50 text-sm sm:text-base ${socialAuthLoading || isLoading ? "opacity-50 cursor-not-allowed" : ""}`}
-                            >
-                                {socialAuthLoading ? (
-                                    <Loader2 className="w-4 h-4 sm:w-5 sm:h-5 animate-spin" />
-                                ) : (
-                                    <Github className="w-4 h-4 sm:w-5 sm:h-5 group-hover:scale-110 transition-transform" />
-                                )}
-                                <span className="font-medium">GitHub</span>
-                            </button>
+                        <div className="grid grid-cols-1 gap-4 w-full">
                             <button
                                 disabled={socialAuthLoading || isLoading}
                                 type="button"

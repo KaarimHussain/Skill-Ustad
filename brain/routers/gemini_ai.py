@@ -65,6 +65,7 @@ async def generate_description(data: DescriptionRequest):
             "- Your explanation must be exactly 2 short sentences\n"
             "- Use simple language suitable for someone learning the topic\n"
             "- Do NOT include any introductory or closing remarks\n"
+            "- Just provide answers. no introduction, no agreeing, just straight up response.\n"
             "- Focus on the concept: '{label}' in the context of '{context}'"
         )
         user_prompt = (
@@ -75,6 +76,7 @@ async def generate_description(data: DescriptionRequest):
             model="tinyllama:1.1b",
             prompt=user_prompt,
             system=system_prompt,
+            format="json"  # Enforces JSON output
         )
 
         description = response["response"].strip()

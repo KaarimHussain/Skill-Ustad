@@ -3,8 +3,9 @@ import { useState, useCallback, useEffect } from "react"
 import { ArrowRight, ArrowLeft, Mail, Shield, RefreshCw, CheckCircle, AlertCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp"
-import { Link } from "react-router-dom"
+import { Link, useNavigate, useSearchParams } from "react-router-dom"
 import { memo } from "react"
+import OtpService from "@/services/otp.service"
 
 // Background elements with light theme
 const OTPBackground = memo(() => (
@@ -107,7 +108,15 @@ export default function OTPVerification() {
     const [canResend, setCanResend] = useState(false)
     const [error, setError] = useState("")
     const [isVerified, setIsVerified] = useState(false)
-    const [email] = useState("john.doe@example.com") // This would come from props or context
+    const [searchParam] = useSearchParams();
+    const [email, setEmail] = useState(searchParam.get("email") || null); // This would come from props or context
+    const navigate = useNavigate();
+    useEffect(() => {
+        if (!email) {
+            // If no email is found in the URL, send them back to register
+            navigate('/login', { replace: true })
+        }
+    }, [email, navigate])
 
     // Countdown timer for resend functionality
     useEffect(() => {
@@ -133,22 +142,14 @@ export default function OTPVerification() {
         setError("")
 
         try {
-            // Simulate API call
-            await new Promise((resolve, reject) => {
-                setTimeout(() => {
-                    // Simulate success/failure
-                    if (otp === "123456") {
-                        setIsVerified(true)
-                        resolve(true)
-                    } else {
-                        reject(new Error("Invalid OTP code"))
-                    }
-                }, 1500)
-            })
-            console.log("OTP verified successfully:", otp)
-            // Handle successful verification here
-        } catch (error) {
-            setError("Invalid verification code. Please try again.")
+            await OtpService.verifyOtp(email || "", otp);
+            // Optionally redirect to dashboard after success
+            setIsVerified(true);
+            setTimeout(() => {
+                setEmail(null);
+            }, 15000)
+        } catch (error: any) {
+            setError(error.message || "Invalid verification code. Please try again.")
             setOtp("") // Clear the OTP input
             console.error("OTP verification failed:", error)
         } finally {
@@ -161,8 +162,7 @@ export default function OTPVerification() {
         setError("")
 
         try {
-            // Simulate API call
-            await new Promise((resolve) => setTimeout(resolve, 1000))
+            await OtpService.resendOtp(email || "");
             // Reset timer
             setTimeLeft(60)
             setCanResend(false)
@@ -220,9 +220,9 @@ export default function OTPVerification() {
                                 asChild
                                 className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white py-6 text-base rounded-xl font-medium transition-all duration-200 hover:scale-[1.02] group h-14 shadow-lg hover:shadow-xl hover:shadow-green-200/50"
                             >
-                                <Link to="/dashboard">
+                                <Link to="/login">
                                     <div className="flex items-center justify-center gap-3">
-                                        Continue to Dashboard
+                                        Login to access your account
                                         <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                                     </div>
                                 </Link>

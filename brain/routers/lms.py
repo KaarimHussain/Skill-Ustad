@@ -103,7 +103,7 @@ async def get_roadmap_difficulty(request: DifficultyRequest):
     
     try:
         response = ollama.generate(
-            model="gemma:2b",
+            model="tinyllama:1.1b",
             prompt=user_prompt,
             system=system_prompt
         )
@@ -209,10 +209,10 @@ async def generate_course(request: CourseRequest):
 @router.post("/ai/test")
 async def get_res(request: Request):
     data = await request.json()
-    text = data.get('text', '')
+    text = data.get('input', '')
 
     response = ollama.generate(
-        model='gemma:2b',
+        model='tinyllama:1.1b',
         prompt=text
     )
 

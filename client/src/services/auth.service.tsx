@@ -1,4 +1,5 @@
 import axios from "axios"
+import OtpService from "./otp.service"
 
 // Types for the registration request
 export interface RegisterRequest {
@@ -42,6 +43,8 @@ export interface AuthResponse {
 export interface ApiError {
     message: string
     status: number
+    otpEmail: string | null
+    otpError: boolean
 }
 
 // Types for stored user data
@@ -160,10 +163,16 @@ export default class AuthService {
             }
 
             return response.data
-        } catch (error) {
+        } catch (error: any) {
             console.error("❌ Login failed:", error)
-
+            var isOtpError = false;
+            var otpEmail = null;
             // Handle axios errors properly without causing page refresh
+            if (error.response.data.otpError) {
+                await OtpService.resendOtp(error.response.data.otpEmail)
+                isOtpError = true;
+                otpEmail = error.response.data.otpEmail;
+            }
             if (axios.isAxiosError(error)) {
                 let errorMessage = "Login failed. Please try again."
 
@@ -184,6 +193,8 @@ export default class AuthService {
                 const apiError: ApiError = {
                     message: errorMessage,
                     status: error.response?.status || 500,
+                    otpError: isOtpError,
+                    otpEmail: otpEmail,
                 }
 
                 // Throw the error without any side effects
@@ -241,6 +252,8 @@ export default class AuthService {
                 const apiError: ApiError = {
                     message: errorMessage,
                     status: error.response?.status || 500,
+                    otpEmail: null,
+                    otpError: false
                 }
                 throw apiError
             }
@@ -313,6 +326,21 @@ export default class AuthService {
             const userId = this.decodeToken(token || "");
             if (userId) {
                 return userId.UserId;
+            } else {
+                return null
+            }
+        }
+    }
+
+    public static getUserEmail(): string | null {
+        const isAuthenticated = this.isAuthenticated()
+        if (!isAuthenticated) {
+            return null;
+        } else {
+            const token = this.getUser()?.token;
+            const email = this.decodeToken(token || "");
+            if (email) {
+                return email.email;
             } else {
                 return null
             }

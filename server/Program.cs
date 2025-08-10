@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using SkillUstad.Data;
+using SkillUstad.Service;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -9,6 +10,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 // Adding all the Services
 // builder.Services.AddSingleton<ICloudinaryService, CloudinaryService>();
+builder.Services.AddSingleton<EmailService>();
 
 builder.Services.AddDbContext<SkillUstadDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("UstadConnection")));

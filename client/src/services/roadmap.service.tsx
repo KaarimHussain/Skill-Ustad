@@ -1,4 +1,4 @@
-import { getDocs, collection, query, where } from "firebase/firestore";
+import { getDocs, collection, query, where, orderBy, deleteDoc, doc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import AuthService from "./auth.service";
 import axios from "axios";
@@ -15,7 +15,7 @@ export default class RoadmapService {
         if (!userId) return [];
 
         const roadmapRef = collection(db, "roadmaps");
-        const q = query(roadmapRef, where("userId", "==", userId));
+        const q = query(roadmapRef, where("userId", "==", userId), orderBy("createdAt", "asc"));
         const snapshot = await getDocs(q);
         return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     }
@@ -40,5 +40,14 @@ export default class RoadmapService {
         }
     }
 
-
+    static async deleteRoadmap(id: string): Promise<boolean> {
+        try {
+            const docRef = doc(db, "roadmaps", id);
+            await deleteDoc(docRef);
+            return true;
+        } catch (error) {
+            console.error("Error deleting roadmap:", error);
+            return false;
+        }
+    }
 }

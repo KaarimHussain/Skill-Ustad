@@ -31,7 +31,7 @@ import {
     NavigationMenuTrigger,
 } from "@/components/ui/navigation-menu"
 import { Sheet, SheetContent, SheetTrigger } from "./ui/sheet"
-import { useState, useCallback, memo } from "react"
+import { useState, useCallback, memo, useEffect } from "react"
 import { Button } from "./ui/button"
 import Logo from "./Logo"
 import {
@@ -513,10 +513,16 @@ export default function Navbar() {
     const navigate = useNavigate()
     const { isAuthenticated, userType, refreshAuth } = useAuth()
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+    const [role, setRole] = useState("Student");
 
     const handleMobileMenuClose = useCallback(() => {
         setIsMobileMenuOpen(false)
     }, [])
+
+    useEffect(() => {
+        var userType = AuthService.getUserType();
+        setRole(userType ?? "Student");
+    }, [role])
 
     // Actual logout logic
     const doLogout = useCallback(() => {
@@ -538,7 +544,7 @@ export default function Navbar() {
                             <TooltipProvider>
                                 <Tooltip>
                                     <TooltipTrigger asChild>
-                                        <Link to={"/user/profile"}>
+                                        <Link to={role == "Mentor" ? "/mentor/profile" : "/user/profile"}>
                                             <Button variant="ghost" size="icon" className="text-gray-700 hover:bg-gray-100/60">
                                                 <User className="w-5 h-5" />
                                             </Button>

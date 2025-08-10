@@ -10,6 +10,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using SkillUstad.Service;
 
 namespace SkillUstad.Controller
 {
@@ -19,11 +20,14 @@ namespace SkillUstad.Controller
     {
         private readonly SkillUstadDbContext _context;
         private readonly IConfiguration _configuration;
+        private readonly EmailService _emailService;
 
-        public AuthController(SkillUstadDbContext context, IConfiguration configuration)
+        public AuthController(SkillUstadDbContext context, IConfiguration configuration, EmailService emailService)
         {
             _context = context;
             _configuration = configuration;
+            _emailService = emailService;
+
         }
 
         [HttpPost("login")]
@@ -50,6 +54,12 @@ namespace SkillUstad.Controller
                     return Unauthorized("Invalid email or password.");
                 }
 
+                // Checking if the account is verified
+                var isVerified = await _context.UserVerifications.AnyAsync(q => q.AccountId == user.Id && q.IsEmailVerified == true);
+                if (!isVerified)
+                {
+                    return Unauthorized(new { message = "The Account is not verified.", otpError = true, otpEmail = user.Email });
+                }
                 // Generate JWT token for student
                 var token = GenerateJwtToken(user.Id.ToString(), user.Email, user.Name, "Student");
 
@@ -82,6 +92,13 @@ namespace SkillUstad.Controller
                 if (!isPasswordValid)
                 {
                     return Unauthorized("Invalid email or password.");
+                }
+
+                // Checking if the account is verified
+                var isVerified = await _context.UserVerifications.AnyAsync(q => q.AccountId == mentor.Id && q.IsEmailVerified == true);
+                if (!isVerified)
+                {
+                    return Unauthorized("The Account is not verified.");
                 }
 
                 // Generate JWT token for mentor
@@ -334,7 +351,34 @@ namespace SkillUstad.Controller
                 };
 
                 await _context.Users.AddAsync(user);
+
+                // 3️⃣ Create verification row
+                var verification = new UserVerification
+                {
+                    Id = Guid.NewGuid(),
+                    AccountType = "User", // or "Mentor"
+                    AccountId = user.Id,
+                    IsEmailVerified = false
+                };
+                await _context.UserVerifications.AddAsync(verification);
+
+                // 4️⃣ Generate OTP
+                var otp = new Random().Next(100000, 999999).ToString();
+                var emailOtp = new EmailOtp
+                {
+                    Id = Guid.NewGuid(),
+                    AccountId = user.Id,
+                    UserType = "User", // or "Mentor"
+                    OtpCode = otp,
+                    ExpiresAt = DateTime.UtcNow.AddMinutes(15),
+                    IsUsed = false
+                };
+                await _context.EmailOtps.AddAsync(emailOtp);
+                // Save Database Changes
                 await _context.SaveChangesAsync();
+
+                // 5️⃣ Send OTP via email
+                await _emailService.SendEmailConformationEmail(user.Email, int.Parse(otp));
 
                 return Ok(new
                 {
@@ -421,7 +465,34 @@ namespace SkillUstad.Controller
                 };
 
                 await _context.Mentors.AddAsync(mentor);
+
+                // 3️⃣ Create verification row
+                var verification = new UserVerification
+                {
+                    Id = Guid.NewGuid(),
+                    AccountId = mentor.Id,
+                    AccountType = "Mentor", // or "User"
+                    IsEmailVerified = false
+                };
+                await _context.UserVerifications.AddAsync(verification);
+
+                // 4️⃣ Generate OTP
+                var otp = new Random().Next(100000, 999999).ToString();
+                var emailOtp = new EmailOtp
+                {
+                    Id = Guid.NewGuid(),
+                    AccountId = mentor.Id,
+                    UserType = "Mentor", // or "User"
+                    OtpCode = otp,
+                    ExpiresAt = DateTime.UtcNow.AddMinutes(15),
+                    IsUsed = false
+                };
+                await _context.EmailOtps.AddAsync(emailOtp);
+
                 await _context.SaveChangesAsync();
+
+                // 5️⃣ Send OTP via email
+                await _emailService.SendEmailConformationEmail(mentor.Email, int.Parse(otp));
 
                 return Ok(new
                 {
@@ -575,6 +646,110 @@ namespace SkillUstad.Controller
             {
                 return StatusCode(500, $"Token verification failed: {ex.Message}");
             }
+        }
+
+        [HttpPost("verify-otp")]
+        public async Task<IActionResult> VerifyOtp([FromBody] VerifyOtpRequest request)
+        {
+            // Check if email exists in either table
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == request.Email);
+            var mentor = user == null
+                ? await _context.Mentors.FirstOrDefaultAsync(m => m.Email == request.Email)
+                : null;
+
+            if (user == null && mentor == null)
+                return BadRequest(new { message = "Account not found" });
+
+            var accountId = user?.Id ?? mentor!.Id;
+            var accountType = user != null ? "User" : "Mentor";
+
+            // Find OTP
+            var otpRecord = await _context.EmailOtps
+                .Where(o => o.AccountId == accountId && o.UserType == accountType && !o.IsUsed && o.OtpCode == request.Otp)
+                .OrderByDescending(o => o.CreatedAt)
+                .FirstOrDefaultAsync();
+
+            if (otpRecord == null)
+                return BadRequest(new { message = "Invalid OTP" });
+
+            if (DateTime.UtcNow > otpRecord.ExpiresAt)
+                return BadRequest(new { message = "OTP expired" });
+
+            // Mark OTP as used
+            otpRecord.IsUsed = true;
+
+            // Mark email as verified in UserVerification table
+            var verification = await _context.UserVerifications
+                .FirstOrDefaultAsync(v => v.AccountId == accountId);
+
+            if (verification == null)
+            {
+                verification = new UserVerification
+                {
+                    Id = Guid.NewGuid(),
+                    AccountId = accountId,
+                    IsEmailVerified = true,
+                    VerifiedAt = DateTime.UtcNow
+                };
+                _context.UserVerifications.Add(verification);
+            }
+            else
+            {
+                verification.IsEmailVerified = true;
+                verification.VerifiedAt = DateTime.UtcNow;
+            }
+
+            await _context.SaveChangesAsync();
+
+            return Ok(new { message = "Email verified successfully" });
+        }
+
+
+        [HttpPost("resend-otp")]
+        public async Task<IActionResult> ResendOtp([FromBody] ResendOtpRequest request)
+        {
+            // Check if email exists in either table
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == request.Email);
+            var mentor = user == null
+                ? await _context.Mentors.FirstOrDefaultAsync(m => m.Email == request.Email)
+                : null;
+
+            if (user == null && mentor == null)
+                return BadRequest(new { message = "Account not found" });
+
+            var accountId = user?.Id ?? mentor!.Id;
+            var accountType = user != null ? "User" : "Mentor";
+
+            // Find OTP
+            var otpRecord = await _context.EmailOtps
+                .Where(o => o.AccountId == accountId)
+                .OrderByDescending(o => o.CreatedAt).ToListAsync();
+
+            if (otpRecord.Count > 1)
+            {
+                foreach (var expiredOtp in otpRecord)
+                {
+                    expiredOtp.IsUsed = true;
+                }
+            }
+            var otp = new Random().Next(100000, 999999).ToString();
+            var newOtp = new EmailOtp
+            {
+                Id = Guid.NewGuid(),
+                AccountId = accountId,
+                UserType = accountType,
+                OtpCode = otp,
+                ExpiresAt = DateTime.UtcNow.AddMinutes(15),
+                IsUsed = false
+            };
+
+            _context.EmailOtps.Add(newOtp);
+            await _context.SaveChangesAsync();
+
+            // 5️⃣ Send OTP via email
+            await _emailService.SendEmailConformationEmail(request.Email, int.Parse(otp));
+
+            return Ok(new { message = "OTP resent successfully" });
         }
     }
 }

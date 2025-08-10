@@ -34,12 +34,28 @@ import {
     EyeOff,
     GitBranch,
     CheckCircle2,
+    Trash,
 } from "lucide-react"
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import DashboardService from "@/services/dashboard.service"
-import { Link } from "react-router-dom"
+import { Link, useNavigate } from "react-router-dom"
 import RoadmapService from "@/services/roadmap.service"
 import type { FirebaseRoadmapDto } from "@/dtos/firebase.roadmap"
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel"
+import { toast } from "sonner";
+import { link } from "fs"
+import AuthService from "@/services/auth.service"
+import AddtionalInfoService from "@/services/additional-info.service"
 
 // Mock service data (replace with your actual service)
 const skillCourses = [
@@ -158,7 +174,6 @@ const skillCourses = [
         category: "Data",
     },
 ]
-
 const quickLinks = [
     {
         title: "Generate Roadmap",
@@ -169,6 +184,7 @@ const quickLinks = [
         iconBg: "bg-indigo-100",
         iconColor: "text-indigo-600",
         action: "generate",
+        link: "/user/roadmap-gen"
     },
     {
         title: "My Courses",
@@ -179,6 +195,7 @@ const quickLinks = [
         iconBg: "bg-blue-100",
         iconColor: "text-blue-600",
         action: "courses",
+        link: "/user/courses"
     },
     {
         title: "Take Quiz",
@@ -189,6 +206,7 @@ const quickLinks = [
         iconBg: "bg-yellow-100",
         iconColor: "text-yellow-600",
         action: "quiz",
+        link: "/user/quiz"
     },
     {
         title: "View Progress",
@@ -199,6 +217,7 @@ const quickLinks = [
         iconBg: "bg-green-100",
         iconColor: "text-green-600",
         action: "progress",
+        link: "/user/trophy"
     },
 ]
 
@@ -216,6 +235,27 @@ export default function UserDashboard() {
     const [roadmapData, setRoadmapData] = useState<FirebaseRoadmapDto[]>([])
     const [isLoadingRoadmaps, setIsLoadingRoadmaps] = useState(true)
     const carouselRef = useRef<HTMLDivElement>(null)
+    const [isDeleting, setIsDeleting] = useState(false);
+    const navigate = useNavigate();
+
+
+    const checkInfoData = async () => {
+        const role = AuthService.getUserType();
+        const email = AuthService.getUserEmail();
+        console.log(email);
+
+        var infoModel = {
+            role: role ?? "Student",
+            email: email ?? ""
+        }
+
+        const infoBool = await AddtionalInfoService.infoCheck(infoModel)
+        console.log("Current User Additional Info Check", infoBool);
+
+        if (!infoBool) {
+            navigate("/user/additional-info");
+        }
+    }
 
     const getUserName = () => {
         const dashboardService = new DashboardService()
@@ -223,6 +263,8 @@ export default function UserDashboard() {
             setName(name)
         })
     }
+
+
 
     // Animate stats on mount
     useEffect(() => {
@@ -242,10 +284,10 @@ export default function UserDashboard() {
                 })
             }, 50)
         })
-
+        // checkInfoData();
         getUserName()
         getRoadmapData()
-    }, [])
+    }, [checkInfoData])
 
     const getRoadmapData = async () => {
         try {
@@ -382,6 +424,29 @@ export default function UserDashboard() {
         }
     }
 
+    const handleDocDelete = async (id: string) => {
+        setIsDeleting(true);
+        try {
+            // Call your delete function here
+            const success = await RoadmapService.deleteRoadmap(id);
+
+            if (success) {
+                setRoadmapData(prevData => prevData.filter(roadmap => roadmap.id !== id));
+                toast.success("Roadmap deleted", {
+                    description: "The roadmap has been permanently removed from your dashboard."
+                })
+            } else {
+                toast.error("Delete failed", {
+                    description: "Unable to delete roadmap. Please try again."
+                });
+            }
+        } catch (error) {
+            console.error("Error deleting roadmap:", error);
+        } finally {
+            setIsDeleting(false);
+        }
+    };
+
     return (
         <div className="min-h-screen bg-white">
             {/* Hero Section */}
@@ -451,28 +516,30 @@ export default function UserDashboard() {
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
                         {quickLinks.map((link) => (
-                            <Card
-                                key={link.title}
-                                className={`${link.bgColor} border-0 hover:shadow-xl hover:shadow-indigo-100/50 transition-all duration-300 hover:-translate-y-2 cursor-pointer group relative overflow-hidden`}
-                                onClick={() => handleQuickAction(link.action)}
-                            >
-                                <div className="absolute inset-0 bg-gradient-to-r from-white/0 to-white/20 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></div>
-                                <CardContent className="p-6 relative">
-                                    <div
-                                        className={`w-12 h-12 ${link.iconBg} rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 group-hover:rotate-3 transition-all duration-300 shadow-sm`}
-                                    >
-                                        <link.icon className={`w-6 h-6 ${link.iconColor}`} />
-                                    </div>
-                                    <h3 className="font-semibold text-gray-900 mb-2 group-hover:text-indigo-700 transition-colors">
-                                        {link.title}
-                                    </h3>
-                                    <p className="text-sm text-gray-600 mb-4">{link.description}</p>
-                                    <div className="flex items-center text-indigo-600 text-sm font-medium group-hover:text-indigo-700">
-                                        Get started
-                                        <ArrowRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
-                                    </div>
-                                </CardContent>
-                            </Card>
+                            <Link to={link.link}>
+                                <Card
+                                    key={link.title}
+                                    className={`${link.bgColor} border-0 hover:shadow-xl hover:shadow-indigo-100/50 transition-all duration-300 hover:-translate-y-2 cursor-pointer group relative overflow-hidden`}
+                                    onClick={() => handleQuickAction(link.action)}
+                                >
+                                    <div className="absolute inset-0 bg-gradient-to-r from-white/0 to-white/20 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></div>
+                                    <CardContent className="p-6 relative">
+                                        <div
+                                            className={`w-12 h-12 ${link.iconBg} rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 group-hover:rotate-3 transition-all duration-300 shadow-sm`}
+                                        >
+                                            <link.icon className={`w-6 h-6 ${link.iconColor}`} />
+                                        </div>
+                                        <h3 className="font-semibold text-gray-900 mb-2 group-hover:text-indigo-700 transition-colors">
+                                            {link.title}
+                                        </h3>
+                                        <p className="text-sm text-gray-600 mb-4">{link.description}</p>
+                                        <div className="flex items-center text-indigo-600 text-sm font-medium group-hover:text-indigo-700">
+                                            Get started
+                                            <ArrowRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                            </Link>
                         ))}
                     </div>
                 </div>
@@ -541,9 +608,9 @@ export default function UserDashboard() {
                                     const difficulty = getRoadmapDifficulty(roadmap)
                                     const RoadmapIcon = getRoadmapIcon(roadmap.title)
                                     const colorScheme = getRoadmapColorScheme(index)
-
                                     return (
                                         <CarouselItem key={roadmap.id} className="pl-2 md:pl-4 md:basis-1/2 lg:basis-1/3">
+
                                             <Card
                                                 className={`bg-white/90 backdrop-blur-sm border border-white/60 ${colorScheme.borderColor} transition-all duration-300 group hover:transform hover:-translate-y-3 relative overflow-hidden hover:shadow-2xl hover:shadow-indigo-100/50 h-full`}
                                             >
@@ -617,19 +684,51 @@ export default function UserDashboard() {
 
                                                     {/* Action Buttons */}
                                                     <div className="flex gap-2 mt-auto">
-                                                        <Button
-                                                            className="flex-1 bg-indigo-500 hover:bg-indigo-600 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-200 group-hover:scale-[1.02]"
-                                                            onClick={() => handleContinueRoadmap(roadmap.id)}
-                                                        >
-                                                            <PlayCircle className="w-4 h-4 mr-2" />
-                                                            {progress === 0 ? "Start Journey" : progress === 100 ? "Review" : "Continue"}
-                                                        </Button>
-                                                        <Button variant="outline" size="icon" className="bg-white/80 hover:bg-white">
-                                                            <BookmarkPlus className="w-4 h-4" />
-                                                        </Button>
+                                                        <Link className="flex-1" to={`/user/roadmap/${roadmap.id}`}>
+                                                            <Button
+                                                                className="w-full cursor-pointer bg-indigo-500 hover:bg-indigo-600 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-200 group-hover:scale-[1.02]"
+                                                                onClick={() => handleContinueRoadmap(roadmap.id)}
+                                                            >
+                                                                <Eye className="w-4 h-4 mr-2" />
+                                                                View
+                                                            </Button>
+                                                        </Link>
                                                         <Button variant="outline" size="icon" className="bg-white/80 hover:bg-white">
                                                             <Share2 className="w-4 h-4" />
                                                         </Button>
+                                                        {/* Delete Button */}
+                                                        <AlertDialog>
+                                                            <AlertDialogTrigger asChild>
+                                                                <Button
+                                                                    variant="outline"
+                                                                    size="icon"
+                                                                    className="text-white bg-red-500/80 hover:bg-red-500 transition-all cursor-pointer"
+                                                                >
+                                                                    <Trash className="w-4 h-4" />
+                                                                </Button>
+                                                            </AlertDialogTrigger>
+
+                                                            <AlertDialogContent>
+                                                                <AlertDialogHeader>
+                                                                    <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                                                                    <AlertDialogDescription>
+                                                                        This action cannot be undone. This will permanently delete your roadmap
+                                                                        and remove all associated data from our servers.
+                                                                    </AlertDialogDescription>
+                                                                </AlertDialogHeader>
+
+                                                                <AlertDialogFooter>
+                                                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                                    <AlertDialogAction
+                                                                        onClick={() => handleDocDelete(roadmap.id)}
+                                                                        className="bg-red-600 hover:bg-red-700 focus:ring-red-600"
+                                                                        disabled={isDeleting}
+                                                                    >
+                                                                        {isDeleting ? "Deleting..." : "Delete"}
+                                                                    </AlertDialogAction>
+                                                                </AlertDialogFooter>
+                                                            </AlertDialogContent>
+                                                        </AlertDialog>
                                                     </div>
                                                 </CardContent>
                                             </Card>
