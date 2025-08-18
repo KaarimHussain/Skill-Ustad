@@ -1,0 +1,33 @@
+
+
+
+
+
+
+button {
+  cursor: pointer;
+}
+
+/* Add this to your existing global CSS file or tailwind config */
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 1s ease-out;
+}
+
+html,
+body {
+  height: 100%;
+  width: 100%;
+  background-color: #50505084;
+}
