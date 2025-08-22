@@ -24,6 +24,10 @@ h6 {
   background-color: black;
 }
 
+code{
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace;
+}
+
 
 @custom-variant dark (&:is(.dark *));
 

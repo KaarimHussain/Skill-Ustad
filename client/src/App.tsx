@@ -25,7 +25,7 @@ import GenerateRoadmap from './views/User/GenerateRoadmap';
 import RoadmapProcessing from './views/User/RoadmapProcessing';
 import RoadmapViewer from './views/RoadmapViewer';
 import Profile from './views/User/Profile';
-import Roadmap from './views/Public/Roadmap';
+import Roadmap from './views/Roadmap';
 import CourseGenerator from './views/User/CourseGenerator';
 import { Toaster } from 'sonner';
 import ResetPassword from './views/Auth/ResetPassword';
@@ -42,6 +42,9 @@ import CreateQuiz from './views/Mentor/QuizCreation';
 import EditQuiz from './views/Mentor/EditQuiz';
 import ViewQuiz from './views/Mentor/ViewQuiz';
 import UserAttemptQuiz from './views/User/QuizAttempt';
+import MentorGenerateCourse from './views/Mentor/CreateCourse';
+import MentorCourse from './views/Mentor/Course';
+import MentorViewCourse from './views/Mentor/ViewCourse';
 
 function App() {
   const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_KEY_TWO;
@@ -166,6 +169,10 @@ function App() {
               <Route path='/mentor/create-quiz' element={<CreateQuiz />} />
               <Route path='/mentor/edit-quiz' element={<EditQuiz />} />
               <Route path='/mentor/view-quiz' element={<ViewQuiz />} />
+              {/* Course */}
+              <Route path='/mentor/course' element={<MentorCourse />} />
+              <Route path='/mentor/view-course' element={<MentorViewCourse />} />
+              <Route path='/mentor/create-course' element={<MentorGenerateCourse />} />
             </Route>
 
             {/* 404 Not Found Route */}

@@ -69,15 +69,15 @@ const quickLinks = [
 
 const contentToolLinks = [
     {
-        title: "Create Lessons",
-        description: "Upload resources or link AI-generated material.",
+        title: "Lessons",
+        description: "A Full fledged course editor where you can manage courses",
         icon: BookOpen,
         color: "from-blue-500 to-cyan-500",
         bgColor: "bg-gradient-to-br from-blue-50 to-cyan-50",
         iconBg: "bg-blue-100",
         iconColor: "text-blue-600",
         action: "create_lessons",
-        link: "/mentor/create-lessons"
+        link: "/mentor/course"
     },
     {
         title: "Schedule Live Sessions",
@@ -147,7 +147,7 @@ export default function MentorDashboard() {
         checkInfoData();
         getUserName();
 
-        
+
     }, [checkInfoData, getUserName])
 
     return (

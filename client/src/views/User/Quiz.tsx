@@ -1,6 +1,5 @@
 import FormatDate from "@/components/FormatDate";
 import QuizDetailsModal from "@/components/QuizDetailedModal";
-import QuizStatusBadge from "@/components/QuizStatusBadge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import type { QuizDataWithId, QuizDataWithRatingAndAttemptCount } from "@/services/quiz.service";
@@ -114,7 +113,6 @@ export default function Quiz() {
                                             <div className="p-6 flex flex-col justify-between h-full">
                                                 <div>
                                                     <div className="flex items-center justify-between mb-4">
-                                                        <QuizStatusBadge status={data.status.status} />
                                                         <span className="text-xs text-gray-500">{FormatDate(data.createdAt)}</span>
                                                     </div>
                                                     <div>
