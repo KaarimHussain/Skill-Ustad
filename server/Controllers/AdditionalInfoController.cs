@@ -61,6 +61,30 @@ namespace SkillUstad.Controller
             return Ok(new { message = "Mentor additional info and tags saved successfully." });
         }
 
+        [HttpPost("student-info")]
+        public async Task<ActionResult> AddUserAdditionalInfo([FromBody] AddStudentAdditionalInfoDto request)
+        {
+            if (request == null || request.Info == null)
+                return BadRequest("Invalid request data.");
+
+            // Save User Info
+            var userInfoEntity = new UserAdditionalInfo
+            {
+                UserId = request.Info.UserId,
+                CurrentLevelOfEducation = request.Info.CurrentLevelOfEducation,
+                LevelOfExpertise = request.Info.LevelOfExpertise,
+                FieldOfExpertise = request.Info.FieldOfExpertise,
+                UserInterestsAndGoals = request.Info.UserInterestsAndGoals,
+                Gender = request.Info.Gender,
+                City = request.Info.City,
+                Address = request.Info.Address
+            };
+            _context.UserAdditionalInfos.Add(userInfoEntity);
+
+            await _context.SaveChangesAsync();
+            return Ok(new { message = "User additional info saved successfully." });
+        }
+
         [HttpPost("get-info")]
         public async Task<ActionResult> GetMentorAdditionalInfo([FromBody] string mentorId)
         {

@@ -100,7 +100,7 @@ const SuccessMessage = ({ message }: { message: string }) => (
 
 export default function Login() {
   const navigate = useNavigate()
-  const { isAuthenticated, userType, refreshAuth } = useAuth();
+  const { refreshAuth } = useAuth();
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [socialAuthLoading, setSocialAuthLoading] = useState(false)
@@ -284,6 +284,11 @@ export default function Login() {
       setSocialAuthLoading(false);
       setTimeout(() => setApiError(""), 8000);
     },
+    onNonOAuthError: () => {
+      setApiError("Google authentication failed. Please try again.");
+      setSocialAuthLoading(false);
+      setTimeout(() => setApiError(""), 8000);
+    }
   });
 
   const handleSocialLogin = useCallback(

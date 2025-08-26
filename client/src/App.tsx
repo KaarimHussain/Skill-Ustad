@@ -32,7 +32,6 @@ import ResetPassword from './views/Auth/ResetPassword';
 import NotFound from './views/404';
 import Quiz from './views/User/Quiz';
 import MentorDashboard from './views/Mentor/Dashboard';
-import AddtionalInfo from './views/Mentor/AdditionalInfo';
 import MentorProfile from './views/Mentor/Profile';
 import CreateRoadmap from './views/Mentor/CreateRoadmap';
 import MentorRoadmap from './views/Mentor/Roadmap';
@@ -45,6 +44,17 @@ import UserAttemptQuiz from './views/User/QuizAttempt';
 import MentorGenerateCourse from './views/Mentor/CreateCourse';
 import MentorCourse from './views/Mentor/Course';
 import MentorViewCourse from './views/Mentor/ViewCourse';
+import MentorAdditionalInfo from './views/Mentor/AdditionalInfo';
+import UserAdditionalInfo from './views/User/AdditionalInfo';
+import Community from './views/Communities';
+import Notification from './views/Notification';
+import Messages from './views/Messages';
+import QA from './views/QA';
+import QADetails from './views/QADetails';
+import QACreate from './views/QACreate';
+import UserQA from './views/User/QA';
+import QAResponses from './views/QAResponses';
+import LearnRoadmap from './views/User/LearnRoadmap';
 
 function App() {
   const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_KEY_TWO;
@@ -84,9 +94,15 @@ function App() {
             <Route path="/ai/chatbot" element={<ChatbotBuilder />} />
             <Route path="/user/roadmap/:id" element={<RoadmapViewer />} />
             <Route path='/public/roadmaps' element={<Roadmap />} />
+            <Route path='/community' element={<Community />} />
+            <Route path='/notifications' element={<Notification />} />
+            <Route path='/messages' element={<Messages />} />
+            <Route path="/qa" element={<QA />} />
+            <Route path="/qa/:id" element={<QADetails />} />
+            <Route path="/qa-create" element={<QACreate />} />
+            <Route path="/qa-responses" element={<QAResponses />} />
 
             {/* 🔒 Protected URLs */}
-
             {/* 👤 Auth URLs - public only if NOT logged in */}
 
             <Route path="/" element={
@@ -95,8 +111,7 @@ function App() {
               </PublicOnlyRoute>}
             />
 
-            <Route
-              path="/login"
+            <Route path="/login"
               element={
                 <PublicOnlyRoute>
                   <Login />
@@ -142,7 +157,7 @@ function App() {
               <Route path="/user/dashboard" element={<UserDashboard />} />
               {/* Profile */}
               <Route path="/user/profile" element={<Profile />} />
-              <Route path='/user/additional-info' element={<AddtionalInfo />} />
+              <Route path='/user/additional-info' element={<UserAdditionalInfo />} />
               {/* Roadmaps */}
               <Route path="/user/roadmap-gen" element={<GenerateRoadmap />} />
               <Route path="/user/process-roadmap" element={<RoadmapProcessing />} />
@@ -151,14 +166,19 @@ function App() {
               {/* Quiz */}
               <Route path='/user/quiz' element={<Quiz />} />
               <Route path='/user/quiz-attempt' element={<UserAttemptQuiz />} />
+              {/* Q&A */}
+              <Route path='/user/qa' element={<UserQA />} />
             </Route>
+
+            <Route path="/user/learn-roadmap/:id" element={<LearnRoadmap />} />
+
 
             {/* 🧑‍🏫 Mentor-only route */}
             <Route element={<ProtectedRoute allowedRoles={["Mentor"]} />}>
               <Route path="/mentor/dashboard" element={<MentorDashboard />} />
               {/* Profile */}
               <Route path="/mentor/profile" element={<MentorProfile />} />
-              <Route path='/mentor/additional-info' element={<AddtionalInfo />} />
+              <Route path='/mentor/additional-info' element={<MentorAdditionalInfo />} />
               {/* Roadmap */}
               <Route path='/mentor/roadmaps' element={<MentorRoadmap />} />
               <Route path='/mentor/create-roadmap' element={<CreateRoadmap />} />

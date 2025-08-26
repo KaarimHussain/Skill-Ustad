@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Calendar, CheckCircle2, Eye, EyeClosed, GitBranch, MapPin, Pen, Plus, RefreshCcw, Trash } from "lucide-react";
+import { Calendar, ChartNetwork, Eye, EyeClosed, GitBranch, MapPin, Pen, Plus, RefreshCcw, Trash } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import RoadmapService from "@/services/roadmap.service";
@@ -183,7 +183,7 @@ export default function MentorRoadmap() {
                                                             </div>
                                                             <div className="bg-white/50 rounded-lg p-2 text-center">
                                                                 <div className="flex items-center justify-center gap-1 text-xs text-gray-600 mb-1">
-                                                                    <CheckCircle2 className="w-3 h-3" />
+                                                                    <ChartNetwork className="w-3 h-3" />
                                                                     Edges
                                                                 </div>
                                                                 <div className="font-semibold text-gray-900">{roadmap.edges?.length || 0}</div>

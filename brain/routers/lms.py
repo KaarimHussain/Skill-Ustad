@@ -103,7 +103,7 @@ async def get_roadmap_difficulty(request: DifficultyRequest):
     
     try:
         response = ollama.generate(
-            model="tinyllama:1.1b",
+            model="qwen3:1.7b",
             prompt=user_prompt,
             system=system_prompt
         )

@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react"
 import { Card, CardContent } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
 import {
     ArrowRight,
     Target,
@@ -88,7 +87,7 @@ const contentToolLinks = [
         iconBg: "bg-green-100",
         iconColor: "text-green-600",
         action: "schedule_sessions",
-        link: "/mentor/schedule-sessions"
+        link: "/schedule-sessions"
     },
     {
         title: "Host Q&A or AMA",
@@ -99,7 +98,7 @@ const contentToolLinks = [
         iconBg: "bg-orange-100",
         iconColor: "text-orange-600",
         action: "host_qa",
-        link: "/mentor/qa-ama"
+        link: "/qa"
     },
     {
         title: "Feedback Hub",
@@ -263,14 +262,6 @@ export default function MentorDashboard() {
                             </Link>
                         ))}
                     </div>
-                </div>
-
-                {/* Mobile View All Button */}
-                <div className="mt-8 text-center sm:hidden">
-                    <Button variant="outline" className="w-full bg-white/80 hover:bg-white">
-                        View All Learning Paths
-                        <ArrowRight className="w-4 h-4 ml-2" />
-                    </Button>
                 </div>
             </div>
         </div>

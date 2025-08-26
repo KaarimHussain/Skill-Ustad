@@ -103,3 +103,12 @@ export interface DisplayRoadmapData {
     createdAt: Timestamp;
     updatedAt: Timestamp;
 }
+
+export interface RoadmapProgress {
+    roadmapId: string;          // Reference to original roadmap
+    userId: string;             // User who owns this progress
+    progress: string[];         // Array of completed node IDs
+    startedAt: Timestamp;       // When user started this roadmap
+    lastUpdated: Timestamp;     // Last update timestamp
+    currentStep?: string;       // Optional: Currently active node
+}

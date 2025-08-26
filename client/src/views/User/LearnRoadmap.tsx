@@ -4,10 +4,13 @@ import type React from "react"
 import { useNavigate, useParams } from "react-router-dom"
 import { useEffect, useState, useRef, useCallback, useMemo } from "react"
 import { db } from "@/lib/firebase"
-import { collection, doc, getDoc, setDoc, Timestamp } from "firebase/firestore" // Import updateDoc
+import { collection, doc, getDoc, updateDoc, Timestamp } from "firebase/firestore"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { Progress } from "@/components/ui/progress"
+import { Textarea } from "@/components/ui/textarea"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import {
     Play,
@@ -24,7 +27,6 @@ import {
     ZoomIn,
     ZoomOut,
     RotateCcw,
-    Info,
     ArrowLeft,
     Maximize2,
     Minimize2,
@@ -32,14 +34,15 @@ import {
     Workflow,
     Sparkles,
     X,
+    Trophy,
+    Edit3,
+    Save,
+    Home,
+    SkipForward,
 } from "lucide-react"
-import DifficultyBadge from "@/components/DifficultyBadge"
-import { DialogHeader, DialogFooter, DialogClose } from "@/components/ui/dialog"
-import { Dialog, DialogTrigger, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import AuthService from "@/services/auth.service"
 import NotificationService from "@/components/Notification"
 
-// Type definitions
 interface NodeData {
     label: string
     description: string
@@ -48,11 +51,12 @@ interface NodeData {
 interface RoadmapNode {
     id: number
     data: NodeData
-    type: "start" | "course" | "milestone" | "project" | "concept" | "topic" | "step" | "end" | "quiz" // Added quiz type
+    type: "start" | "course" | "milestone" | "project" | "concept" | "topic" | "step" | "end" | "quiz"
     position: {
         x: number
         y: number
     }
+    completed?: boolean
 }
 
 interface RoadmapEdge {
@@ -67,8 +71,12 @@ interface FirebaseRoadmapData {
     edges: RoadmapEdge[]
     createdAt?: any
     userId?: string
-    visibility: "public" | "private" // Explicitly define as 'public' or 'private'
+    visibility: "public" | "private"
     difficulty: "Easy" | "Medium" | "Hard"
+}
+
+interface UserNotes {
+    [nodeId: string]: string
 }
 
 const nodeConfig = {
@@ -155,32 +163,78 @@ const defaultNodeConfig = {
     description: "General learning element",
 }
 
-// Define constants for node dimensions and spacing
-const NODE_WIDTH = 224 // w-56 in Tailwind CSS
-const NODE_HEIGHT = 128 // Approximate height of the card
+const NODE_WIDTH = 224
+const NODE_HEIGHT = 128
 const NODE_HALF_WIDTH = NODE_WIDTH / 2
 const NODE_HALF_HEIGHT = NODE_HEIGHT / 2
-const SPACING_MULTIPLIER = 2.0 // This is already used in node positioning
+const SPACING_MULTIPLIER = 2.0
 
-export default function RoadmapViewer() {
+// Progress collection helper functions
+const progressCollectionRef = collection(db, "roadmap-progress")
+
+async function getUserProgress(roadmapId: string, userId: string): Promise<string[]> {
+    const progressDocRef = doc(progressCollectionRef, `${roadmapId}_${userId}`)
+    const progressDoc = await getDoc(progressDocRef)
+
+    if (progressDoc.exists()) {
+        return progressDoc.data()?.progress || []
+    }
+    return []
+}
+
+async function updateUserProgress(roadmapId: string, userId: string, completedNodeIds: string[]) {
+    const progressDocRef = doc(progressCollectionRef, `${roadmapId}_${userId}`)
+    await updateDoc(progressDocRef, {
+        progress: completedNodeIds,
+        lastUpdated: Timestamp.now(),
+    })
+}
+
+const getUserId = () => {
+    try {
+        return AuthService.getAuthenticatedUserId()
+    } catch {
+        return "demo-user"
+    }
+}
+
+const showNotification = {
+    success: (title: string, message: string) => {
+        try {
+            NotificationService.success(title, message)
+        } catch {
+            console.log(`Success: ${title} - ${message}`)
+        }
+    },
+    error: (title: string, message: string) => {
+        try {
+            NotificationService.error(title, message)
+        } catch {
+            console.log(`Error: ${title} - ${message}`)
+        }
+    },
+}
+
+export default function LearnRoadmap() {
     const { id } = useParams()
-    const [loading, setLoading] = useState(true)
-    const [error, setError] = useState<string | null>(null)
+    const navigate = useNavigate();
     const [roadmapData, setRoadmapData] = useState<FirebaseRoadmapData | null>(null)
+    const [progress, setProgress] = useState<string[]>([])
     const [selectedNode, setSelectedNode] = useState<RoadmapNode | null>(null)
+    const [isLoading, setIsLoading] = useState(true)
+    const [userNotes, setUserNotes] = useState<UserNotes>({})
+    const [currentNote, setCurrentNote] = useState("")
+    const [isEditingNote, setIsEditingNote] = useState(false)
+
     const [panOffset, setPanOffset] = useState({ x: 0, y: 0 })
     const [isDragging, setIsDragging] = useState(false)
     const [dragStart, setDragStart] = useState({ x: 0, y: 0 })
     const [scale, setScale] = useState(0.8)
     const [isFullscreen, setIsFullscreen] = useState(false)
-    const [difficulty, setDifficulty] = useState("");
-    const [isCreatedProgress, setIsCreatingProgress] = useState(false);
-    const navigate = useNavigate();
 
     const containerRef = useRef<HTMLDivElement>(null)
     const canvasRef = useRef<HTMLDivElement>(null)
 
-    // Memoized calculations for better performance
     const nodeMap = useMemo(() => {
         if (!roadmapData?.nodes) return new Map()
         return new Map(roadmapData.nodes.map((node) => [node.id, node]))
@@ -197,28 +251,22 @@ export default function RoadmapViewer() {
         )
     }, [roadmapData?.nodes])
 
-    // Dynamically calculate canvas dimensions to ensure all nodes and connections are visible
     const canvasDimensions = useMemo(() => {
         if (!roadmapData?.nodes?.length) {
-            // Default dimensions if no nodes
             return { width: 1200, height: 800 }
         }
 
-        // Find the maximum absolute coordinate value among all nodes
         const maxAbsX = Math.max(...roadmapData.nodes.map((n) => Math.abs(n.position.x)))
         const maxAbsY = Math.max(...roadmapData.nodes.map((n) => Math.abs(n.position.y)))
 
-        // Calculate the required content size based on max extent + node dimensions + padding
         const contentExtentX = maxAbsX * SPACING_MULTIPLIER + NODE_HALF_WIDTH
         const contentExtentY = maxAbsY * SPACING_MULTIPLIER + NODE_HALF_HEIGHT
 
-        // Add a generous buffer for connections and overall view
-        const BUFFER_PADDING = 300 // Padding on each side
+        const BUFFER_PADDING = 300
 
         const calculatedWidth = contentExtentX * 2 + 2 * BUFFER_PADDING
         const calculatedHeight = contentExtentY * 2 + 2 * BUFFER_PADDING
 
-        // Ensure minimum size
         const finalWidth = Math.max(1200, calculatedWidth)
         const finalHeight = Math.max(800, calculatedHeight)
 
@@ -228,36 +276,47 @@ export default function RoadmapViewer() {
         }
     }, [roadmapData?.nodes])
 
+    // Initialize learning session
     useEffect(() => {
-        const fetchRoadmap = async () => {
-            try {
-                setLoading(true)
-                const docRef = doc(db, "roadmaps", id!)
-                const docSnap = await getDoc(docRef)
+        const userId = getUserId()
+        if (!userId) {
+            showNotification.error("Login Required", "Cannot find the User Id")
+            navigate("/login")
+            return
+        }
 
+        const initLearningSession = async () => {
+            try {
+                const docRef = doc(db, "roadmaps", id as string)
+                const docSnap = await getDoc(docRef)
                 if (docSnap.exists()) {
                     const data = docSnap.data() as FirebaseRoadmapData
-                    // Ensure visibility defaults to 'public' if not present in data
-                    setRoadmapData({ ...data, visibility: data.visibility || "public" })
-                    setDifficulty(data.difficulty);
-                    console.log("Roadmap loaded:", data)
-                } else {
-                    setError("Roadmap not found.")
+
+                    const userProgress = await getUserProgress(id as string, userId)
+                    setProgress(userProgress)
+
+                    const nodesWithProgress = data.nodes.map((node) => ({
+                        ...node,
+                        completed: userProgress.includes(node.id.toString()),
+                    }))
+
+                    setRoadmapData({ ...data, nodes: nodesWithProgress })
+
+                    const firstNode = nodesWithProgress.find((node) => node.type === "start") || nodesWithProgress[0]
+                    setSelectedNode(firstNode)
                 }
-            } catch (err) {
-                setError("Failed to load roadmap.")
-                console.error("Error:", err)
+            } catch (error) {
+                console.error("Error initializing learning session:", error)
             } finally {
-                setLoading(false)
+                setIsLoading(false)
             }
         }
 
-        if (id) {
-            fetchRoadmap()
+        if (id && userId) {
+            initLearningSession()
         }
     }, [id])
 
-    // Optimized wheel handler
     useEffect(() => {
         const container = containerRef.current
         if (!container) return
@@ -272,7 +331,6 @@ export default function RoadmapViewer() {
         return () => container.removeEventListener("wheel", handleWheel)
     }, [])
 
-    // Pan functionality with better performance
     const handleMouseDown = useCallback(
         (e: React.MouseEvent) => {
             if (e.button === 0) {
@@ -301,40 +359,9 @@ export default function RoadmapViewer() {
         setIsDragging(false)
     }, [])
 
-    // Touch events for mobile
-    const handleTouchStart = useCallback(
-        (e: React.TouchEvent) => {
-            if (e.touches.length === 1) {
-                const touch = e.touches[0]
-                setIsDragging(true)
-                setDragStart({ x: touch.clientX - panOffset.x, y: touch.clientY - panOffset.y })
-            }
-        },
-        [panOffset],
-    )
-
-    const handleTouchMove = useCallback(
-        (e: React.TouchEvent) => {
-            if (isDragging && e.touches.length === 1) {
-                const touch = e.touches[0]
-                setPanOffset({
-                    x: touch.clientX - dragStart.x,
-                    y: touch.clientY - dragStart.y,
-                })
-            }
-        },
-        [isDragging, dragStart],
-    )
-
-    const handleTouchEnd = useCallback(() => {
-        setIsDragging(false)
-    }, [])
-
-    // Control functions
     const resetView = useCallback(() => {
         setPanOffset({ x: 0, y: 0 })
         setScale(0.8)
-        setSelectedNode(null)
     }, [])
 
     const zoomIn = useCallback(() => {
@@ -356,66 +383,80 @@ export default function RoadmapViewer() {
         [selectedNode],
     )
 
-    // IMPORTANT - Start the Roadmap As Learning
+    // Complete a node and move to next
+    const completeCurrentNode = async () => {
+        const userId = getUserId()
+        if (!userId || !selectedNode || !roadmapData) return
 
-    // Initialize user progress for a roadmap
-    async function initializeUserProgress(roadmapId: string, userId: string) {
-        // In your Firebase setup file
-        const progressCollectionRef = collection(db, "roadmap-progress");
+        const newProgress = [...new Set([...progress, selectedNode.id.toString()])]
+        setProgress(newProgress)
 
+        await updateUserProgress(id as string, userId, newProgress)
 
-        const progressDocRef = doc(progressCollectionRef, `${roadmapId}_${userId}`);
+        const updatedNodes = roadmapData.nodes.map((node) =>
+            node.id === selectedNode.id ? { ...node, completed: true } : node,
+        )
+        setRoadmapData({ ...roadmapData, nodes: updatedNodes })
 
-        // Check if progress already exists
-        const progressDoc = await getDoc(progressDocRef);
-        if (!progressDoc.exists()) {
-            await setDoc(progressDocRef, {
-                roadmapId,
-                userId,
-                progress: [],
-                startedAt: Timestamp.now(),
-                lastUpdated: Timestamp.now()
-            });
+        showNotification.success("Progress Saved", `Completed: ${selectedNode.data.label}`)
+    }
+
+    // Navigate to next incomplete node
+    const navigateToNextNode = () => {
+        if (!roadmapData || !selectedNode) return
+
+        // Find connected nodes through edges
+        const connectedEdges = roadmapData.edges.filter((edge) => edge.source === selectedNode.id)
+        const nextNodes = connectedEdges
+            .map((edge) => roadmapData.nodes.find((node) => node.id === edge.target))
+            .filter(Boolean)
+
+        // Find first incomplete connected node
+        const nextIncompleteNode = nextNodes.find((node) => !progress.includes(node!.id.toString()))
+
+        if (nextIncompleteNode) {
+            setSelectedNode(nextIncompleteNode)
         }
     }
 
-    // In your RoadmapViewer component
-    const handleStartTheRoadmap = async () => {
-        const userId = AuthService.getAuthenticatedUserId();
-        if (userId == null) return NotificationService.error("Login Required!", "Failed to start the roadmap");
-        setIsCreatingProgress(true);
-        // Initialize progress for this user if it doesn't exist
-        await initializeUserProgress(id!, userId);
+    // Save user notes
+    const saveNote = () => {
+        if (!selectedNode) return
+        setUserNotes((prev) => ({
+            ...prev,
+            [selectedNode.id]: currentNote,
+        }))
+        setIsEditingNote(false)
+        showNotification.success("Note Saved", "Your note has been saved locally")
+    }
 
-        // Navigate to learning page
-        navigate(`/user/learn-roadmap/${id}`);
-        setIsCreatingProgress(false);
-    };
+    // Handle Actions Likes Generate Course, Quiz, Project, and Concepts
+    const handleCourseGenerate = async () => {
 
-    if (loading) {
+    }
+    const handleQuizGenerate = async () => {
+
+    }
+    const handleProjectGenerate = async () => {
+
+    }
+    const handleConceptsGenerate = async () => {
+
+    }
+
+    // Load note for selected node
+    useEffect(() => {
+        if (selectedNode) {
+            setCurrentNote(userNotes[selectedNode.id] || "")
+        }
+    }, [selectedNode, userNotes])
+
+    if (isLoading) {
         return (
             <div className="flex justify-center items-center h-screen bg-gray-50">
                 <div className="text-center">
                     <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-indigo-600" />
-                    <p className="text-gray-600">Loading your roadmap...</p>
-                </div>
-            </div>
-        )
-    }
-
-    if (error) {
-        return (
-            <div className="flex justify-center items-center h-screen bg-gray-50">
-                <div className="text-center max-w-md mx-auto p-8">
-                    <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <Info className="w-8 h-8 text-red-600" />
-                    </div>
-                    <h2 className="text-xl font-semibold text-gray-900 mb-2">Roadmap Not Found</h2>
-                    <p className="text-gray-600 mb-6">{error}</p>
-                    <Button onClick={() => window.history.back()} variant="outline" className="mr-2">
-                        <ArrowLeft className="w-4 h-4 mr-2" />
-                        Go Back
-                    </Button>
+                    <p className="text-gray-600">Preparing your learning journey...</p>
                 </div>
             </div>
         )
@@ -424,73 +465,61 @@ export default function RoadmapViewer() {
     if (!roadmapData) {
         return (
             <div className="flex justify-center items-center h-screen bg-gray-50">
-                <p className="text-gray-600">No roadmap data available.</p>
+                <div className="text-center">
+                    <Trophy className="h-16 w-16 text-yellow-500 mx-auto mb-4" />
+                    <h2 className="text-xl font-semibold text-gray-900 mb-2">Learning Complete!</h2>
+                    <p className="text-gray-600 mb-4">Congratulations! You've completed this roadmap.</p>
+                    <Button onClick={() => navigate("/")} className="bg-indigo-500 hover:bg-indigo-600">
+                        Browse More Roadmaps
+                    </Button>
+                </div>
             </div>
         )
     }
 
+    const progressPercentage = Math.round((progress.length / roadmapData.nodes.length) * 100)
+
     return (
         <TooltipProvider>
-            <div className={`${isFullscreen ? "fixed inset-0 z-50" : "h-screen"} w-full flex flex-col bg-gray-50`}>
-                {/* Enhanced Header */}
-                <div className="bg-white border-b shadow-sm flex-shrink-0 mt-18">
+            <div className={`${isFullscreen ? "fixed inset-0 z-50" : "h-screen"} w-full flex flex-col bg-gray-50 pt-18`}>
+                <div className="bg-white border-b shadow-sm flex-shrink-0">
                     <div className="p-4">
                         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                            <div className="flex flex-col gap-4">
-                                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                                    <div className="flex-1 min-w-0">
-                                        <div className="flex items-center gap-2 mb-2">
-                                            <h1 className="text-xl sm:text-2xl font-bold text-gray-900 truncate">{roadmapData.title}</h1>
-                                            <Badge variant="secondary" className="text-xs flex-shrink-0">
-                                                {roadmapData.nodes?.length || 0} steps
-                                            </Badge>
-                                        </div>
-                                        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-gray-600">
-                                            <div className="flex items-center gap-1">
-                                                <Workflow className="w-4 h-4" />
-                                                <span>{roadmapData.nodes.length || 0} Nodes</span>
-                                            </div>
-                                            <div className="flex items-center gap-1">
-                                                <Cable className="w-4 h-4" />
-                                                <span>{roadmapData.edges?.length || 0} connections</span>
-                                            </div>
-                                            <DifficultyBadge difficulty={difficulty || "Medium"} />
-                                        </div>
+                            <div className="flex flex-row items-center gap-4">
+                                <div className="flex-1">
+                                    <div className="flex items-center gap-3 mb-2">
+                                        <Button variant="ghost" size="sm" onClick={() => navigate(`/user/roadmap/${id}`)}>
+                                            <ArrowLeft className="w-4 h-4 mr-2" />
+                                            Back
+                                        </Button>
+                                        <h1 className="text-2xl font-bold text-gray-900">{roadmapData.title}</h1>
+                                        <Badge variant="secondary" className="text-xs">
+                                            Learning Mode
+                                        </Badge>
                                     </div>
-                                    <div className="flex-shrink-0">
-                                        <Dialog>
-                                            <DialogTrigger asChild>
-                                                <Button disabled={isCreatedProgress} className="w-full sm:w-auto bg-indigo-500 hover:bg-indigo-600" size="default">
-                                                    {isCreatedProgress ? "Creating..." : "Learn the Roadmap"}
-                                                </Button>
-                                            </DialogTrigger>
-                                            <DialogContent>
-                                                <DialogHeader>
-                                                    <DialogTitle>Start Learning Journey</DialogTitle>
-                                                    <DialogDescription>
-                                                        Are you ready to begin your interactive learning journey through "{roadmapData.title}"?
-                                                        This will guide you step-by-step through the roadmap content.
-                                                    </DialogDescription>
-                                                </DialogHeader>
-                                                <DialogFooter>
-                                                    <DialogClose asChild>
-                                                        <Button className="cursor-pointer" variant="outline">Cancel</Button>
-                                                    </DialogClose>
-                                                    <Button disabled={isCreatedProgress} className="bg-indigo-500 hover:bg-indigo-600 cursor-pointer" onClick={() => handleStartTheRoadmap()}>
-                                                        {isCreatedProgress ? "Creating..." : "Start Learning"}
-                                                    </Button>
-                                                </DialogFooter>
-                                            </DialogContent>
-                                        </Dialog>
+                                    <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-gray-600">
+                                        <div className="flex items-center gap-2">
+                                            <Progress value={progressPercentage} className="w-32" />
+                                            <span className="text-sm text-gray-600">{progressPercentage}%</span>
+                                        </div>
+                                        <div className="flex items-center gap-1">
+                                            <Workflow className="w-4 h-4" />
+                                            <span>
+                                                {progress.length} of {roadmapData.nodes.length} completed
+                                            </span>
+                                        </div>
+                                        <div className="flex items-center gap-1">
+                                            <Cable className="w-4 h-4" />
+                                            <span>{roadmapData.edges?.length || 0} connections</span>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
 
-                            {/* Controls */}
                             <div className="flex flex-wrap justify-end items-center gap-2 mt-4 md:mt-0">
                                 <div className="hidden md:flex items-center gap-1 text-xs text-gray-500 mr-4">
                                     <Move className="w-3 h-3" />
-                                    <span>Drag to pan • Scroll to zoom • Click nodes for details</span>
+                                    <span>Drag to pan • Scroll to zoom • Click nodes to learn</span>
                                 </div>
 
                                 <Tooltip>
@@ -530,22 +559,18 @@ export default function RoadmapViewer() {
                                     </TooltipTrigger>
                                     <TooltipContent>{isFullscreen ? "Exit Fullscreen" : "Fullscreen"}</TooltipContent>
                                 </Tooltip>
+
+                                <Button onClick={() => navigate("/")} variant="outline" size="sm">
+                                    <Home className="w-4 h-4 mr-2" />
+                                    Home
+                                </Button>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                {/* Go Back Button */}
-                <div className="top-25 left-0 p-3">
-                    <Button onClick={() => navigate("/public/roadmaps")} variant="outline" className="flex items-center gap-2">
-                        <ArrowLeft className="w-4 h-4" />
-                        Go Back
-                    </Button>
-                </div>
-
-                {/* Main Content Area */}
                 <div className="flex-1 flex overflow-hidden">
-                    {/* Canvas */}
+                    {/* Visual Roadmap Canvas */}
                     <div
                         ref={containerRef}
                         className="flex-1 relative bg-gradient-to-br from-gray-50 to-gray-100 select-none overflow-hidden"
@@ -553,9 +578,6 @@ export default function RoadmapViewer() {
                         onMouseMove={handleMouseMove}
                         onMouseUp={handleMouseUp}
                         onMouseLeave={handleMouseUp}
-                        onTouchStart={handleTouchStart}
-                        onTouchMove={handleTouchMove}
-                        onTouchEnd={handleTouchEnd}
                         style={{ touchAction: "none" }}
                     >
                         <div
@@ -585,7 +607,7 @@ export default function RoadmapViewer() {
                                     height: `${canvasDimensions.height}px`,
                                     left: "50%",
                                     top: "50%",
-                                    transform: "translate(-50%, -50%)", // Center the SVG within its parent
+                                    transform: "translate(-50%, -50%)",
                                 }}
                                 viewBox={`0 0 ${canvasDimensions.width} ${canvasDimensions.height}`}
                                 preserveAspectRatio="xMidYMid meet"
@@ -602,13 +624,6 @@ export default function RoadmapViewer() {
                                     >
                                         <polygon points="0 0, 10 3.5, 0 7" fill="#64748b" />
                                     </marker>
-                                    <filter id="glow">
-                                        <feGaussianBlur stdDeviation="3" result="coloredBlur" />
-                                        <feMerge>
-                                            <feMergeNode in="coloredBlur" />
-                                            <feMergeNode in="SourceGraphic" />
-                                        </feMerge>
-                                    </filter>
                                 </defs>
 
                                 {roadmapData.edges?.map((edge) => {
@@ -616,7 +631,6 @@ export default function RoadmapViewer() {
                                     const toNode = nodeMap.get(edge.target)
                                     if (!fromNode || !toNode) return null
 
-                                    // Calculate SVG coordinates relative to the center of the dynamically sized canvas
                                     const startX = fromNode.position.x * SPACING_MULTIPLIER + canvasDimensions.width / 2
                                     const startY = fromNode.position.y * SPACING_MULTIPLIER + canvasDimensions.height / 2
                                     const endX = toNode.position.x * SPACING_MULTIPLIER + canvasDimensions.width / 2
@@ -641,11 +655,11 @@ export default function RoadmapViewer() {
                                 })}
                             </svg>
 
-                            {/* Nodes */}
                             {roadmapData.nodes?.map((node) => {
                                 const config = nodeConfig[node.type] || defaultNodeConfig
                                 const Icon = config.icon
                                 const isSelected = selectedNode?.id === node.id
+                                const isCompleted = progress.includes(node.id.toString())
                                 const isConnected =
                                     selectedNode &&
                                     roadmapData.edges?.some(
@@ -659,27 +673,41 @@ export default function RoadmapViewer() {
                                         key={node.id}
                                         className="absolute transform -translate-x-1/2 -translate-y-1/2 z-10 pointer-events-auto"
                                         style={{
-                                            // Position nodes relative to the center of the canvas
                                             left: `calc(50% + ${node.position.x * SPACING_MULTIPLIER}px)`,
                                             top: `calc(50% + ${node.position.y * SPACING_MULTIPLIER}px)`,
                                         }}
                                     >
+                                        {isCompleted && (
+                                            <div className="absolute inset-0 rounded-lg border-4 border-green-400 animate-pulse -m-1" />
+                                        )}
+
                                         <Card
                                             className={`w-56 p-4 transition-all duration-200 cursor-pointer ${isSelected
                                                 ? `${config.bgColor} ${config.borderColor} border-2 shadow-lg scale-105 ring-2 ring-blue-300`
                                                 : isConnected
                                                     ? `${config.bgColor} ${config.borderColor} border-2 shadow-md scale-102`
-                                                    : `bg-white border-gray-200 border hover:${config.bgColor} hover:${config.borderColor} hover:border-2 shadow-sm hover:shadow-md hover:scale-102`
+                                                    : isCompleted
+                                                        ? `bg-green-50 border-green-200 border-2 shadow-sm hover:shadow-md hover:scale-102`
+                                                        : `bg-white border-gray-200 border hover:${config.bgColor} hover:${config.borderColor} hover:border-2 shadow-sm hover:shadow-md hover:scale-102`
                                                 }`}
                                             onClick={() => handleNodeClick(node)}
                                         >
                                             <div className="flex items-start gap-3">
-                                                <div className={`p-2.5 rounded-lg ${config.color} text-white shadow-sm flex-shrink-0`}>
+                                                <div className={`p-2.5 rounded-lg ${config.color} text-white shadow-sm flex-shrink-0 relative`}>
                                                     <Icon size={16} />
+                                                    {isCompleted && (
+                                                        <div className="absolute -top-1 -right-1 bg-green-500 rounded-full p-0.5">
+                                                            <CheckCircle className="w-3 h-3 text-white" />
+                                                        </div>
+                                                    )}
                                                 </div>
                                                 <div className="flex-1 min-w-0">
                                                     <h3
-                                                        className={`font-semibold text-sm mb-2 leading-tight ${isSelected || isConnected ? config.textColor : "text-gray-900"
+                                                        className={`font-semibold text-sm mb-2 leading-tight ${isSelected || isConnected
+                                                            ? config.textColor
+                                                            : isCompleted
+                                                                ? "text-green-700"
+                                                                : "text-gray-900"
                                                             }`}
                                                     >
                                                         {node.data.label}
@@ -692,7 +720,9 @@ export default function RoadmapViewer() {
                                                     variant="secondary"
                                                     className={`text-xs px-2 py-1 ${isSelected || isConnected
                                                         ? `${config.textColor} ${config.bgColor}`
-                                                        : "text-gray-600 bg-gray-100"
+                                                        : isCompleted
+                                                            ? "text-green-700 bg-green-100"
+                                                            : "text-gray-600 bg-gray-100"
                                                         }`}
                                                 >
                                                     {node.type}
@@ -706,20 +736,24 @@ export default function RoadmapViewer() {
                         </div>
                     </div>
 
-                    {/* Side Panel for Selected Node */}
                     {selectedNode && (
-                        <div className="w-full md:w-80 bg-white border-l shadow-lg flex-shrink-0 overflow-y-auto absolute bottom-0 left-0 right-0 md:relative md:bottom-auto md:left-auto md:right-auto h-1/2 md:h-auto z-20">
+                        <div className="w-full md:w-96 bg-white border-l shadow-lg flex-shrink-0 overflow-y-auto absolute bottom-0 left-0 right-0 md:relative md:bottom-auto md:left-auto md:right-auto h-1/2 md:h-auto z-20">
                             <div className="p-6">
                                 <div className="flex items-center justify-between mb-4">
-                                    <h3 className="text-lg font-semibold text-gray-900">Node Details</h3>
-                                    <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        onClick={() => setSelectedNode(null)}
-                                        className="text-gray-500 hover:text-gray-700"
-                                    >
-                                        <X />
-                                    </Button>
+                                    <h3 className="text-lg font-semibold text-gray-900">Learning Content</h3>
+                                    <div className="flex items-center gap-2">
+                                        {progress.includes(selectedNode.id.toString()) && (
+                                            <Badge className="bg-green-500 text-white">Completed</Badge>
+                                        )}
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={() => setSelectedNode(null)}
+                                            className="text-gray-500 hover:text-gray-700"
+                                        >
+                                            <X />
+                                        </Button>
+                                    </div>
                                 </div>
 
                                 <div className="space-y-4">
@@ -736,30 +770,151 @@ export default function RoadmapViewer() {
                                             })()}
                                             <div>
                                                 <h4 className="font-semibold text-gray-900">{selectedNode.data.label}</h4>
-                                                <Badge variant="secondary" className="text-xs mt-1">
+                                                <Badge variant="secondary" className="text-xs mt-1 capitalize">
                                                     {selectedNode.type}
                                                 </Badge>
                                             </div>
                                         </div>
                                     </div>
 
-                                    {selectedNode.data.description ?? (
-                                        <div className="mb-3">
-                                            <h5 className="font-medium text-gray-900 mb-2">Description</h5>
-                                            <p className="text-sm text-gray-600 leading-relaxed">{selectedNode.data.description}</p>
-                                        </div>
-                                    )}
-                                    {(nodeConfig[selectedNode.type] || defaultNodeConfig).description ?? (
-                                        <div className="mb-3">
-                                            <h5 className="font-medium text-gray-900 mb-2">Type Information</h5>
-                                            <p className="text-sm text-gray-600">
-                                                {(nodeConfig[selectedNode.type] || defaultNodeConfig).description}
-                                            </p>
-                                        </div>
-                                    )}
+                                    <Tabs defaultValue="content" className="w-full">
+                                        <TabsList className="grid w-full grid-cols-2">
+                                            <TabsTrigger value="content">Learn</TabsTrigger>
+                                            <TabsTrigger value="notes">Notes</TabsTrigger>
+                                        </TabsList>
 
-                                    <div className="pt-4 border-t mt-3">
-                                        <div className="text-xs text-gray-500">Node ID: #{selectedNode.id}</div>
+                                        <TabsContent value="content" className="mt-4 space-y-4">
+                                            <div className={`${(nodeConfig[selectedNode.type] || defaultNodeConfig).bgColor} p-4 rounded-lg`}>
+                                                <p className="text-sm leading-relaxed">{selectedNode.data.description}</p>
+                                            </div>
+
+                                            {/* Type-specific content */}
+                                            {selectedNode.type === "project" && (
+                                                <div className="space-y-3">
+                                                    <h5 className="font-medium text-gray-900">Project Requirements</h5>
+                                                    <ul className="text-sm space-y-1 text-gray-600">
+                                                        <li>• Implement core functionality</li>
+                                                        <li>• Add proper error handling</li>
+                                                        <li>• Write documentation</li>
+                                                    </ul>
+                                                    <Button onClick={()=> handleProjectGenerate()} className="w-full bg-amber-500 hover:bg-amber-600">
+                                                        <FolderOpen className="w-4 h-4 mr-2" />
+                                                        Start Project
+                                                    </Button>
+                                                </div>
+                                            )}
+
+                                            {selectedNode.type === "quiz" && (
+                                                <div className="space-y-3">
+                                                    <h5 className="font-medium text-gray-900">Knowledge Check</h5>
+                                                    <p className="text-sm text-gray-600">Test your understanding of the concepts covered.</p>
+                                                    <Button onClick={()=> handleQuizGenerate()} className="w-full bg-pink-500 hover:bg-pink-600">
+                                                        <Sparkles className="w-4 h-4 mr-2" />
+                                                        Take Quiz
+                                                    </Button>
+                                                </div>
+                                            )}
+
+                                            {selectedNode.type === "course" && (
+                                                <div className="space-y-3">
+                                                    <h5 className="font-medium text-gray-900">Learning Objectives</h5>
+                                                    <ul className="text-sm space-y-1 text-gray-600">
+                                                        <li>• Understand core concepts</li>
+                                                        <li>• Apply knowledge practically</li>
+                                                        <li>• Complete exercises</li>
+                                                    </ul>
+                                                    <Button onClick={()=> handleCourseGenerate()} className="w-full bg-blue-500 hover:bg-blue-600">
+                                                        <Play className="w-4 h-4 mr-2" />
+                                                        Start Course
+                                                    </Button>
+                                                </div>
+                                            )}
+
+                                            {selectedNode.type === "concept" && (
+                                                <div className="space-y-3">
+                                                    <h5 className="font-medium text-gray-900">Learning Objectives</h5>
+                                                    <ul className="text-sm space-y-1 text-gray-600">
+                                                        <li>• Understand core concepts</li>
+                                                        <li>• Apply knowledge practically</li>
+                                                        <li>• Complete exercises</li>
+                                                    </ul>
+                                                    <Button onClick={()=> handleConceptsGenerate()} className="w-full bg-violet-500 hover:bg-violet-600">
+                                                        <Play className="w-4 h-4 mr-2" />
+                                                        Start Learning Concepts
+                                                    </Button>
+                                                </div>
+                                            )}
+
+                                            {selectedNode.type === "milestone" && (
+                                                <div className="space-y-3 text-center">
+                                                    <Trophy className="w-12 h-12 text-purple-500 mx-auto" />
+                                                    <h5 className="font-medium text-gray-900">Achievement Unlocked!</h5>
+                                                    <p className="text-sm text-gray-600">
+                                                        You've reached an important milestone in your learning journey.
+                                                    </p>
+                                                </div>
+                                            )}
+                                        </TabsContent>
+
+                                        <TabsContent value="notes" className="mt-4 space-y-4">
+                                            <div className="flex items-center justify-between">
+                                                <h5 className="font-medium text-gray-900">Your Notes</h5>
+                                                <Button size="sm" variant="outline" onClick={() => setIsEditingNote(!isEditingNote)}>
+                                                    {isEditingNote ? <X className="w-4 h-4" /> : <Edit3 className="w-4 h-4" />}
+                                                </Button>
+                                            </div>
+
+                                            {isEditingNote ? (
+                                                <div className="space-y-3">
+                                                    <Textarea
+                                                        value={currentNote}
+                                                        onChange={(e) => setCurrentNote(e.target.value)}
+                                                        placeholder="Write your notes here..."
+                                                        className="min-h-[120px]"
+                                                    />
+                                                    <div className="flex gap-2">
+                                                        <Button size="sm" onClick={saveNote}>
+                                                            <Save className="w-4 h-4 mr-2" />
+                                                            Save Note
+                                                        </Button>
+                                                        <Button size="sm" variant="outline" onClick={() => setIsEditingNote(false)}>
+                                                            Cancel
+                                                        </Button>
+                                                    </div>
+                                                </div>
+                                            ) : (
+                                                <div className="bg-gray-50 p-4 rounded-lg min-h-[120px]">
+                                                    {currentNote ? (
+                                                        <p className="text-gray-700 whitespace-pre-wrap text-sm">{currentNote}</p>
+                                                    ) : (
+                                                        <p className="text-gray-500 italic text-sm">
+                                                            No notes yet. Click edit to add your thoughts.
+                                                        </p>
+                                                    )}
+                                                </div>
+                                            )}
+                                        </TabsContent>
+                                    </Tabs>
+
+                                    <div className="pt-4 border-t space-y-3">
+                                        <div className="flex gap-2">
+                                            <Button
+                                                onClick={completeCurrentNode}
+                                                className="flex-1 bg-green-500 hover:bg-green-600 text-white"
+                                                disabled={progress.includes(selectedNode.id.toString())}
+                                            >
+                                                <CheckCircle className="w-4 h-4 mr-2" />
+                                                {progress.includes(selectedNode.id.toString()) ? "Completed" : "Mark Complete"}
+                                            </Button>
+                                            <Button onClick={navigateToNextNode} variant="outline" className="flex-1 bg-transparent">
+                                                <SkipForward className="w-4 h-4 mr-2" />
+                                                Next Node
+                                            </Button>
+                                        </div>
+
+                                        <div className="text-xs text-gray-500 text-center">
+                                            Node ID: #{selectedNode.id} • Type: {selectedNode.type}
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -767,13 +922,15 @@ export default function RoadmapViewer() {
                     )}
                 </div>
 
-                {/* Enhanced Legend */}
                 <div className="bg-white border-t flex-shrink-0">
                     <div className="p-4">
                         <div className="flex flex-wrap gap-4 justify-center">
                             {Object.entries(nodeConfig).map(([type, config]) => {
                                 const Icon = config.icon
                                 const count = nodeStats[type] || 0
+                                const completedCount = roadmapData.nodes.filter(
+                                    (node) => node.type === type && progress.includes(node.id.toString()),
+                                ).length
 
                                 if (count === 0) return null
 
@@ -786,7 +943,9 @@ export default function RoadmapViewer() {
                                                 </div>
                                                 <div>
                                                     <span className="text-sm font-medium capitalize text-gray-700">{type}</span>
-                                                    <span className="text-xs text-gray-500 ml-1">({count})</span>
+                                                    <span className="text-xs text-gray-500 ml-1">
+                                                        ({completedCount}/{count})
+                                                    </span>
                                                 </div>
                                             </div>
                                         </TooltipTrigger>

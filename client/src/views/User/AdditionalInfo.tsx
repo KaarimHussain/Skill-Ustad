@@ -1,6 +1,5 @@
 "use client"
 
-import type React from "react"
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -8,86 +7,66 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
-import { User, MapPin, Briefcase, GraduationCap, Tag, ChevronLeft, ChevronRight, Check, X, Plus } from "lucide-react"
+import { User, MapPin, Briefcase, GraduationCap, ChevronLeft, ChevronRight, Check } from "lucide-react"
 import { useState } from "react"
 import AuthService from "@/services/auth.service"
 import AddtionalInfoService from "@/services/additional-info.service"
 import { useNavigate } from "react-router-dom"
+import NotificationService from "@/components/Notification"
 
-interface MentorAdditionalInfo {
-    Bio: string
+interface UserAdditionalInfo {
+    CurrentLevelOfEducation: string
     LevelOfExpertise: string
     FieldOfExpertise: string
-    IndustryExperience: string
+    UserInterestsAndGoals: string
     Gender: string
     City: string
     Address: string
 }
 
-interface MentorExpertiseTag {
-    TagName: string
-}
-
-export default function MentorAdditionalInfo() {
+export default function UserAdditionalInfo() {
     // Navigation Hook
-    const navigate = useNavigate();
+    const navigate = useNavigate()
 
     const [currentStep, setCurrentStep] = useState(1)
-    const [formData, setFormData] = useState<MentorAdditionalInfo>({
-        Bio: "",
+    const [formData, setFormData] = useState<UserAdditionalInfo>({
+        CurrentLevelOfEducation: "",
         LevelOfExpertise: "",
         FieldOfExpertise: "",
-        IndustryExperience: "",
+        UserInterestsAndGoals: "",
         Gender: "",
         City: "",
         Address: "",
     })
-
-    const [expertiseTags, setExpertiseTags] = useState<MentorExpertiseTag[]>([])
-    const [newTag, setNewTag] = useState("")
     const [isSubmitting, setIsSubmitting] = useState(false)
-
     const totalSteps = 4
     const progress = (currentStep / totalSteps) * 100
 
-    const handleInputChange = (field: keyof MentorAdditionalInfo, value: string) => {
+    const handleInputChange = (field: keyof UserAdditionalInfo, value: string) => {
+        // Limit UserInterestsAndGoals to 500 characters
+        if (field === "UserInterestsAndGoals" && value.length > 500) {
+            return
+        }
         setFormData((prev) => ({ ...prev, [field]: value }))
-    }
-
-    const addExpertiseTag = () => {
-        if (newTag.trim() && !expertiseTags.some((tag) => tag.TagName.toLowerCase() === newTag.toLowerCase())) {
-            setExpertiseTags((prev) => [...prev, { TagName: newTag.trim() }])
-            setNewTag("")
-        }
-    }
-
-    const removeExpertiseTag = (tagToRemove: string) => {
-        setExpertiseTags((prev) => prev.filter((tag) => tag.TagName !== tagToRemove))
-    }
-
-    const handleKeyPress = (e: React.KeyboardEvent) => {
-        if (e.key === "Enter") {
-            e.preventDefault()
-            addExpertiseTag()
-        }
     }
 
     const validateStep = (step: number): boolean => {
         switch (step) {
             case 1:
-                return formData.Bio.trim().length >= 50
+                return formData.CurrentLevelOfEducation !== ""
             case 2:
                 return formData.LevelOfExpertise !== "" && formData.FieldOfExpertise.trim() !== ""
             case 3:
-                return formData.IndustryExperience.trim() !== "" && expertiseTags.length >= 3
+                return formData.UserInterestsAndGoals.trim().length >= 50
             case 4:
                 return formData.Gender !== "" && formData.City.trim() !== ""
             default:
                 return false
         }
     }
+
+
 
     const nextStep = () => {
         if (validateStep(currentStep) && currentStep < totalSteps) {
@@ -106,31 +85,25 @@ export default function MentorAdditionalInfo() {
 
         setIsSubmitting(true)
         try {
-            const mentorId = AuthService.getAuthenticatedUserId();
-            if (!mentorId) {
-                navigate("/login");
-                return;
+            const userId = AuthService.getAuthenticatedUserId()
+            if (!userId) {
+                navigate("/login")
+                return
             }
-            const mentorInfo = {
+            const userInfo = {
                 ...formData,
-                MentorId: mentorId!,
+                UserId: userId!,
             }
 
-            const tags = expertiseTags.map((tag) => ({
-                ...tag,
-                MentorId: mentorId!,
-            }))
+            await AddtionalInfoService.addUserAdditionalInfo(userInfo)
 
-            console.log("Mentor Additional Info:", mentorInfo)
-            console.log("Expertise Tags:", tags)
-
-            // Simulate API call
-            await AddtionalInfoService.addMentorAdditionalInfo(mentorInfo, tags);
-
-            // Redirect to dashboard or next page
             console.log("Information saved successfully!")
-            navigate("/mentor/dashboard");
+            NotificationService.success("Information Saved Successfully!", "Thank you for providing your info.");
+            setTimeout(() => {
+                navigate("/user/dashboard")
+            }, 1000)
         } catch (error) {
+            NotificationService.error("Error saving information:", `${error}`);
             console.error("Error saving information:", error)
         } finally {
             setIsSubmitting(false)
@@ -140,21 +113,21 @@ export default function MentorAdditionalInfo() {
     const steps = [
         {
             number: 1,
-            title: "Professional Bio",
-            description: "Tell us about yourself",
-            icon: User,
-        },
-        {
-            number: 2,
-            title: "Expertise Level",
-            description: "Your professional background",
+            title: "Education Level",
+            description: "Your current education status",
             icon: GraduationCap,
         },
         {
-            number: 3,
-            title: "Experience & Skills",
-            description: "Industry experience and tags",
+            number: 2,
+            title: "Expertise & Field",
+            description: "Your knowledge and interests",
             icon: Briefcase,
+        },
+        {
+            number: 3,
+            title: "Goals & Interests",
+            description: "What you want to learn",
+            icon: User,
         },
         {
             number: 4,
@@ -171,7 +144,8 @@ export default function MentorAdditionalInfo() {
                 <div className="text-center mb-8">
                     <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">Additional Information</h1>
                     <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-                        To ensure a great experience, we need you to provide us some information about yourself as a mentor.
+                        To help us match you with the best mentors, please provide some information about your learning goals and
+                        background.
                     </p>
                 </div>
 
@@ -229,71 +203,72 @@ export default function MentorAdditionalInfo() {
                     </CardHeader>
 
                     <CardContent className="px-8 pb-8">
-                        {/* Step 1: Professional Bio */}
                         {currentStep === 1 && (
                             <div className="space-y-6">
                                 <div className="space-y-3">
-                                    <Label htmlFor="bio" className="text-base font-medium text-gray-900">
-                                        Professional Bio *
+                                    <Label htmlFor="education" className="text-base font-medium text-gray-900">
+                                        Current Level of Education *
                                     </Label>
-                                    <Textarea
-                                        id="bio"
-                                        placeholder="Write a compelling bio that showcases your expertise, experience, and what makes you a great mentor. Include your background, achievements, and what you're passionate about teaching..."
-                                        value={formData.Bio}
-                                        onChange={(e) => handleInputChange("Bio", e.target.value)}
-                                        rows={6}
-                                        className="bg-white/60 border-gray-300 focus:border-indigo-500 text-base resize-none"
-                                    />
-                                    <div className="flex justify-between items-center text-sm">
-                                        <span
-                                            className={`${formData.Bio.length >= 50 ? "text-green-600" : "text-gray-500"} transition-colors`}
-                                        >
-                                            {formData.Bio.length >= 50 ? "✓ Great! Your bio looks comprehensive" : "Minimum 50 characters"}
-                                        </span>
-                                        <span className="text-gray-400">{formData.Bio.length}/500</span>
-                                    </div>
+                                    <Select
+                                        value={formData.CurrentLevelOfEducation}
+                                        onValueChange={(value) => handleInputChange("CurrentLevelOfEducation", value)}
+                                    >
+                                        <SelectTrigger className="bg-white/60 border-gray-300 focus:border-indigo-500 h-12">
+                                            <SelectValue placeholder="Select your current education level" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="High School">High School</SelectItem>
+                                            <SelectItem value="Some College">Some College</SelectItem>
+                                            <SelectItem value="Associate Degree">Associate Degree</SelectItem>
+                                            <SelectItem value="Bachelor's Degree">Bachelor's Degree</SelectItem>
+                                            <SelectItem value="Master's Degree">Master's Degree</SelectItem>
+                                            <SelectItem value="PhD/Doctorate">PhD/Doctorate</SelectItem>
+                                            <SelectItem value="Professional Certification">Professional Certification</SelectItem>
+                                            <SelectItem value="Self-Taught">Self-Taught</SelectItem>
+                                        </SelectContent>
+                                    </Select>
                                 </div>
 
                                 <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-4">
-                                    <h4 className="font-medium text-indigo-900 mb-2">💡 Tips for a great bio:</h4>
+                                    <h4 className="font-medium text-indigo-900 mb-2">📚 Why we ask:</h4>
                                     <ul className="text-sm text-indigo-700 space-y-1">
-                                        <li>• Highlight your key expertise and experience</li>
-                                        <li>• Mention your teaching or mentoring philosophy</li>
-                                        <li>• Include notable achievements or certifications</li>
-                                        <li>• Show your personality and passion for helping others</li>
+                                        <li>• Helps mentors understand your academic background</li>
+                                        <li>• Allows for better matching with appropriate mentors</li>
+                                        <li>• Enables personalized learning recommendations</li>
+                                        <li>• No judgment - all education paths are valuable!</li>
                                     </ul>
                                 </div>
                             </div>
                         )}
 
-                        {/* Step 2: Expertise Level */}
+                        {/* Step 2: Expertise Level & Field */}
                         {currentStep === 2 && (
                             <div className="space-y-6">
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <div className="space-y-3">
                                         <Label htmlFor="levelOfExpertise" className="text-base font-medium text-gray-900">
-                                            Level of Expertise *
+                                            Current Level of Expertise *
                                         </Label>
                                         <Select
                                             value={formData.LevelOfExpertise}
                                             onValueChange={(value) => handleInputChange("LevelOfExpertise", value)}
                                         >
                                             <SelectTrigger className="bg-white/60 border-gray-300 focus:border-indigo-500 h-12">
-                                                <SelectValue placeholder="Select your expertise level" />
+                                                <SelectValue placeholder="Select your current level" />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                <SelectItem value="Junior">Junior (1-3 years experience)</SelectItem>
-                                                <SelectItem value="Mid-Level">Mid-Level (3-7 years experience)</SelectItem>
-                                                <SelectItem value="Senior">Senior (7-12 years experience)</SelectItem>
-                                                <SelectItem value="Expert">Expert (12+ years experience)</SelectItem>
-                                                <SelectItem value="Thought Leader">Thought Leader (Industry recognized expert)</SelectItem>
+                                                <SelectItem value="Complete Beginner">Complete Beginner</SelectItem>
+                                                <SelectItem value="Beginner">Beginner (Some basic knowledge)</SelectItem>
+                                                <SelectItem value="Intermediate">Intermediate (Some experience)</SelectItem>
+                                                <SelectItem value="Advanced">Advanced (Significant experience)</SelectItem>
+                                                <SelectItem value="Expert">Expert (Professional level)</SelectItem>
                                             </SelectContent>
                                         </Select>
                                     </div>
 
                                     <div className="space-y-3">
                                         <Label htmlFor="fieldOfExpertise" className="text-base font-medium text-gray-900">
-                                            Primary Field of Expertise *
+                                            Field of Interest *
                                         </Label>
                                         <Input
                                             id="fieldOfExpertise"
@@ -306,110 +281,54 @@ export default function MentorAdditionalInfo() {
                                 </div>
 
                                 <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-                                    <h4 className="font-medium text-gray-900 mb-2">🎯 Choose the right level:</h4>
+                                    <h4 className="font-medium text-gray-900 mb-2">🎯 Be honest about your level:</h4>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-600">
                                         <div>
-                                            <strong>Junior/Mid-Level:</strong> Great for beginners and intermediate learners
+                                            <strong>Beginner:</strong> Perfect for foundational learning and basic concepts
                                         </div>
                                         <div>
-                                            <strong>Senior/Expert:</strong> Perfect for advanced learners and career guidance
+                                            <strong>Intermediate/Advanced:</strong> Great for specialized skills and career guidance
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         )}
 
-                        {/* Step 3: Experience & Skills */}
                         {currentStep === 3 && (
                             <div className="space-y-6">
                                 <div className="space-y-3">
-                                    <Label htmlFor="industryExperience" className="text-base font-medium text-gray-900">
-                                        Industry Experience *
+                                    <Label htmlFor="userInterestsAndGoals" className="text-base font-medium text-gray-900">
+                                        Learning Goals & Interests *
                                     </Label>
                                     <Textarea
-                                        id="industryExperience"
-                                        placeholder="Describe your industry experience, key projects, companies you've worked with, and significant achievements that demonstrate your expertise..."
-                                        value={formData.IndustryExperience}
-                                        onChange={(e) => handleInputChange("IndustryExperience", e.target.value)}
-                                        rows={4}
+                                        id="userInterestsAndGoals"
+                                        placeholder="Tell us about your learning goals, what you want to achieve, specific skills you want to develop, career aspirations, or projects you're working on..."
+                                        value={formData.UserInterestsAndGoals}
+                                        onChange={(e) => handleInputChange("UserInterestsAndGoals", e.target.value)}
+                                        rows={6}
                                         className="bg-white/60 border-gray-300 focus:border-indigo-500 resize-none"
+                                        maxLength={500}
                                     />
-                                </div>
-
-                                <div className="space-y-3">
-                                    <Label className="text-base font-medium text-gray-900">Expertise Tags * (Minimum 3 required)</Label>
-                                    <div className="flex gap-2">
-                                        <Input
-                                            placeholder="Add a skill or expertise tag (e.g., React, Leadership, SEO)"
-                                            value={newTag}
-                                            onChange={(e) => setNewTag(e.target.value)}
-                                            onKeyPress={handleKeyPress}
-                                            className="bg-white/60 border-gray-300 focus:border-indigo-500"
-                                        />
-                                        <Button
-                                            type="button"
-                                            onClick={addExpertiseTag}
-                                            disabled={!newTag.trim()}
-                                            className="bg-indigo-600 hover:bg-indigo-700 text-white px-6"
+                                    <div className="flex justify-between items-center text-sm">
+                                        <span
+                                            className={`${formData.UserInterestsAndGoals.length >= 50 ? "text-green-600" : "text-gray-500"} transition-colors`}
                                         >
-                                            <Plus className="w-4 h-4" />
-                                        </Button>
+                                            {formData.UserInterestsAndGoals.length >= 50
+                                                ? "✓ Great! Your goals are clear"
+                                                : "Minimum 50 characters"}
+                                        </span>
+                                        <span className="text-gray-400">{formData.UserInterestsAndGoals.length}/500</span>
                                     </div>
-
-                                    {expertiseTags.length > 0 && (
-                                        <div className="flex flex-wrap gap-2 mt-3">
-                                            {expertiseTags.map((tag, index) => (
-                                                <Badge
-                                                    key={index}
-                                                    variant="secondary"
-                                                    className="bg-indigo-100 text-indigo-700 px-3 py-1 text-sm flex items-center gap-2"
-                                                >
-                                                    <Tag className="w-3 h-3" />
-                                                    {tag.TagName}
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => removeExpertiseTag(tag.TagName)}
-                                                        className="ml-1 hover:text-red-600 transition-colors"
-                                                    >
-                                                        <X className="w-3 h-3" />
-                                                    </button>
-                                                </Badge>
-                                            ))}
-                                        </div>
-                                    )}
-
-                                    <p className="text-sm text-gray-500">
-                                        {expertiseTags.length >= 3 ? (
-                                            <span className="text-green-600">✓ Great! You have {expertiseTags.length} tags</span>
-                                        ) : (
-                                            `Add ${3 - expertiseTags.length} more tags to continue`
-                                        )}
-                                    </p>
                                 </div>
 
-                                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                                    <h4 className="font-medium text-blue-900 mb-2">🏷️ Tag suggestions:</h4>
-                                    <div className="flex flex-wrap gap-2">
-                                        {[
-                                            "JavaScript",
-                                            "Python",
-                                            "Leadership",
-                                            "Project Management",
-                                            "UI/UX Design",
-                                            "Data Analysis",
-                                            "Marketing Strategy",
-                                            "Team Building",
-                                        ].map((suggestion) => (
-                                            <button
-                                                key={suggestion}
-                                                type="button"
-                                                onClick={() => setNewTag(suggestion)}
-                                                className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded hover:bg-blue-200 transition-colors"
-                                            >
-                                                {suggestion}
-                                            </button>
-                                        ))}
-                                    </div>
+                                <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-4">
+                                    <h4 className="font-medium text-indigo-900 mb-2">💡 Tips for writing great learning goals:</h4>
+                                    <ul className="text-sm text-indigo-700 space-y-1">
+                                        <li>• Be specific about what skills you want to develop</li>
+                                        <li>• Mention your career aspirations or projects you're working on</li>
+                                        <li>• Include any particular challenges you're facing</li>
+                                        <li>• Share what motivates you to learn in this field</li>
+                                    </ul>
                                 </div>
                             </div>
                         )}
@@ -441,7 +360,7 @@ export default function MentorAdditionalInfo() {
                                         </Label>
                                         <Input
                                             id="city"
-                                            placeholder="e.g., New York, London, Tokyo"
+                                            placeholder="e.g., Karachi, Lahore"
                                             value={formData.City}
                                             onChange={(e) => handleInputChange("City", e.target.value)}
                                             className="bg-white/60 border-gray-300 focus:border-indigo-500 h-12"
@@ -461,15 +380,15 @@ export default function MentorAdditionalInfo() {
                                         className="bg-white/60 border-gray-300 focus:border-indigo-500 h-12"
                                     />
                                     <p className="text-sm text-gray-500">
-                                        This helps us match you with students in your area. Your full address will remain private.
+                                        This helps us match you with mentors in your area. Your full address will remain private.
                                     </p>
                                 </div>
 
                                 <div className="bg-green-50 border border-green-200 rounded-lg p-4">
                                     <h4 className="font-medium text-green-900 mb-2">🎉 Almost done!</h4>
                                     <p className="text-sm text-green-700">
-                                        You're about to complete your mentor profile. This information will help students find and connect
-                                        with you based on their learning needs.
+                                        You're about to complete your learning profile. This information will help us match you with the
+                                        perfect mentors based on your goals and interests.
                                     </p>
                                 </div>
                             </div>

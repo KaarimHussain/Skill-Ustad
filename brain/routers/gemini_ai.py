@@ -45,7 +45,7 @@ async def generate_description(data: DescriptionRequest):
 
     try:
         response = ollama.generate(
-            model="tinyllama:1.1b",
+            model="qwen3:1.7b",
             prompt=user_prompt,
             system=system_prompt,
             options={"temperature": 0.6},
@@ -184,7 +184,7 @@ async def generate_roadmap(data: RoadmapRequest):
 
         # Generate using Ollama with strict JSON format
         response = ollama.generate(
-            model="qwen3:1.7b",
+            model="gemma3:latest",
             prompt=user_prompt,
             system=system_prompt,
             format="json"  # Enforces JSON output

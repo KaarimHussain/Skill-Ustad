@@ -2,15 +2,17 @@ import logoWhite from "../assets/Logos/Light.png"
 import logoDark from "../assets/Logos/Dark.png"
 import { Link } from "react-router-dom";
 
-export default function Logo({ varient = "light" }) {
+export default function Logo({ varient = "light", logoOnly = false }) {
     if (varient == "dark") {
         return (
             <Link to={"/"}>
                 <div className="flex gap-1 items-center">
                     <img className="h-10 w-10 aspect-square object-cover" src={logoDark} alt="Skill-Ustad" />
-                    <p className="font-bold text-white lg:text-3xl md:text-2xl sm:text-xl text-xl text-nowrap">
+                    {!logoOnly && (
+                        <p className="font-bold text-white lg:text-3xl md:text-2xl sm:text-xl text-xl text-nowrap">
                         Skill-Ustad
                     </p>
+                    )}
                 </div>
             </Link>
         );
@@ -19,9 +21,11 @@ export default function Logo({ varient = "light" }) {
             <Link to={"/"}>
                 <div className="flex gap-1 items-center">
                     <img className="h-10 w-10 aspect-square object-cover" src={logoWhite} alt="Skill-Ustad" />
-                    <p className="font-bold text-black lg:text-3xl md:text-2xl sm:text-xl text-xl text-nowrap">
-                        Skill-Ustad
-                    </p>
+                    {!logoOnly && (
+                        <p className="font-bold text-black lg:text-3xl md:text-2xl sm:text-xl text-xl text-nowrap">
+                            Skill-Ustad
+                        </p>
+                    )}
                 </div>
             </Link>
         );
