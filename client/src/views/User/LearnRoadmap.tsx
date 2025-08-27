@@ -4,7 +4,7 @@ import type React from "react"
 import { useNavigate, useParams } from "react-router-dom"
 import { useEffect, useState, useRef, useCallback, useMemo } from "react"
 import { db } from "@/lib/firebase"
-import { collection, doc, getDoc, updateDoc, Timestamp } from "firebase/firestore"
+import { collection, doc, getDoc, updateDoc, Timestamp, setDoc } from "firebase/firestore"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -42,6 +42,7 @@ import {
 } from "lucide-react"
 import AuthService from "@/services/auth.service"
 import NotificationService from "@/components/Notification"
+import { ConceptInterface, CourseInterface, ProjectInterface, QuizInterface } from "@/components/CourseInterface"
 
 interface NodeData {
     label: string
@@ -73,6 +74,12 @@ interface FirebaseRoadmapData {
     userId?: string
     visibility: "public" | "private"
     difficulty: "Easy" | "Medium" | "Hard"
+}
+
+interface LearningSession {
+    type: 'project' | 'quiz' | 'course' | 'concept' | null
+    data: any
+    isActive: boolean
 }
 
 interface UserNotes {
@@ -222,6 +229,7 @@ export default function LearnRoadmap() {
     const [progress, setProgress] = useState<string[]>([])
     const [selectedNode, setSelectedNode] = useState<RoadmapNode | null>(null)
     const [isLoading, setIsLoading] = useState(true)
+    const [courseLoading, setCourseLoading] = useState(false);
     const [userNotes, setUserNotes] = useState<UserNotes>({})
     const [currentNote, setCurrentNote] = useState("")
     const [isEditingNote, setIsEditingNote] = useState(false)
@@ -231,6 +239,13 @@ export default function LearnRoadmap() {
     const [dragStart, setDragStart] = useState({ x: 0, y: 0 })
     const [scale, setScale] = useState(0.8)
     const [isFullscreen, setIsFullscreen] = useState(false)
+    const [learningSession, setLearningSession] = useState<LearningSession>({
+        type: null,
+        data: null,
+        isActive: false
+    })
+    const [showInterviewDialog, setShowInterviewDialog] = useState(false);
+    const [isInterviewStart, setIsInterviewStart] = useState(false);
 
     const containerRef = useRef<HTMLDivElement>(null)
     const canvasRef = useRef<HTMLDivElement>(null)
@@ -331,6 +346,8 @@ export default function LearnRoadmap() {
         return () => container.removeEventListener("wheel", handleWheel)
     }, [])
 
+
+
     const handleMouseDown = useCallback(
         (e: React.MouseEvent) => {
             if (e.button === 0) {
@@ -429,19 +446,578 @@ export default function LearnRoadmap() {
         setIsEditingNote(false)
         showNotification.success("Note Saved", "Your note has been saved locally")
     }
+    const handleCourseGenerate = async (selectedNode: RoadmapNode, userId: string, roadmapId: string) => {
+        try {
+            const courseDocRef = doc(db, 'learning-content', `${roadmapId}_${selectedNode.id}_course`)
+            const courseDoc = await getDoc(courseDocRef)
 
-    // Handle Actions Likes Generate Course, Quiz, Project, and Concepts
-    const handleCourseGenerate = async () => {
+            let courseData
+            if (courseDoc.exists()) {
+                courseData = courseDoc.data()
+            } else {
+                // Call FastAPI to generate content
+                const apiResponse = await fetch('http://127.0.0.1:8000/roadmap/api/generate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        nodeType: 'course',
+                        nodeLabel: selectedNode.data.label,
+                        nodeDescription: selectedNode.data.description,
+                        difficulty: roadmapData?.difficulty.toLowerCase(),
+                        learningPath: roadmapData?.title || 'General',
+                    }),
+                });
 
+                if (apiResponse.ok) {
+                    const generated = await apiResponse.json();
+                    if (generated.success) {
+                        courseData = {
+                            nodeId: selectedNode.id,
+                            roadmapId,
+                            type: 'course',
+                            title: selectedNode.data.label,
+                            description: selectedNode.data.description,
+                            modules: generated.content.map((module: any) => ({
+                                ...module,
+                                completed: module.completed ?? false,
+                            })),
+                            createdAt: new Date(),
+                            userId,
+                        };
+                    } else {
+                        // Fallback if API generation failed
+                        courseData = {
+                            nodeId: selectedNode.id,
+                            roadmapId,
+                            type: 'course',
+                            title: selectedNode.data.label,
+                            description: selectedNode.data.description,
+                            modules: [
+                                {
+                                    id: '1',
+                                    title: 'Introduction',
+                                    content: `Welcome to ${selectedNode.data.label}! In this module, you'll learn: ${selectedNode.data.description}`,
+                                    completed: false
+                                },
+                                {
+                                    id: '2',
+                                    title: 'Core Concepts',
+                                    content: `Let's dive deeper into the main concepts of ${selectedNode.data.label}. This will build your foundational understanding.`,
+                                    completed: false
+                                },
+                                {
+                                    id: '3',
+                                    title: 'Practical Applications',
+                                    content: `Now let's see how to apply what you've learned about ${selectedNode.data.label} in real-world scenarios.`,
+                                    completed: false
+                                }
+                            ],
+                            createdAt: new Date(),
+                            userId
+                        };
+                    }
+                } else {
+                    // Fallback on API error
+                    courseData = {
+                        nodeId: selectedNode.id,
+                        roadmapId,
+                        type: 'course',
+                        title: selectedNode.data.label,
+                        description: selectedNode.data.description,
+                        modules: [
+                            {
+                                id: '1',
+                                title: 'Introduction',
+                                content: `Welcome to ${selectedNode.data.label}! In this module, you'll learn: ${selectedNode.data.description}`,
+                                completed: false
+                            },
+                            {
+                                id: '2',
+                                title: 'Core Concepts',
+                                content: `Let's dive deeper into the main concepts of ${selectedNode.data.label}. This will build your foundational understanding.`,
+                                completed: false
+                            },
+                            {
+                                id: '3',
+                                title: 'Practical Applications',
+                                content: `Now let's see how to apply what you've learned about ${selectedNode.data.label} in real-world scenarios.`,
+                                completed: false
+                            }
+                        ],
+                        createdAt: new Date(),
+                        userId
+                    };
+                }
+                await setDoc(courseDocRef, courseData);
+            }
+
+            return courseData
+        } catch (error) {
+            console.error('Error handling course:', error)
+            throw error
+        }
     }
-    const handleQuizGenerate = async () => {
 
+    const handleQuizGenerate = async (selectedNode: RoadmapNode, userId: string, roadmapId: string) => {
+        try {
+            const quizDocRef = doc(db, 'learning-content', `${roadmapId}_${selectedNode.id}_quiz`)
+            const quizDoc = await getDoc(quizDocRef)
+
+            let quizData
+            if (quizDoc.exists()) {
+                quizData = quizDoc.data()
+            } else {
+                // Call FastAPI to generate content
+                const apiResponse = await fetch('http://127.0.0.1:8000/roadmap/api/generate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        nodeType: 'quiz',
+                        nodeLabel: selectedNode.data.label,
+                        nodeDescription: selectedNode.data.description,
+                        difficulty: roadmapData?.difficulty.toLowerCase(),
+                        learningPath: roadmapData?.title || 'General',
+                    }),
+                });
+
+                if (apiResponse.ok) {
+                    const generated = await apiResponse.json();
+                    if (generated.success) {
+                        quizData = {
+                            nodeId: selectedNode.id,
+                            roadmapId,
+                            type: 'quiz',
+                            title: selectedNode.data.label,
+                            description: selectedNode.data.description,
+                            questions: generated.content,
+                            passingScore: 70,
+                            createdAt: new Date(),
+                            userId,
+                        };
+                    } else {
+                        // Fallback if API generation failed
+                        quizData = {
+                            nodeId: selectedNode.id,
+                            roadmapId,
+                            type: 'quiz',
+                            title: selectedNode.data.label,
+                            description: selectedNode.data.description,
+                            questions: [
+                                {
+                                    id: '1',
+                                    question: `What is the main purpose of ${selectedNode.data.label}?`,
+                                    options: [
+                                        'To provide foundational knowledge',
+                                        'To test understanding',
+                                        'To apply concepts practically',
+                                        'All of the above'
+                                    ],
+                                    correctAnswer: 3,
+                                    explanation: 'Learning encompasses understanding, testing, and practical application.'
+                                },
+                                {
+                                    id: '2',
+                                    question: `Which approach is most effective for mastering ${selectedNode.data.label}?`,
+                                    options: [
+                                        'Reading only',
+                                        'Practice only',
+                                        'Theory and practice combined',
+                                        'Memorization'
+                                    ],
+                                    correctAnswer: 2,
+                                    explanation: 'Combining theoretical knowledge with practical application leads to deeper understanding.'
+                                }
+                            ],
+                            passingScore: 70,
+                            createdAt: new Date(),
+                            userId
+                        };
+                    }
+                } else {
+                    // Fallback on API error
+                    quizData = {
+                        nodeId: selectedNode.id,
+                        roadmapId,
+                        type: 'quiz',
+                        title: selectedNode.data.label,
+                        description: selectedNode.data.description,
+                        questions: [
+                            {
+                                id: '1',
+                                question: `What is the main purpose of ${selectedNode.data.label}?`,
+                                options: [
+                                    'To provide foundational knowledge',
+                                    'To test understanding',
+                                    'To apply concepts practically',
+                                    'All of the above'
+                                ],
+                                correctAnswer: 3,
+                                explanation: 'Learning encompasses understanding, testing, and practical application.'
+                            },
+                            {
+                                id: '2',
+                                question: `Which approach is most effective for mastering ${selectedNode.data.label}?`,
+                                options: [
+                                    'Reading only',
+                                    'Practice only',
+                                    'Theory and practice combined',
+                                    'Memorization'
+                                ],
+                                correctAnswer: 2,
+                                explanation: 'Combining theoretical knowledge with practical application leads to deeper understanding.'
+                            }
+                        ],
+                        passingScore: 70,
+                        createdAt: new Date(),
+                        userId
+                    };
+                }
+                await setDoc(quizDocRef, quizData);
+            }
+
+            return quizData
+        } catch (error) {
+            console.error('Error handling quiz:', error)
+            throw error
+        }
     }
-    const handleProjectGenerate = async () => {
 
+    const handleProjectGenerate = async (selectedNode: RoadmapNode, userId: string, roadmapId: string) => {
+        try {
+            const projectDocRef = doc(db, 'learning-content', `${roadmapId}_${selectedNode.id}_project`)
+            const projectDoc = await getDoc(projectDocRef)
+
+            let projectData
+            if (projectDoc.exists()) {
+                projectData = projectDoc.data()
+            } else {
+                // Call FastAPI to generate content
+                const apiResponse = await fetch('http://127.0.0.1:8000/roadmap/api/generate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        nodeType: 'project',
+                        nodeLabel: selectedNode.data.label,
+                        nodeDescription: selectedNode.data.description,
+                        difficulty: roadmapData?.difficulty.toLowerCase(),
+                        learningPath: roadmapData?.title || 'General',
+                    }),
+                });
+
+                if (apiResponse.ok) {
+                    const generated = await apiResponse.json();
+                    if (generated.success) {
+                        projectData = {
+                            nodeId: selectedNode.id,
+                            roadmapId,
+                            type: 'project',
+                            title: selectedNode.data.label,
+                            description: selectedNode.data.description,
+                            tasks: generated.content.map((task: any) => ({
+                                ...task,
+                                completed: task.completed ?? false,
+                            })),
+                            createdAt: new Date(),
+                            userId,
+                        };
+                    } else {
+                        // Fallback if API generation failed
+                        projectData = {
+                            nodeId: selectedNode.id,
+                            roadmapId,
+                            type: 'project',
+                            title: selectedNode.data.label,
+                            description: selectedNode.data.description,
+                            tasks: [
+                                {
+                                    id: '1',
+                                    title: 'Project Setup & Planning',
+                                    description: `Set up your ${selectedNode.data.label} project structure and create a detailed plan.`,
+                                    completed: false
+                                },
+                                {
+                                    id: '2',
+                                    title: 'Core Implementation',
+                                    description: `Implement the main functionality for ${selectedNode.data.label}.`,
+                                    completed: false
+                                },
+                                {
+                                    id: '3',
+                                    title: 'Testing & Documentation',
+                                    description: `Test your implementation thoroughly and create comprehensive documentation.`,
+                                    completed: false
+                                },
+                                {
+                                    id: '4',
+                                    title: 'Final Review & Submission',
+                                    description: `Review your work, make final improvements, and submit your project.`,
+                                    completed: false
+                                }
+                            ],
+                            createdAt: new Date(),
+                            userId
+                        };
+                    }
+                } else {
+                    // Fallback on API error
+                    projectData = {
+                        nodeId: selectedNode.id,
+                        roadmapId,
+                        type: 'project',
+                        title: selectedNode.data.label,
+                        description: selectedNode.data.description,
+                        tasks: [
+                            {
+                                id: '1',
+                                title: 'Project Setup & Planning',
+                                description: `Set up your ${selectedNode.data.label} project structure and create a detailed plan.`,
+                                completed: false
+                            },
+                            {
+                                id: '2',
+                                title: 'Core Implementation',
+                                description: `Implement the main functionality for ${selectedNode.data.label}.`,
+                                completed: false
+                            },
+                            {
+                                id: '3',
+                                title: 'Testing & Documentation',
+                                description: `Test your implementation thoroughly and create comprehensive documentation.`,
+                                completed: false
+                            },
+                            {
+                                id: '4',
+                                title: 'Final Review & Submission',
+                                description: `Review your work, make final improvements, and submit your project.`,
+                                completed: false
+                            }
+                        ],
+                        createdAt: new Date(),
+                        userId
+                    };
+                }
+                await setDoc(projectDocRef, projectData);
+            }
+
+            return projectData
+        } catch (error) {
+            console.error('Error handling project:', error)
+            throw error
+        }
     }
-    const handleConceptsGenerate = async () => {
+    const handleConceptsGenerate = async (selectedNode: RoadmapNode, userId: string, roadmapId: string) => {
+        try {
+            const conceptDocRef = doc(db, 'learning-content', `${roadmapId}_${selectedNode.id}_concept`);
+            const conceptDoc = await getDoc(conceptDocRef);
 
+            let conceptData;
+            if (conceptDoc.exists()) {
+                conceptData = conceptDoc.data();
+                console.log('Loaded existing concept data from Firebase:', conceptData);
+            } else {
+                // Call FastAPI to generate content
+                const apiResponse = await fetch('/api/generate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        nodeType: 'concept',
+                        nodeLabel: selectedNode.data.label,
+                        nodeDescription: selectedNode.data.description,
+                        difficulty: roadmapData?.difficulty.toLowerCase(),
+                        learningPath: roadmapData?.title || 'General',
+                    }),
+                });
+
+                if (apiResponse.ok) {
+                    const generated = await apiResponse.json();
+                    console.log('API response for concepts:', generated);
+                    if (generated.success && Array.isArray(generated.content)) {
+                        conceptData = {
+                            nodeId: selectedNode.id,
+                            roadmapId,
+                            type: 'concept',
+                            title: selectedNode.data.label,
+                            description: selectedNode.data.description,
+                            concepts: generated.content.map((concept: any) => ({
+                                id: concept.id,
+                                title: concept.title,
+                                description: concept.description,
+                                example: concept.example,
+                                completed: concept.completed ?? false,
+                            })),
+                            createdAt: new Date(),
+                            userId,
+                        };
+                    } else {
+                        console.warn('API generation failed or invalid content:', generated.error || 'Content is not an array');
+                        conceptData = {
+                            nodeId: selectedNode.id,
+                            roadmapId,
+                            type: 'concept',
+                            title: selectedNode.data.label,
+                            description: selectedNode.data.description,
+                            concepts: [
+                                {
+                                    id: '1',
+                                    title: `Understanding ${selectedNode.data.label}`,
+                                    description: `${selectedNode.data.description} This forms the foundation of your learning journey.`,
+                                    example: `For example, in ${selectedNode.data.label}, you might encounter scenarios where...`,
+                                    completed: false
+                                },
+                                {
+                                    id: '2',
+                                    title: `Key Principles`,
+                                    description: `The fundamental principles that govern ${selectedNode.data.label} and how they apply in different contexts.`,
+                                    example: 'Consider how these principles work in real-world applications.',
+                                    completed: false
+                                },
+                                {
+                                    id: '3',
+                                    title: 'Best Practices',
+                                    description: `Industry-standard approaches and methodologies for ${selectedNode.data.label}.`,
+                                    example: 'Professional developers typically follow these patterns when working with this concept.',
+                                    completed: false
+                                }
+                            ],
+                            createdAt: new Date(),
+                            userId
+                        };
+                    }
+                } else {
+                    console.error('API request failed:', apiResponse.status, apiResponse.statusText);
+                    conceptData = {
+                        nodeId: selectedNode.id,
+                        roadmapId,
+                        type: 'concept',
+                        title: selectedNode.data.label,
+                        description: selectedNode.data.description,
+                        concepts: [
+                            {
+                                id: '1',
+                                title: `Understanding ${selectedNode.data.label}`,
+                                description: `${selectedNode.data.description} This forms the foundation of your learning journey.`,
+                                example: `For example, in ${selectedNode.data.label}, you might encounter scenarios where...`,
+                                completed: false
+                            },
+                            {
+                                id: '2',
+                                title: `Key Principles`,
+                                description: `The fundamental principles that govern ${selectedNode.data.label} and how they apply in different contexts.`,
+                                example: 'Consider how these principles work in real-world applications.',
+                                completed: false
+                            },
+                            {
+                                id: '3',
+                                title: 'Best Practices',
+                                description: `Industry-standard approaches and methodologies for ${selectedNode.data.label}.`,
+                                example: 'Professional developers typically follow these patterns when working with this concept.',
+                                completed: false
+                            }
+                        ],
+                        createdAt: new Date(),
+                        userId
+                    };
+                }
+                await setDoc(conceptDocRef, conceptData);
+                console.log('Saved concept data to Firebase:', conceptData);
+            }
+
+            return conceptData;
+        } catch (error) {
+            console.error('Error handling concept:', error);
+            throw error;
+        }
+    };
+    const startCourseSession = async () => {
+        if (!selectedNode) return
+        const userId = getUserId()
+        setCourseLoading(true);
+        try {
+            const courseData = await handleCourseGenerate(selectedNode, userId!, id as string)
+            setLearningSession({
+                type: 'course',
+                data: courseData,
+                isActive: true
+            })
+        } catch (error) {
+            showNotification.error("Error", "Failed to start course session")
+        } finally {
+            setCourseLoading(false);
+        }
+    }
+
+    const startQuizSession = async () => {
+        if (!selectedNode) return
+        const userId = getUserId()
+        setCourseLoading(true);
+        try {
+            const quizData = await handleQuizGenerate(selectedNode, userId!, id as string)
+            setLearningSession({
+                type: 'quiz',
+                data: quizData,
+                isActive: true
+            })
+        } catch (error) {
+            showNotification.error("Error", "Failed to start quiz session")
+        } finally {
+            setCourseLoading(false);
+        }
+    }
+
+    const startProjectSession = async () => {
+        if (!selectedNode) return
+        const userId = getUserId()
+        setCourseLoading(true);
+        try {
+            const projectData = await handleProjectGenerate(selectedNode, userId!, id as string)
+            setLearningSession({
+                type: 'project',
+                data: projectData,
+                isActive: true
+            })
+        } catch (error) {
+            showNotification.error("Error", "Failed to start project session")
+        } finally {
+            setCourseLoading(false);
+        }
+    }
+
+    const startConceptSession = async () => {
+        if (!selectedNode) return;
+        const userId = getUserId();
+        try {
+            const conceptData = await handleConceptsGenerate(selectedNode, userId!, id as string);
+            console.log('Starting concept session with data:', conceptData);
+            setLearningSession({
+                type: 'concept',
+                data: conceptData,
+                isActive: true
+            });
+        } catch (error) {
+            showNotification.error("Error", "Failed to start concept session");
+            console.error('Failed to start concept session:', error);
+        }
+    };
+
+    // Handle session completion with automatic progress saving
+    const handleSessionComplete = async () => {
+        await completeCurrentNode()
+        setLearningSession({
+            type: null,
+            data: null,
+            isActive: false
+        })
+        // Auto-navigate to next node
+        setTimeout(navigateToNextNode, 1000)
+    }
+
+    // Close learning session
+    const closeLearningSession = () => {
+        setLearningSession({
+            type: null,
+            data: null,
+            isActive: false
+        })
     }
 
     // Load note for selected node
@@ -451,6 +1027,20 @@ export default function LearnRoadmap() {
         }
     }, [selectedNode, userNotes])
 
+    // Don't conditionally return before hooks
+    const progressPercentage = roadmapData ? Math.round((progress.length / roadmapData.nodes.length) * 100) : 0;
+
+    useEffect(() => {
+        if (roadmapData && progressPercentage === 100) {
+            setShowInterviewDialog(true);
+        } else {
+            setShowInterviewDialog(false);
+        }
+    }, [progressPercentage, roadmapData]);
+
+
+
+    // Render loading and empty states after hooks
     if (isLoading) {
         return (
             <div className="flex justify-center items-center h-screen bg-gray-50">
@@ -459,7 +1049,7 @@ export default function LearnRoadmap() {
                     <p className="text-gray-600">Preparing your learning journey...</p>
                 </div>
             </div>
-        )
+        );
     }
 
     if (!roadmapData) {
@@ -469,18 +1059,128 @@ export default function LearnRoadmap() {
                     <Trophy className="h-16 w-16 text-yellow-500 mx-auto mb-4" />
                     <h2 className="text-xl font-semibold text-gray-900 mb-2">Learning Complete!</h2>
                     <p className="text-gray-600 mb-4">Congratulations! You've completed this roadmap.</p>
-                    <Button onClick={() => navigate("/")} className="bg-indigo-500 hover:bg-indigo-600">
+                    <Button onClick={() => navigate("/public/roadmaps")} className="bg-indigo-500 hover:bg-indigo-600">
                         Browse More Roadmaps
                     </Button>
                 </div>
             </div>
-        )
+        );
     }
 
-    const progressPercentage = Math.round((progress.length / roadmapData.nodes.length) * 100)
+    const startTheInterview = async () => {
+        if (!roadmapData) return;
+        setIsInterviewStart(true)
+        console.log("RoadmapData: ", roadmapData);
+        var requestObject = {
+            title: roadmapData.title,
+            nodes: roadmapData.nodes
+        }
+
+        console.log("Request Object:", requestObject);
+        try {
+            const apiResponse = await fetch('http://127.0.0.1:8000/roadmap/api/interview-questions', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(requestObject),
+            });
+
+            interface LocationState {
+                technology?: string
+                experienceLevel?: string
+                questions?: string
+                language?: string
+            }
+
+            const data = await apiResponse.json()
+
+
+            console.log("OLLAMA Response on FRONTEND:", data);
+            var interviewData: LocationState = {
+                technology: roadmapData.title,
+                experienceLevel: "Beginner",
+                questions: data,
+                language: "eng"
+            }
+            navigate("/ai/interview", { state: interviewData });
+
+        } catch (error: any) {
+            NotificationService.error("Failed to Start the Interview", "Error: " + error.message);
+            console.error("Error starting interview:", error);
+        }
+        setIsInterviewStart(false);
+    }
+
 
     return (
         <TooltipProvider>
+            {/* Interview Dialog when roadmap is completed */}
+            {showInterviewDialog && (
+                <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-[100]">
+                    <div className="bg-white rounded-lg shadow-lg max-w-md w-full p-8">
+                        <div className="flex flex-col items-center">
+                            <Trophy className="w-16 h-16 text-yellow-500 mb-4" />
+                            <h2 className="text-2xl font-bold text-gray-900 mb-2">Roadmap Completed!</h2>
+                            <p className="text-gray-700 mb-4 text-center">Congratulations! You've completed this roadmap. Would you like to conduct an interview to test your skills?</p>
+                            <div className="flex gap-4 mt-2">
+                                <Button
+                                    disabled={isInterviewStart}
+                                    className="bg-indigo-500 hover:bg-indigo-600 text-white"
+                                    onClick={() => startTheInterview()}
+                                >
+                                    {isInterviewStart ? "Starting..." : "Conduct Interview"}
+                                </Button>
+                                <Button variant="outline" onClick={() => setShowInterviewDialog(false)}>
+                                    Maybe Later
+                                </Button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+            {learningSession.isActive && (
+                <div className="fixed inset-0 bg-black/20 backdrop-blur-lg bg-opacity-50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+                        <div className="p-6">
+                            <div className="flex items-center justify-between mb-4">
+                                <h2 className="text-xl font-bold">
+                                    {learningSession.type === 'course' && 'Course Session'}
+                                    {learningSession.type === 'quiz' && 'Quiz Session'}
+                                    {learningSession.type === 'project' && 'Project Session'}
+                                    {learningSession.type === 'concept' && 'Concept Learning'}
+                                </h2>
+                                <Button variant="ghost" onClick={closeLearningSession}>
+                                    <X className="w-5 h-5" />
+                                </Button>
+                            </div>
+
+                            {learningSession.type === 'course' && (
+                                <CourseInterface
+                                    courseData={learningSession.data}
+                                    onComplete={handleSessionComplete}
+                                />
+                            )}
+                            {learningSession.type === 'quiz' && (
+                                <QuizInterface
+                                    quizData={learningSession.data}
+                                    onComplete={handleSessionComplete}
+                                />
+                            )}
+                            {learningSession.type === 'project' && (
+                                <ProjectInterface
+                                    projectData={learningSession.data}
+                                    onComplete={handleSessionComplete}
+                                />
+                            )}
+                            {learningSession.type === 'concept' && (
+                                <ConceptInterface
+                                    conceptData={learningSession.data}
+                                    onComplete={handleSessionComplete}
+                                />
+                            )}
+                        </div>
+                    </div>
+                </div>
+            )}
             <div className={`${isFullscreen ? "fixed inset-0 z-50" : "h-screen"} w-full flex flex-col bg-gray-50 pt-18`}>
                 <div className="bg-white border-b shadow-sm flex-shrink-0">
                     <div className="p-4">
@@ -797,9 +1497,9 @@ export default function LearnRoadmap() {
                                                         <li>• Add proper error handling</li>
                                                         <li>• Write documentation</li>
                                                     </ul>
-                                                    <Button onClick={()=> handleProjectGenerate()} className="w-full bg-amber-500 hover:bg-amber-600">
+                                                    <Button disabled={courseLoading} onClick={startProjectSession} className="w-full bg-amber-500 hover:bg-amber-600">
                                                         <FolderOpen className="w-4 h-4 mr-2" />
-                                                        Start Project
+                                                        {courseLoading ? "Generating..." : "Start Project"}
                                                     </Button>
                                                 </div>
                                             )}
@@ -808,9 +1508,9 @@ export default function LearnRoadmap() {
                                                 <div className="space-y-3">
                                                     <h5 className="font-medium text-gray-900">Knowledge Check</h5>
                                                     <p className="text-sm text-gray-600">Test your understanding of the concepts covered.</p>
-                                                    <Button onClick={()=> handleQuizGenerate()} className="w-full bg-pink-500 hover:bg-pink-600">
+                                                    <Button disabled={courseLoading} onClick={startQuizSession} className="w-full bg-pink-500 hover:bg-pink-600">
                                                         <Sparkles className="w-4 h-4 mr-2" />
-                                                        Take Quiz
+                                                        {courseLoading ? "Generating..." : "Take Quiz"}
                                                     </Button>
                                                 </div>
                                             )}
@@ -823,9 +1523,9 @@ export default function LearnRoadmap() {
                                                         <li>• Apply knowledge practically</li>
                                                         <li>• Complete exercises</li>
                                                     </ul>
-                                                    <Button onClick={()=> handleCourseGenerate()} className="w-full bg-blue-500 hover:bg-blue-600">
+                                                    <Button disabled={courseLoading} onClick={startCourseSession} className="w-full bg-blue-500 hover:bg-blue-600">
                                                         <Play className="w-4 h-4 mr-2" />
-                                                        Start Course
+                                                        {courseLoading ? "Generating..." : "Start Course"}
                                                     </Button>
                                                 </div>
                                             )}
@@ -838,9 +1538,9 @@ export default function LearnRoadmap() {
                                                         <li>• Apply knowledge practically</li>
                                                         <li>• Complete exercises</li>
                                                     </ul>
-                                                    <Button onClick={()=> handleConceptsGenerate()} className="w-full bg-violet-500 hover:bg-violet-600">
+                                                    <Button disabled={courseLoading} onClick={startConceptSession} className="w-full bg-violet-500 hover:bg-violet-600">
                                                         <Play className="w-4 h-4 mr-2" />
-                                                        Start Learning Concepts
+                                                        {courseLoading ? "Generating..." : "Start Learning Concepts"}
                                                     </Button>
                                                 </div>
                                             )}

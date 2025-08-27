@@ -10,8 +10,8 @@ from piper import PiperVoice, SynthesisConfig
 router = APIRouter()
 
 # Load the voice model once at startup
-voiceEng = PiperVoice.load("./routers/models/en_US-danny-low.onnx", use_cuda=True)
-voiceHin = PiperVoice.load("./routers/models/hi_IN-pratham-medium.onnx",use_cuda=True)
+voiceEng = PiperVoice.load("./routers/models/en_US-danny-low.onnx")
+voiceHin = PiperVoice.load("./routers/models/en_US-danny-low.onnx")
 
 class SpeakRequest(BaseModel):
     text: str

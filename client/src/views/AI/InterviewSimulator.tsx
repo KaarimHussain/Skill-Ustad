@@ -46,6 +46,14 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import SystemPrompt from "@/constants/system-prompts"
 import GeminiService from "@/services/gemini.service"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { useLocation } from "react-router-dom"
+
+interface LocationState {
+  technology?: string
+  experienceLevel?: string
+  questions?: string
+  language?: string
+}
 
 interface ChatMessage {
   role: "user" | "assistant" | "system"
@@ -90,22 +98,15 @@ interface InterviewReport {
 
 type InterviewState = "idle" | "listening" | "processing" | "speaking" | "error" | "security_warning" | "completed"
 
-// Default fallback questions
-const DEFAULT_QUESTIONS = `1. Can you briefly introduce yourself and your educational background?
-2. Why did you choose your field of study or career path?
-3. How would you describe your communication style in a team setting?
-4. Can you share an experience where you successfully explained something complex to someone else?
-5. How do you stay organized and manage your time during studies or work?
-6. What's one challenge you faced in your education or career, and how did you overcome it?
-7. How do you handle receiving constructive criticism or feedback?
-8. Tell me about a time you had to work with someone with a different communication style.
-9. What motivates you to keep learning and improving your skills?
-10. Why do you think you're a good fit for a professional role in today's job market?`
-
 export default function VoiceInterviewSimulator() {
-  const userTechnology = "HTML"
-  const userExperienceLevel = "Beginner"
 
+  // Get location state for parameters
+  const location = useLocation()
+  const locationState = (location?.state as LocationState) || {}
+
+  const [userTechnology,] = useState(locationState.technology || "HTML")
+  const [userExperienceLevel,] = useState(locationState.experienceLevel || "Beginner")
+  const [locationQuestions,] = useState(locationState.questions || "")
   const [chatHistory, setChatHistory] = useState<ChatMessage[]>([])
   const [currentState, setCurrentState] = useState<InterviewState>("idle")
   const [chatVisibility, setChatVisibility] = useState(false)
@@ -172,6 +173,16 @@ export default function VoiceInterviewSimulator() {
   const speechBufferRef = useRef("")
   const captureIntervalRef = useRef<NodeJS.Timeout | null>(null)
 
+  // Initialize questions from location state on component mount
+  useEffect(() => {
+    if (locationQuestions && locationQuestions.trim()) {
+      setCustomQuestions(locationQuestions)
+      setUseCustomQuestions(true)
+    }
+  }, [locationQuestions])
+
+
+
   // Handle file upload for custom questions
   const handleFileUpload = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
@@ -189,7 +200,7 @@ export default function VoiceInterviewSimulator() {
 
   // Get system prompt with custom questions
   const getSystemPrompt = useCallback(() => {
-    const questionsToUse = useCustomQuestions && customQuestions.trim() ? customQuestions : DEFAULT_QUESTIONS
+    const questionsToUse = locationQuestions;
 
     return SystemPrompt(userTechnology, userExperienceLevel, questionsToUse, lang)
   }, [userTechnology, userExperienceLevel, useCustomQuestions, customQuestions])
@@ -206,10 +217,60 @@ export default function VoiceInterviewSimulator() {
   }, [getSystemPrompt])
 
   // Enhanced camera setup - only initialize when interview starts
-  const setupCamera = useCallback(async () => {
-    if (cameraInitialized || !interviewStarted) return
+  const [cameraError, setCameraError] = useState(false)
+  const [cameraRetryCount, setCameraRetryCount] = useState(0)
 
+  // Enhanced photo capture with better error handling
+  const takePhoto = useCallback(
+    (timing: "start" | "middle" | "end") => {
+      if (!videoRef.current || !cameraInitialized) {
+        console.log("Camera not ready for photo capture")
+        setCameraError(true)
+        return
+      }
+      try {
+        // Create canvas if it doesn't exist
+        if (!canvasRef.current) {
+          canvasRef.current = document.createElement("canvas")
+        }
+        const canvas = canvasRef.current
+        const context = canvas.getContext("2d")
+        const video = videoRef.current
+        if (!context || !video.videoWidth || !video.videoHeight) {
+          console.error("Video not ready or context unavailable")
+          setCameraError(true)
+          return
+        }
+        // Set canvas dimensions to match video
+        canvas.width = video.videoWidth
+        canvas.height = video.videoHeight
+        // Draw the current video frame to canvas
+        context.drawImage(video, 0, 0, canvas.width, canvas.height)
+        // Convert to base64 image
+        const imageData = canvas.toDataURL("image/jpeg", 0.8)
+        // Add timestamp and timing info
+        const photoData = {
+          image: imageData,
+          timestamp: new Date(),
+          timing: timing,
+          index: captureCount + 1,
+        }
+        setCaptureList((prev) => [...prev, photoData])
+        setCaptureCount((prev) => prev + 1)
+        setCameraError(false)
+        console.log(`Photo captured at ${timing} - Total: ${captureCount + 1}`)
+      } catch (error) {
+        setCameraError(true)
+        console.error("Error taking photo:", error)
+      }
+    },
+    [cameraInitialized, captureCount],
+  )
+
+  const setupCamera = useCallback(async (retry = 0) => {
+    if (cameraInitialized || !interviewStarted) return
     try {
+      setCameraError(false)
       console.log("Setting up camera...")
       const stream = await navigator.mediaDevices.getUserMedia({
         video: {
@@ -218,9 +279,7 @@ export default function VoiceInterviewSimulator() {
           facingMode: "user",
         },
       })
-
       streamRef.current = stream
-
       // Create video element if it doesn't exist
       if (!videoRef.current) {
         videoRef.current = document.createElement("video")
@@ -228,80 +287,34 @@ export default function VoiceInterviewSimulator() {
         videoRef.current.muted = true
         videoRef.current.playsInline = true
       }
-
       videoRef.current.srcObject = stream
-
       // Wait for video to be ready
-      await new Promise((resolve) => {
+      await new Promise((resolve, reject) => {
         if (videoRef.current) {
           videoRef.current.onloadedmetadata = () => {
-            videoRef.current?.play().then(resolve).catch(console.error)
+            videoRef.current?.play().then(resolve).catch(reject)
           }
+        } else {
+          reject()
         }
       })
-
       setCameraInitialized(true)
+      setCameraError(false)
+      setCameraRetryCount(0)
       console.log("Camera setup completed")
-
-      // Take first photo after a short delay
       setTimeout(() => takePhoto("start"), 2000)
     } catch (error) {
       console.error("Failed to setup camera:", error)
-      // Continue interview even if camera fails
+      setCameraError(true)
+      setCameraRetryCount(retry)
+      // Retry up to 2 times
+      if (retry < 2) {
+        setTimeout(() => setupCamera(retry + 1), 1500)
+      }
     }
-  }, [cameraInitialized, interviewStarted])
+  }, [cameraInitialized, interviewStarted, takePhoto])
 
-  // Enhanced photo capture with better error handling
-  const takePhoto = useCallback(
-    (timing: "start" | "middle" | "end") => {
-      if (!videoRef.current || !cameraInitialized) {
-        console.log("Camera not ready for photo capture")
-        return
-      }
 
-      try {
-        // Create canvas if it doesn't exist
-        if (!canvasRef.current) {
-          canvasRef.current = document.createElement("canvas")
-        }
-
-        const canvas = canvasRef.current
-        const context = canvas.getContext("2d")
-        const video = videoRef.current
-
-        if (!context || !video.videoWidth || !video.videoHeight) {
-          console.error("Video not ready or context unavailable")
-          return
-        }
-
-        // Set canvas dimensions to match video
-        canvas.width = video.videoWidth
-        canvas.height = video.videoHeight
-
-        // Draw the current video frame to canvas
-        context.drawImage(video, 0, 0, canvas.width, canvas.height)
-
-        // Convert to base64 image
-        const imageData = canvas.toDataURL("image/jpeg", 0.8)
-
-        // Add timestamp and timing info
-        const photoData = {
-          image: imageData,
-          timestamp: new Date(),
-          timing: timing,
-          index: captureCount + 1,
-        }
-
-        setCaptureList((prev) => [...prev, photoData])
-        setCaptureCount((prev) => prev + 1)
-
-        console.log(`Photo captured at ${timing} - Total: ${captureCount + 1}`)
-      } catch (error) {
-        console.error("Error taking photo:", error)
-      }
-    },
-    [cameraInitialized, captureCount],
-  )
 
   // Schedule random middle captures
   const scheduleRandomCapture = useCallback(() => {
@@ -555,7 +568,7 @@ export default function VoiceInterviewSimulator() {
         setCurrentState("speaking")
         console.log("Starting Edge TTS request...")
 
-        const response = await fetch("http://127.0.0.1:8000/interview-tts/speak", {
+        const response = await fetch("http://127.0.0.1:8000/tts/speak", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -934,7 +947,6 @@ Please provide your next interview question or response:`
   const generateInterviewReport = useCallback(async (): Promise<InterviewReport> => {
     const interviewDuration = interviewStartTime ? Date.now() - interviewStartTime.getTime() : 0
     const userResponses = chatHistory.filter((msg) => msg.role === "user")
-    const assistantMessages = chatHistory.filter((msg) => msg.role === "assistant")
 
     // Create detailed conversation analysis
     const conversationText = chatHistory
@@ -944,39 +956,39 @@ Please provide your next interview question or response:`
 
     const analysisPrompt = `You are an expert technical interviewer analyzing a ${userTechnology} interview for a ${userExperienceLevel} level candidate.
 
-INTERVIEW METRICS:
-- Technology: ${userTechnology}
-- Experience Level: ${userExperienceLevel}
-- Duration: ${Math.round(interviewDuration / 60000)} minutes
-- Questions Asked: ${questionCount}
-- User Responses: ${userResponses.length}
-- Response Rate: ${userResponses.length > 0 ? ((userResponses.length / questionCount) * 100).toFixed(1) : 0}%
+    INTERVIEW METRICS:
+    - Technology: ${userTechnology}
+    - Experience Level: ${userExperienceLevel}
+    - Duration: ${Math.round(interviewDuration / 60000)} minutes
+    - Questions Asked: ${questionCount}
+    - User Responses: ${userResponses.length}
+    - Response Rate: ${userResponses.length > 0 ? ((userResponses.length / questionCount) * 100).toFixed(1) : 0}%
 
-SECURITY ASSESSMENT:
-- Security Score: ${securityScore}%
-- Tab Switches: ${tabBlurCount}
-- Window Focus Loss: ${windowBlurCount}
-- Total Security Events: ${securityEvents.length}
-- Photos Captured: ${captureList.length}
+    SECURITY ASSESSMENT:
+    - Security Score: ${securityScore}%
+    - Tab Switches: ${tabBlurCount}
+    - Window Focus Loss: ${windowBlurCount}
+    - Total Security Events: ${securityEvents.length}
+    - Photos Captured: ${captureList.length}
 
-COMPLETE INTERVIEW CONVERSATION:
-${conversationText}
+    COMPLETE INTERVIEW CONVERSATION:
+    ${conversationText}
 
-IMPORTANT: Respond with ONLY a valid JSON object, no additional text or formatting. Use this exact structure:
+    IMPORTANT: Respond with ONLY a valid JSON object, no additional text or formatting. Use this exact structure:
 
-{
-  "strengths": ["specific strength 1", "specific strength 2", "specific strength 3"],
-  "weaknesses": ["specific weakness 1", "specific weakness 2", "specific weakness 3"],
-  "technicalKnowledge": 75,
-  "communicationSkills": 80,
-  "problemSolvingAbility": 70,
-  "overallScore": 75,
-  "recommendations": ["recommendation 1", "recommendation 2", "recommendation 3"],
-  "summary": "Detailed summary of performance",
-  "behaviorAnalysis": "Analysis of candidate behavior and professionalism"
-}
+    {
+      "strengths": ["specific strength 1", "specific strength 2", "specific strength 3"],
+      "weaknesses": ["specific weakness 1", "specific weakness 2", "specific weakness 3"],
+      "technicalKnowledge": 75,
+      "communicationSkills": 80,
+      "problemSolvingAbility": 70,
+      "overallScore": 75,
+      "recommendations": ["recommendation 1", "recommendation 2", "recommendation 3"],
+      "summary": "Detailed summary of performance",
+      "behaviorAnalysis": "Analysis of candidate behavior and professionalism"
+    }
 
-Analyze the actual conversation and provide realistic scores (0-100) for a ${userExperienceLevel} level candidate.`
+    Analyze the actual conversation and provide realistic scores (0-100) for a ${userExperienceLevel} level candidate.`
 
     try {
       const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
@@ -1218,36 +1230,29 @@ Analyze the actual conversation and provide realistic scores (0-100) for a ${use
     enterFullscreen()
     setInterviewStarted(true)
     setInterviewStartTime(new Date())
-
-    // Setup camera after interview starts
+    setChatVisibility(true)
+    // Always setup camera on interview start
     await setupCamera()
-
     // Schedule random captures
     setTimeout(() => scheduleRandomCapture(), 30000) // First random capture after 30 seconds
-
     const systemInstruction = getSystemPrompt()
     const initialUserMessage: ChatMessage = {
       role: "user",
       content: "Please start the interview.",
       timestamp: new Date(),
     }
-
     setChatHistory([initialUserMessage])
-
     try {
       const geminiFormatted = [initialUserMessage].map((msg) => ({
         role: "user",
         parts: [{ text: msg.content }],
       }))
-
       const aiMessage = await GeminiService.GeminiGenerateText(geminiFormatted, systemInstruction)
-
       const assistantMessage: ChatMessage = {
         role: "assistant",
         content: aiMessage,
         timestamp: new Date(),
       }
-
       setChatHistory((prev) => [...prev, assistantMessage])
       setQuestionCount(1)
       await speakWithEdgeTTS(aiMessage, lang)
@@ -1857,7 +1862,17 @@ Analyze the actual conversation and provide realistic scores (0-100) for a ${use
           </Card>
 
           {/* Enhanced Face Captures with better layout */}
-          {captureList.length > 0 && (
+          {cameraError && (
+            <Card className="p-6 mb-8 bg-gradient-to-br from-pink-50 to-rose-50 border-pink-200 shadow-lg rounded-xl">
+              <h3 className="font-bold text-lg mb-4 text-pink-800 flex items-center">
+                <Camera className="w-5 h-5 mr-2" />
+                Camera Error
+              </h3>
+              <div className="text-pink-700">Camera access failed or no images captured. Please check permissions and retry.</div>
+              <div className="mt-2 text-xs text-pink-600">Tried {cameraRetryCount + 1} times.</div>
+            </Card>
+          )}
+          {captureList.length > 0 && !cameraError && (
             <Card className="p-6 mb-8 bg-gradient-to-br from-pink-50 to-rose-50 border-pink-200 shadow-lg rounded-xl">
               <h3 className="font-bold text-lg mb-4 text-pink-800 flex items-center">
                 <Camera className="w-5 h-5 mr-2" />
@@ -1927,7 +1942,7 @@ Analyze the actual conversation and provide realistic scores (0-100) for a ${use
 
   return (
     <TooltipProvider>
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-indigo-50 to-purple-100 flex flex-col items-center justify-center p-4 relative overflow-hidden">
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-indigo-50 to-purple-100 flex flex-col items-center justify-center relative overflow-hidden">
         {/* Enhanced Background Effects with Spectral Gradient */}
         <div className="fixed inset-0 -z-10 overflow-hidden">
           <div className="absolute inset-0 bg-gradient-radial from-indigo-100/60 via-purple-50/40 to-pink-50/20" />
@@ -1955,7 +1970,7 @@ Analyze the actual conversation and provide realistic scores (0-100) for a ${use
         )}
 
         {/* Enhanced Controls with Tooltips */}
-        <div className="fixed top-4 right-4 flex flex-col gap-3 z-10">
+        <div className="fixed top-23 right-4 flex flex-col gap-3 z-10">
           <div className="flex gap-2">
             <TooltipProvider>
               <Tooltip>
@@ -2049,7 +2064,7 @@ Analyze the actual conversation and provide realistic scores (0-100) for a ${use
         </div>
 
         {/* Enhanced Security Status Panel */}
-        <div className="fixed top-4 left-4 flex flex-col gap-2 z-10">
+        <div className="fixed top-23 left-4 flex flex-col gap-2 z-10">
           {isFullscreen && (
             <Badge
               variant="outline"

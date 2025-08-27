@@ -145,9 +145,7 @@ export default function MentorDashboard() {
     useEffect(() => {
         checkInfoData();
         getUserName();
-
-
-    }, [checkInfoData, getUserName])
+    }, [getUserName])
 
     return (
         <div className="min-h-screen bg-white">

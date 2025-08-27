@@ -16,7 +16,6 @@ export default function MentorCourse() {
             setCourses(data);
         }
         console.log(data);
-
     }
 
     useEffect(() => {

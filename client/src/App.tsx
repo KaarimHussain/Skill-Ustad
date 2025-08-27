@@ -55,6 +55,8 @@ import QACreate from './views/QACreate';
 import UserQA from './views/User/QA';
 import QAResponses from './views/QAResponses';
 import LearnRoadmap from './views/User/LearnRoadmap';
+import Courses from './views/Courses';
+import ViewCourse from './views/ViewCourse';
 
 function App() {
   const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_KEY_TWO;
@@ -97,6 +99,8 @@ function App() {
             <Route path='/community' element={<Community />} />
             <Route path='/notifications' element={<Notification />} />
             <Route path='/messages' element={<Messages />} />
+            <Route path='/courses' element={<Courses />} />
+            <Route path='/public/view-course' element={<ViewCourse />} />
             <Route path="/qa" element={<QA />} />
             <Route path="/qa/:id" element={<QADetails />} />
             <Route path="/qa-create" element={<QACreate />} />

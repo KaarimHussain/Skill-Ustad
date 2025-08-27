@@ -60,7 +60,7 @@ export default function HeroComponent() {
                         </div>
                     </Link>
 
-                    <Link to={"/"} className={`${style.heroButtonSecondary} ${style.heroButton} group w-full sm:w-auto cursor-pointer`}>
+                    <Link to={"/public/roadmaps"} className={`${style.heroButtonSecondary} ${style.heroButton} group w-full sm:w-auto cursor-pointer`}>
                         <div className="icon-sparkle transition-transform duration-300 group-hover:rotate-12">
                             <Sparkle size={20} />
                         </div>

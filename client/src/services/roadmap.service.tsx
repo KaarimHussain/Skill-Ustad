@@ -116,7 +116,6 @@ export default class RoadmapService {
             throw error
         }
     }
-
     static async getCurrentUserProgressData(useCache: boolean = true): Promise<any[]> {
         const userId = AuthService.getAuthenticatedUserId();
         if (!userId) return [];
@@ -177,5 +176,8 @@ export default class RoadmapService {
             return [];
         }
     }
+
+    // AI Generation
+    
 }
 

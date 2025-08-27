@@ -24,6 +24,30 @@ export interface CourseData {
 
 export default class LessonService {
 
+    static async getAllCourses(): Promise<CourseData[]> {
+        try {
+            const q = query(
+                collection(db, "courses"),
+                orderBy("createdAt", "desc")
+            );
+
+            const querySnapshot = await getDocs(q);
+            const courses: CourseData[] = [];
+
+            querySnapshot.forEach((doc: any) => {
+                courses.push({
+                    id: doc.id,
+                    ...doc.data()
+                } as CourseData);
+            });
+
+            return courses;
+        } catch (error) {
+            console.error('Error fetching all courses:', error)
+            throw error
+        }
+    }
+
     static async getUserCourses(): Promise<CourseData[]> {
         try {
             const userId = AuthService.getAuthenticatedUserId();
@@ -50,6 +74,30 @@ export default class LessonService {
             return courses;
         } catch (error) {
             console.error('Error fetching user courses:', error)
+            throw error
+        }
+    }
+
+    static async getCourseItsID(id: string): Promise<CourseData | null> {
+        try {
+
+            const q = query(
+                collection(db, "courses"),
+                where("__name__", "==", id)
+            );
+
+            const querySnapshot = await getDocs(q);
+
+            if (querySnapshot.empty) {
+                return null;
+            }
+
+            const doc = querySnapshot.docs[0];
+            return {
+                ...doc.data()
+            } as CourseData;
+        } catch (error) {
+            console.error('Error fetching course by id:', error)
             throw error
         }
     }
@@ -82,8 +130,6 @@ export default class LessonService {
             throw error
         }
     }
-
-
 
     static async saveCourse(courseData: CourseData): Promise<string> {
         try {

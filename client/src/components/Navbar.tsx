@@ -185,28 +185,6 @@ const DesktopNavigationContent = memo(
                                     </Link>
                                 </NavigationMenuLink>
                             </li>
-                            <li>
-                                <NavigationMenuLink asChild>
-                                    <Link
-                                        to="/advisor"
-                                        className="block p-4 rounded-xl bg-green-50/60 hover:bg-green-100/60 border border-green-200/60 hover:border-green-300/60 transition-all duration-200 group backdrop-blur-sm"
-                                    >
-                                        <div className="flex items-start gap-3">
-                                            <div className="p-2 bg-green-100 rounded-lg group-hover:bg-green-200 transition-colors">
-                                                <UserCheck className="w-5 h-5 text-green-600" />
-                                            </div>
-                                            <div className="flex-1">
-                                                <div className="font-medium text-gray-900 text-sm mb-1 group-hover:text-green-800 transition-colors">
-                                                    Advisor
-                                                </div>
-                                                <p className="text-gray-600 text-xs leading-relaxed">
-                                                    Get personalized guidance from industry experts and career mentors
-                                                </p>
-                                            </div>
-                                        </div>
-                                    </Link>
-                                </NavigationMenuLink>
-                            </li>
                             <li className="row-span-2 col-span-2">
                                 <NavigationMenuLink asChild>
                                     <Link
@@ -240,7 +218,7 @@ const DesktopNavigationContent = memo(
                     </NavigationMenuTrigger>
                     <NavigationMenuContent className="bg-white">
                         <ul className="grid gap-3 md:w-[400px] lg:w-[500px] lg:grid-cols-[1fr_.8fr] bg-white p-4 rounded-2xl">
-                            <li className="row-span-2">
+                            <li className="row-span-2 col-span-2">
                                 <NavigationMenuLink asChild>
                                     <Link
                                         to="/community"
@@ -267,44 +245,22 @@ const DesktopNavigationContent = memo(
                                     </Link>
                                 </NavigationMenuLink>
                             </li>
-                            <li>
+                            <li className="row-span-2 col-span-2">
                                 <NavigationMenuLink asChild>
                                     <Link
-                                        to="/community/roadmaps"
-                                        className="block p-4 rounded-xl bg-cyan-50/60 hover:bg-cyan-100/60 border border-cyan-200/60 hover:border-cyan-300/60 transition-all duration-200 group backdrop-blur-sm"
+                                        to="/public/roadmaps"
+                                        className="block p-4 rounded-xl bg-blue-50/60 hover:bg-blue-100/80 border border-gray-200/60 hover:border-gray-300/60 transition-all duration-200 group backdrop-blur-sm"
                                     >
                                         <div className="flex items-start gap-3">
-                                            <div className="p-2 bg-cyan-100 rounded-lg group-hover:bg-cyan-200 transition-colors">
-                                                <MapPin className="w-5 h-5 text-cyan-600" />
+                                            <div className="p-2 bg-blue-100 rounded-lg group-hover:bg-blue-200 transition-colors">
+                                                <Map className="w-5 h-5 text-blue-600" />
                                             </div>
                                             <div className="flex-1">
-                                                <div className="font-medium text-gray-900 text-sm mb-1 group-hover:text-cyan-800 transition-colors">
-                                                    Community Roadmaps
+                                                <div className="font-medium text-gray-900 text-sm mb-1 group-hover:text-blue-800 transition-colors">
+                                                    Roadmaps
                                                 </div>
                                                 <p className="text-gray-600 text-xs leading-relaxed">
-                                                    Discover learning paths created and shared by our community members
-                                                </p>
-                                            </div>
-                                        </div>
-                                    </Link>
-                                </NavigationMenuLink>
-                            </li>
-                            <li>
-                                <NavigationMenuLink asChild>
-                                    <Link
-                                        to="/community/forums"
-                                        className="block p-4 rounded-xl bg-purple-50/60 hover:bg-purple-100/60 border border-purple-200/60 hover:border-purple-300/60 transition-all duration-200 group backdrop-blur-sm"
-                                    >
-                                        <div className="flex items-start gap-3">
-                                            <div className="p-2 bg-purple-100 rounded-lg group-hover:bg-purple-200 transition-colors">
-                                                <MessageCircle className="w-5 h-5 text-purple-600" />
-                                            </div>
-                                            <div className="flex-1">
-                                                <div className="font-medium text-gray-900 text-sm mb-1 group-hover:text-purple-800 transition-colors">
-                                                    Discussion Forums
-                                                </div>
-                                                <p className="text-gray-600 text-xs leading-relaxed">
-                                                    Ask questions, share knowledge, and participate in tech discussions
+                                                    Step-by-step learning paths tailored to your career goals and skill level
                                                 </p>
                                             </div>
                                         </div>

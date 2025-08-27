@@ -1,13 +1,26 @@
 import CommunityNavbar from "@/components/CommunityNavbar";
+import NotificationService from "@/components/Notification";
+import { useAuth } from "@/context/AuthContext";
 import AuthService from "@/services/auth.service";
 import { Heart, ImageIcon, MessageCircle, MoreHorizontal, Paperclip, Play, Share, Smile } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 export default function Community() {
     // On Mount State
+    const navigate = useNavigate();
     const [username, setUsername] = useState("User");
+    const { isAuthenticated } = useAuth();
+
     const setUserData = () => {
+        if (!isAuthenticated) {
+            NotificationService.info("Login Required", "You need to login first in order to view this page!");
+            navigate("/login")
+            return;
+        }
         const data = AuthService.getAuthenticatedUserData();
+        console.log(data);
+
         setUsername(data.name);
     }
     useEffect(() => {
