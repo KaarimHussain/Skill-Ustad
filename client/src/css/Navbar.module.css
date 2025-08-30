@@ -6,7 +6,7 @@
   z-index: 100;
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  background: rgba(252, 252, 252, 0.233);
+  background: rgba(252, 252, 252, 0.785);
   border-bottom: 1px solid rgba(0, 0, 0, 0.05);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   will-change: transform, opacity, backdrop-filter;

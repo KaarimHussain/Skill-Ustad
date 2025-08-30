@@ -7,7 +7,15 @@ const PublicOnlyRoute = ({ children }: { children: React.ReactNode }) => {
     if (isAuthenticated) {
         return (
             <Navigate
-                to={userType?.toLowerCase() === "mentor" ? "/mentor/dashboard" : "/user/dashboard"}
+                to={
+                    userType?.toLowerCase() === "mentor" 
+                        ? "/mentor/dashboard" 
+                        : userType?.toLowerCase() === "company" 
+                        ? "/company/dashboard"
+                        : userType?.toLowerCase() === "admin"
+                        ? "/admin/dashboard"
+                        : "/user/dashboard"
+                }
                 replace
             />
         );

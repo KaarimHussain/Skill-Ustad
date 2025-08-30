@@ -22,6 +22,105 @@ namespace server.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("SkillUstad.Models.CompaniesAdditionalInfo", b =>
+                {
+                    b.Property<int>("CompanyId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("BusinessType")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<string>("City")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("CompanyDescription")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<string>("ContactPersonName")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("ContactPersonTitle")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("Country")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int?>("EmployeeCount")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Industry")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("LinkedInUrl")
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("WorkPhone")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.HasKey("CompanyId");
+
+                    b.ToTable("CompaniesAdditionalInfo");
+                });
+
+            modelBuilder.Entity("SkillUstad.Models.Company", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("CompanyName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("IsDomainVerified")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IsEmailVerified")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("PasswordHash")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Website")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)");
+
+                    b.Property<string>("WorkEmail")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Companies");
+                });
+
             modelBuilder.Entity("SkillUstad.Models.EmailOtp", b =>
                 {
                     b.Property<Guid>("Id")
@@ -308,6 +407,17 @@ namespace server.Migrations
                     b.ToTable("Users");
                 });
 
+            modelBuilder.Entity("SkillUstad.Models.CompaniesAdditionalInfo", b =>
+                {
+                    b.HasOne("SkillUstad.Models.Company", "Company")
+                        .WithOne("CompaniesAdditionalInfo")
+                        .HasForeignKey("SkillUstad.Models.CompaniesAdditionalInfo", "CompanyId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Company");
+                });
+
             modelBuilder.Entity("SkillUstad.Models.MentorAdditionalInfo", b =>
                 {
                     b.HasOne("SkillUstad.Models.Mentor", "Mentor")
@@ -371,6 +481,11 @@ namespace server.Migrations
                         .IsRequired();
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("SkillUstad.Models.Company", b =>
+                {
+                    b.Navigation("CompaniesAdditionalInfo");
                 });
 
             modelBuilder.Entity("SkillUstad.Models.Mentor", b =>

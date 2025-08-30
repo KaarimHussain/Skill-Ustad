@@ -1,9 +1,6 @@
 "use client"
 import {
-    Twitter,
     Linkedin,
-    Instagram,
-    Youtube,
     Github,
     Mail,
     MapPin,
@@ -20,7 +17,6 @@ import {
     Shield,
     FileText,
     Briefcase,
-    Star,
 } from "lucide-react"
 import { memo } from "react"
 import { Link } from "react-router-dom"
@@ -72,78 +68,50 @@ const FooterBackground = memo(() => (
 
 const footerLinks = {
     learning: {
-        title: "Learning",
+        title: "Learning & Community",
         links: [
             { name: "All Courses", href: "/courses", icon: BookOpen },
             { name: "Roadmaps", href: "/roadmaps", icon: Target },
             { name: "Challenges", href: "/challenges", icon: Trophy },
-            { name: "Certifications", href: "/certifications", icon: Star },
-            { name: "Free Resources", href: "/resources", icon: FileText },
-            { name: "Bootcamps", href: "/bootcamps", icon: Briefcase },
-        ],
-    },
-    community: {
-        title: "Community",
-        links: [
-            { name: "Discussion Forums", href: "/community/forums", icon: MessageCircle },
-            { name: "Study Groups", href: "/community/groups", icon: Users },
-            { name: "Events & Webinars", href: "/events", icon: Users },
-            { name: "Success Stories", href: "/success-stories", icon: Star },
-            { name: "Mentorship", href: "/mentorship", icon: Users },
-            { name: "Ambassador Program", href: "/ambassadors", icon: Trophy },
+            { name: "Q&A's", href: "/qa", icon: MessageCircle },
+            { name: "Blogs", href: "/community/groups", icon: Users },
         ],
     },
     aiTools: {
         title: "AI Tools",
         links: [
             { name: "Interview Simulator", href: "/ai/interview-simulator", icon: Brain },
-            { name: "AI Quiz Taker", href: "/ai/quiz-taker", icon: HelpCircle },
-            { name: "Career Advisor", href: "/ai/career-advisor", icon: Target },
-            { name: "Code Reviewer", href: "/ai/code-review", icon: Brain },
-            { name: "Resume Builder", href: "/ai/resume-builder", icon: FileText },
-            { name: "Skill Assessment", href: "/ai/assessment", icon: Trophy },
+            { name: "Custom ChatBot Builder", href: "/ai/quiz-taker", icon: HelpCircle },
+            { name: "Static Web Builder", href: "/ai/career-advisor", icon: Target },
         ],
     },
     company: {
-        title: "Company",
+        title: "For Companies",
         links: [
-            { name: "About Us", href: "/about", icon: Users },
-            { name: "Careers", href: "/careers", icon: Briefcase },
-            { name: "Press Kit", href: "/press", icon: FileText },
-            { name: "Partnerships", href: "/partnerships", icon: Users },
-            { name: "Investors", href: "/investors", icon: Briefcase },
-            { name: "Blog", href: "/blog", icon: FileText },
+            { name: "Company", href: "/company", icon: Briefcase },
+            { name: "Register Your Bussiness", href: "/company/login", icon: Users },
         ],
     },
     support: {
         title: "Support",
         links: [
-            { name: "Help Center", href: "/help", icon: HelpCircle },
-            { name: "Contact Support", href: "/support", icon: Mail },
-            { name: "System Status", href: "/status", icon: Shield },
-            { name: "API Documentation", href: "/docs", icon: FileText },
-            { name: "Pricing", href: "/pricing", icon: Target },
-            { name: "Enterprise", href: "/enterprise", icon: Briefcase },
+            { name: "Help Center", href: "/us/help", icon: HelpCircle },
+            { name: "Contact Support", href: "/us/support", icon: Mail },
+            { name: "API Documentation", href: "/us/docs", icon: FileText },
         ],
     },
     legal: {
         title: "Legal",
         links: [
-            { name: "Privacy Policy", href: "/privacy", icon: Shield },
-            { name: "Terms of Service", href: "/terms", icon: FileText },
-            { name: "Cookie Policy", href: "/cookies", icon: Shield },
-            { name: "GDPR", href: "/gdpr", icon: Shield },
-            { name: "Accessibility", href: "/accessibility", icon: Users },
-            { name: "Refund Policy", href: "/refunds", icon: FileText },
+            { name: "Privacy Policy", href: "/us/privacy", icon: Shield },
+            { name: "Terms of Service", href: "/us/terms", icon: FileText },
+            { name: "Cookie Policy", href: "/us/cookies", icon: Shield },
         ],
     },
 }
 
 const socialLinks = [
-    { name: "Twitter", icon: Twitter, href: "https://twitter.com/skillustad", color: "hover:text-blue-500" },
     { name: "LinkedIn", icon: Linkedin, href: "https://linkedin.com/company/skillustad", color: "hover:text-blue-600" },
-    { name: "Instagram", icon: Instagram, href: "https://instagram.com/skillustad", color: "hover:text-pink-500" },
-    { name: "YouTube", icon: Youtube, href: "https://youtube.com/skillustad", color: "hover:text-red-500" },
     { name: "GitHub", icon: Github, href: "https://github.com/skillustad", color: "hover:text-gray-700" },
 ]
 
@@ -266,9 +234,8 @@ export default function Footer() {
                     <StatsSection />
 
                     {/* Links Grid */}
-                    <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-8 py-16">
+                    <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-8 py-16">
                         <FooterSection title={footerLinks.learning.title} links={footerLinks.learning.links} />
-                        <FooterSection title={footerLinks.community.title} links={footerLinks.community.links} />
                         <FooterSection title={footerLinks.aiTools.title} links={footerLinks.aiTools.links} />
                         <FooterSection title={footerLinks.company.title} links={footerLinks.company.links} />
                         <FooterSection title={footerLinks.support.title} links={footerLinks.support.links} />

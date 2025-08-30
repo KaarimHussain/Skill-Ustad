@@ -7,6 +7,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Content Include="EmailTemplates\CompaniesApprove.html" />
+    <Content Include="EmailTemplates\CompaniesRegister.html" />
+    <Content Include="EmailTemplates\CompaniesReject.html" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="BCrypt.Net-Next" Version="4.0.3" />
     <PackageReference Include="CloudinaryDotNet" Version="1.27.6" />
     <PackageReference Include="MailKit" Version="4.13.0" />

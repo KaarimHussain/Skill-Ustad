@@ -57,6 +57,53 @@ namespace SkillUstad.Service
 
             await SendEmailAsync(to, subject, body);
         }
+
+        public async Task SendCompanyRegistrationEmail(string to, string companyName, string website = "https://skillustad.com")
+        {
+            var subject = "Welcome to SkillUstad - Registration Successful!";
+            
+            // Read the email template
+            var templatePath = Path.Combine(Directory.GetCurrentDirectory(), "EmailTemplates", "CompaniesRegister.html");
+            var htmlTemplate = await File.ReadAllTextAsync(templatePath);
+            
+            // Replace placeholders with actual values
+            var body = htmlTemplate
+                .Replace("{CompanyName}", companyName)
+                .Replace("{Website}", website);
+
+            await SendEmailAsync(to, subject, body, true);
+        }
+
+        public async Task SendCompanyApprovedEmail(string to, string companyName, string website = "https://skillustad.com")
+        {
+            var subject = "Account Approved!";
+            // Read the email template
+            var templatePath = Path.Combine(Directory.GetCurrentDirectory(), "EmailTemplates", "CompaniesApprove.html");
+            var htmlTemplate = await File.ReadAllTextAsync(templatePath);
+
+            // Replace placeholders with actual values
+            var body = htmlTemplate
+                .Replace("{CompanyName}", companyName)
+                .Replace("{Website}", website);
+
+            await SendEmailAsync(to, subject, body, true);
+        }
+
+        public async Task SendCompanyRejectEmail(string to, string companyName, string website = "https://skillustad.com")
+        {
+            var subject = "Account Rejected!";
+            // Read the email template
+            var templatePath = Path.Combine(Directory.GetCurrentDirectory(), "EmailTemplates", "CompaniesReject.html");
+            var htmlTemplate = await File.ReadAllTextAsync(templatePath);
+
+            // Replace placeholders with actual values
+            var body = htmlTemplate
+                .Replace("{CompanyName}", companyName)
+                .Replace("{Website}", website);
+
+            await SendEmailAsync(to, subject, body, true);
+        }
+
     }
 
 }

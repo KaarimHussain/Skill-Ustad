@@ -2,7 +2,7 @@ import { Navigate, Outlet } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 
 interface ProtectedRouteProps {
-    allowedRoles?: string[]; // ["student", "mentor"]
+    allowedRoles?: string[]; // ["student", "mentor", "companies","admin"]
     redirectTo?: string;
 }
 

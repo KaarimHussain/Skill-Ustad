@@ -1,0 +1,233 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome to SkillUstad</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            min-height: 100vh;
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        .email-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.08);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+            padding: 50px 40px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+            .header::before {
+                content: '';
+                position: absolute;
+                top: -50%;
+                left: -50%;
+                width: 200%;
+                height: 200%;
+                background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+                animation: float 6s ease-in-out infinite;
+            }
+
+        @keyframes float {
+            0%, 100%
+
+        {
+            transform: translateY(0px) rotate(0deg);
+        }
+
+        50% {
+            transform: translateY(-20px) rotate(180deg);
+        }
+
+        }
+
+        .header-content {
+            position: relative;
+            z-index: 2;
+        }
+
+        .logo {
+            font-size: 32px;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 8px;
+            letter-spacing: -0.5px;
+        }
+
+        .tagline {
+            font-size: 16px;
+            color: rgba(255, 255, 255, 0.9);
+            font-weight: 500;
+        }
+
+        .content {
+            padding: 50px 40px;
+        }
+
+        .greeting {
+            font-size: 20px;
+            color: #1e293b;
+            margin-bottom: 24px;
+            font-weight: 600;
+        }
+
+        .company-name {
+            color: #3b82f6;
+            font-weight: 700;
+        }
+
+        .message {
+            font-size: 16px;
+            color: #475569;
+            margin-bottom: 24px;
+            line-height: 1.7;
+        }
+
+        .info-card {
+            background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+            border: 1px solid #cbd5e1;
+            border-radius: 16px;
+            padding: 32px;
+            margin: 32px 0;
+            position: relative;
+        }
+
+            .info-card::before {
+                content: '';
+                position: absolute;
+                left: 0;
+                top: 0;
+                bottom: 0;
+                width: 4px;
+                background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+                border-radius: 2px;
+            }
+
+            .info-card h3 {
+                color: #1e293b;
+                font-size: 18px;
+                font-weight: 600;
+                margin-bottom: 12px;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+
+            .info-card p {
+                color: #475569;
+                font-size: 15px;
+                line-height: 1.6;
+            }
+
+        .cta-button {
+            display: inline-block;
+            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+            color: white;
+            padding: 16px 32px;
+            text-decoration: none;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 16px;
+            margin: 24px 0;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        }
+
+            .cta-button:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 8px 20px rgba(59, 130, 246, 0.4);
+            }
+
+        .footer {
+            background: #f8fafc;
+            padding: 40px;
+            text-align: center;
+            border-top: 1px solid #e2e8f0;
+        }
+
+            .footer p {
+                color: #64748b;
+                font-size: 14px;
+                margin-bottom: 8px;
+            }
+
+        .team-signature {
+            color: #1e293b;
+            font-weight: 600;
+            font-size: 16px;
+        }
+
+        .support-text {
+            margin-top: 20px;
+            font-size: 13px;
+            color: #94a3b8;
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <div class="header">
+            <div class="header-content">
+                <div class="logo">SkillUstad</div>
+                <div class="tagline">Empowering Skills, Building Futures</div>
+            </div>
+        </div>
+
+        <div class="content">
+            <p class="greeting">Welcome, <span class="company-name">{CompanyName}</span>! 🎉</p>
+
+            <p class="message">
+                We're absolutely thrilled to have you join the SkillUstad community! Your registration marks the beginning of an exciting journey toward connecting with exceptional talent and driving innovation in your industry.
+            </p>
+
+            <div class="info-card">
+                <h3>🔍 What happens next?</h3>
+                <p>
+                    Our expert verification team will carefully review your company profile within <strong>2-3 business days</strong>.
+                    This process ensures we maintain the highest quality standards for all our platform partners.
+                    You'll receive a detailed confirmation email once your account is fully activated.
+                </p>
+            </div>
+
+            <p class="message">
+                While you wait, we encourage you to explore our platform and discover the innovative ways SkillUstad can transform your talent acquisition and development strategies.
+            </p>
+
+            <a href="{Website}" class="cta-button">Explore SkillUstad Platform →</a>
+
+            <p class="message">
+                Thank you for choosing SkillUstad. We're excited to support your company's growth and success!
+            </p>
+        </div>
+
+        <div class="footer">
+            <p class="team-signature">The SkillUstad Team</p>
+            <p>Building the future of skill development, one connection at a time.</p>
+            <p class="support-text">
+                Questions? Our support team is here to help you every step of the way.
+            </p>
+        </div>
+    </div>
+</body>
+</html>

@@ -16,6 +16,9 @@ namespace SkillUstad.Data
         public DbSet<PasswordResetRequest> PasswordResetRequests { get; set; }
         public DbSet<UserVerification> UserVerifications { get; set; }
         public DbSet<EmailOtp> EmailOtps { get; set; }
+        // Companies
+        public DbSet<Company> Companies { get; set; }
+        public DbSet<CompaniesAdditionalInfo> CompaniesAdditionalInfo { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -41,6 +44,14 @@ namespace SkillUstad.Data
                 .WithOne(met => met.Mentor)
                 .HasForeignKey(met => met.MentorId)
                 .OnDelete(DeleteBehavior.Cascade);
+            // Configure Company and CompaniesAdditionalInfo (One-to-One)
+            // Configure Company and CompaniesAdditionalInfo (One-to-One)
+            modelBuilder.Entity<Company>()
+                .HasOne(c => c.CompaniesAdditionalInfo)
+                .WithOne(cai => cai.Company)
+                .HasForeignKey<CompaniesAdditionalInfo>(cai => cai.CompanyId)
+                .OnDelete(DeleteBehavior.Cascade);
+
 
             // Configure SpokenLanguage relationships
             // This is a bit complex because SpokenLanguage can reference both Users and Mentors

@@ -57,6 +57,22 @@ import QAResponses from './views/QAResponses';
 import LearnRoadmap from './views/User/LearnRoadmap';
 import Courses from './views/Courses';
 import ViewCourse from './views/ViewCourse';
+import CompaniesLogin from './views/Auth/CompaniesLogin';
+import CompaniesRegister from './views/Auth/CompaniesRegister';
+import CompaniesHome from './views/Companies/Home';
+import AdminDashboard from './views/Admin/Dashboard';
+import AdminNavbar from './components/Admin/Navbar';
+import Request from './views/Admin/Request';
+import CompanyDashboard from './views/Companies/Dashboard';
+import CompanyNavbar from './components/Company/Navbar';
+import CompanyApplications from './views/Companies/Applications';
+import CompanyJobs from './views/Companies/Jobs';
+import CompanyCreateJobs from './views/Companies/CreateJobs';
+import CompanyAdditionalInfo from './views/Companies/AdditionalInfo';
+import CompanyViewJob from './views/Companies/ViewJob';
+import CompanyEditJob from './views/Companies/EditJob';
+import Jobs from './views/Jobs';
+import JobDetail from './views/JobDetail';
 
 function App() {
   const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_KEY_TWO;
@@ -88,119 +104,135 @@ function App() {
       <Router>
         <AuthProvider>
           <ScrollToTop />
-          <Navbar />
           <Routes>
             {/* 🌐 Public URLs */}
-            <Route path="/ai/interview" element={<VoiceInterviewSimulator />} />
-            <Route path="/ai/tools" element={<ToolsView />} />
-            <Route path="/ai/chatbot" element={<ChatbotBuilder />} />
-            <Route path="/user/roadmap/:id" element={<RoadmapViewer />} />
-            <Route path='/public/roadmaps' element={<Roadmap />} />
-            <Route path='/community' element={<Community />} />
-            <Route path='/notifications' element={<Notification />} />
-            <Route path='/messages' element={<Messages />} />
-            <Route path='/courses' element={<Courses />} />
-            <Route path='/public/view-course' element={<ViewCourse />} />
-            <Route path="/qa" element={<QA />} />
-            <Route path="/qa/:id" element={<QADetails />} />
-            <Route path="/qa-create" element={<QACreate />} />
-            <Route path="/qa-responses" element={<QAResponses />} />
+            <Route path="/ai/interview" element={<><Navbar /><VoiceInterviewSimulator /></>} />
+            <Route path="/ai/tools" element={<><Navbar /><ToolsView /></>} />
+            <Route path="/ai/chatbot" element={<><Navbar /><ChatbotBuilder /></>} />
+            <Route path="/user/roadmap/:id" element={<><Navbar /><RoadmapViewer /></>} />
+            <Route path='/public/roadmaps' element={<><Navbar /><Roadmap /></>} />
+            <Route path='/community' element={<><Navbar /><Community /></>} />
+            <Route path='/notifications' element={<><Navbar /><Notification /></>} />
+            <Route path='/messages' element={<><Navbar /><Messages /></>} />
+            <Route path='/courses' element={<><Navbar /><Courses /></>} />
+            <Route path='/public/view-course' element={<><Navbar /><ViewCourse /></>} />
+            <Route path="/qa" element={<><Navbar /><QA /></>} />
+            <Route path="/qa/:id" element={<><Navbar /><QADetails /></>} />
+            <Route path="/qa-create" element={<><Navbar /><QACreate /></>} />
+            <Route path="/qa-responses" element={<><Navbar /><QAResponses /></>} />
+            <Route path="/jobs" element={<><Navbar /><Jobs /></>} />
+            <Route path="/jobs/:id" element={<><Navbar /><JobDetail /></>} />
 
             {/* 🔒 Protected URLs */}
             {/* 👤 Auth URLs - public only if NOT logged in */}
 
-            <Route path="/" element={
-              <PublicOnlyRoute>
-                <Home />
-              </PublicOnlyRoute>}
-            />
+            {/* ================================= */}
+            {/* Student and Mentor Routes */}
+            {/* ================================= */}
 
-            <Route path="/login"
-              element={
-                <PublicOnlyRoute>
-                  <Login />
-                </PublicOnlyRoute>
-              }
-            />
-            <Route
-              path="/signup"
-              element={
-                <PublicOnlyRoute>
-                  <Signup />
-                </PublicOnlyRoute>
-              }
-            />
+            {/* Home Route */}
+            <Route path="/" element={<PublicOnlyRoute><><Navbar /><Home /></></PublicOnlyRoute>} />
 
-            <Route
-              path="/reset-password"
-              element={
-                <PublicOnlyRoute>
-                  <ResetPassword />
-                </PublicOnlyRoute>
-              }
-            />
-            <Route
-              path="/otp"
-              element={
-                <PublicOnlyRoute>
-                  <OTPVerification />
-                </PublicOnlyRoute>
-              }
-            />
-            <Route
-              path="/forget-password"
-              element={
-                <PublicOnlyRoute>
-                  <ForgetPassword />
-                </PublicOnlyRoute>
-              }
-            />
+            {/* Login Route - Students and Mentor */}
+
+            <Route path="/login" element={<PublicOnlyRoute><><Navbar /><Login /></></PublicOnlyRoute>} />
+
+            {/* Signup Route - Students and Mentor */}
+            <Route path="/signup" element={<PublicOnlyRoute><><Navbar /><Signup /></></PublicOnlyRoute>} />
+
+            {/* Reset Password Route */}
+
+            <Route path="/reset-password" element={<PublicOnlyRoute><><Navbar /><ResetPassword /></></PublicOnlyRoute>} />
+
+            {/* OTP Verification Route */}
+
+            <Route path="/otp" element={<PublicOnlyRoute><><Navbar /><OTPVerification /></></PublicOnlyRoute>} />
+
+            {/* Forget Password Route */}
+
+            <Route path="/forget-password" element={<PublicOnlyRoute><><Navbar /><ForgetPassword /></></PublicOnlyRoute>} />
+
+            {/* ================================= */}
+            {/* Companies Routes */}
+            {/* ================================= */}
+
+            {/* Home Route */}
+            <Route path='/company' element={<PublicOnlyRoute><><Navbar /><CompaniesHome /></></PublicOnlyRoute>} />
+
+            {/* Login Route */}
+            <Route path='/company/login' element={<PublicOnlyRoute><><Navbar /><CompaniesLogin /></></PublicOnlyRoute>} />
+
+            {/* Register Route */}
+            <Route path='/company/register' element={<PublicOnlyRoute><><Navbar /><CompaniesRegister /></></PublicOnlyRoute>} />
+
+            <Route element={<ProtectedRoute allowedRoles={["Company"]} />} >
+              <Route path="/company/dashboard" element={<><CompanyNavbar /><CompanyDashboard /> </>} />
+              <Route path="/company/info" element={<><CompanyNavbar /><CompanyAdditionalInfo /> </>} />
+              {/* Jobs */}
+              <Route path="/company/jobs" element={<><CompanyNavbar /><CompanyJobs /> </>} />
+              <Route path="/company/jobs/:id" element={<><CompanyNavbar /><CompanyViewJob /> </>} />
+              <Route path="/company/jobs/:id/edit" element={<><CompanyNavbar /><CompanyEditJob /> </>} />
+              <Route path="/company/jobs/create" element={<><CompanyNavbar /><CompanyCreateJobs /> </>} />
+              {/* Applicants */}
+              <Route path="/company/applications" element={<><CompanyNavbar /><CompanyApplications /> </>} />
+            </Route>
+
+            {/* ================================= */}
+            {/* Admin Routes */}
+            {/* ================================= */}
+
+            <Route element={<ProtectedRoute allowedRoles={["Admin"]} />} >
+              <Route path="/admin/dashboard" element={<><AdminNavbar /><AdminDashboard /></>} />
+              <Route path="/admin/request" element={<><AdminNavbar /><Request /></>} />
+            </Route>
+
+            {/*  */}
 
             {/* 🧑‍🎓 Student-only route */}
             <Route element={<ProtectedRoute allowedRoles={["Student"]} />}>
-              <Route path="/user/dashboard" element={<UserDashboard />} />
+              <Route path="/user/dashboard" element={<><Navbar /><UserDashboard /></>} />
               {/* Profile */}
-              <Route path="/user/profile" element={<Profile />} />
-              <Route path='/user/additional-info' element={<UserAdditionalInfo />} />
+              <Route path="/user/profile" element={<><Navbar /><Profile /></>} />
+              <Route path='/user/additional-info' element={<><Navbar /><UserAdditionalInfo /></>} />
               {/* Roadmaps */}
-              <Route path="/user/roadmap-gen" element={<GenerateRoadmap />} />
-              <Route path="/user/process-roadmap" element={<RoadmapProcessing />} />
+              <Route path="/user/roadmap-gen" element={<><Navbar /><GenerateRoadmap /></>} />
+              <Route path="/user/process-roadmap" element={<><Navbar /><RoadmapProcessing /></>} />
               {/* Courses */}
-              <Route path="/user/course-generator" element={<CourseGenerator />} />
+              <Route path="/user/course-generator" element={<><Navbar /><CourseGenerator /></>} />
               {/* Quiz */}
-              <Route path='/user/quiz' element={<Quiz />} />
-              <Route path='/user/quiz-attempt' element={<UserAttemptQuiz />} />
+              <Route path='/user/quiz' element={<><Navbar /><Quiz /></>} />
+              <Route path='/user/quiz-attempt' element={<><Navbar /><UserAttemptQuiz /></>} />
               {/* Q&A */}
-              <Route path='/user/qa' element={<UserQA />} />
+              <Route path='/user/qa' element={<><Navbar /><UserQA /></>} />
             </Route>
 
-            <Route path="/user/learn-roadmap/:id" element={<LearnRoadmap />} />
+            <Route path="/user/learn-roadmap/:id" element={<><Navbar /><LearnRoadmap /></>} />
 
 
             {/* 🧑‍🏫 Mentor-only route */}
             <Route element={<ProtectedRoute allowedRoles={["Mentor"]} />}>
-              <Route path="/mentor/dashboard" element={<MentorDashboard />} />
+              <Route path="/mentor/dashboard" element={<><Navbar /><MentorDashboard /></>} />
               {/* Profile */}
-              <Route path="/mentor/profile" element={<MentorProfile />} />
-              <Route path='/mentor/additional-info' element={<MentorAdditionalInfo />} />
+              <Route path="/mentor/profile" element={<><Navbar /><MentorProfile /></>} />
+              <Route path='/mentor/additional-info' element={<><Navbar /><MentorAdditionalInfo /></>} />
               {/* Roadmap */}
-              <Route path='/mentor/roadmaps' element={<MentorRoadmap />} />
-              <Route path='/mentor/create-roadmap' element={<CreateRoadmap />} />
+              <Route path='/mentor/roadmaps' element={<><Navbar /><MentorRoadmap /></>} />
+              <Route path='/mentor/create-roadmap' element={<><Navbar /><CreateRoadmap /></>} />
               {/* Blogs */}
-              <Route path='/mentor/blogs' element={<MentorBlog />} />
+              <Route path='/mentor/blogs' element={<><Navbar /><MentorBlog /></>} />
               {/* Quiz */}
-              <Route path='/mentor/quiz' element={<MentorQuiz />} />
-              <Route path='/mentor/create-quiz' element={<CreateQuiz />} />
-              <Route path='/mentor/edit-quiz' element={<EditQuiz />} />
-              <Route path='/mentor/view-quiz' element={<ViewQuiz />} />
+              <Route path='/mentor/quiz' element={<><Navbar /><MentorQuiz /></>} />
+              <Route path='/mentor/create-quiz' element={<><Navbar /><CreateQuiz /></>} />
+              <Route path='/mentor/edit-quiz' element={<><Navbar /><EditQuiz /></>} />
+              <Route path='/mentor/view-quiz' element={<><Navbar /><ViewQuiz /></>} />
               {/* Course */}
-              <Route path='/mentor/course' element={<MentorCourse />} />
-              <Route path='/mentor/view-course' element={<MentorViewCourse />} />
-              <Route path='/mentor/create-course' element={<MentorGenerateCourse />} />
+              <Route path='/mentor/course' element={<><Navbar /><MentorCourse /></>} />
+              <Route path='/mentor/view-course' element={<><Navbar /><MentorViewCourse /></>} />
+              <Route path='/mentor/create-course' element={<><Navbar /><MentorGenerateCourse /></>} />
             </Route>
 
             {/* 404 Not Found Route */}
-            <Route path='*' element={<NotFound />} />
+            <Route path='*' element={<><Navbar /><NotFound /></>} />
           </Routes>
           <Footer />
           <Toaster />
