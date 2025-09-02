@@ -131,13 +131,13 @@ const FooterSection = memo(({ title, links }: { title: string; links: any[] }) =
         <ul className="space-y-3">
             {links.map((link) => (
                 <li key={link.name}>
-                    <a
-                        href={link.href}
+                    <Link
+                        to={link.href}
                         className="group flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-all duration-200 text-sm"
                     >
                         <link.icon className="w-4 h-4 opacity-60 group-hover:opacity-100 transition-opacity" />
                         <span className="group-hover:translate-x-1 transition-transform duration-200">{link.name}</span>
-                    </a>
+                    </Link>
                 </li>
             ))}
         </ul>

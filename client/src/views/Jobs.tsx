@@ -22,6 +22,7 @@ import { Badge } from "@/components/ui/badge"
 import Logo from "@/components/Logo"
 import { Link } from "react-router-dom"
 import JobService, { type PostJob } from "@/services/job.service"
+import FormatDate from "@/components/FormatDate"
 
 export default function Jobs() {
     const [jobs, setJobs] = useState<PostJob[]>([])
@@ -375,12 +376,12 @@ export default function Jobs() {
                             {sortedJobs.map((job) => (
                                 <Link key={job.id} to={`/jobs/${job.id}`}>
                                     <Card className="hover:shadow-md transition-shadow cursor-pointer">
-                                        <CardContent className="p-6">
+                                        <CardContent>
                                             <div className="flex flex-col sm:flex-row gap-4">
                                                 {/* Job Content */}
                                                 <div className="flex-1">
                                                     <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 mb-3">
-                                                        <h3 className="text-lg font-semibold text-foreground hover:text-primary transition-colors">
+                                                        <h3 className="text-4xl font-semibold text-foreground hover:text-primary transition-colors">
                                                             {job.title}
                                                         </h3>
                                                         <div className="flex gap-2">
@@ -439,7 +440,7 @@ export default function Jobs() {
                                                             </div>
                                                             <div className="flex items-center space-x-1">
                                                                 <Calendar className="h-4 w-4" />
-                                                                <span>Deadline: {new Date(job.applicationDeadline).toLocaleDateString()}</span>
+                                                                <span>Deadline: {FormatDate(job.applicationDeadline)}</span>
                                                             </div>
                                                         </div>
 

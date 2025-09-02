@@ -1,7 +1,7 @@
 import NotificationService from "@/components/Notification"
 import type { CourseSection } from "@/services/lesson.service"
 import LessonService from "@/services/lesson.service"
-import { AlertTriangle, BookOpen, Lightbulb, LinkIcon, Play, Trophy } from "lucide-react"
+import { AlertTriangle, BookOpen, Lightbulb, LinkIcon, Loader2, Play, Trophy } from "lucide-react"
 import { useEffect, useState } from "react"
 import { useLocation, useNavigate } from "react-router-dom"
 
@@ -12,9 +12,11 @@ export default function ViewCourse() {
     const [courseTitle, setCourseTitle] = useState("")
     const [courseDescription, setCourseDescription] = useState("")
     const [sections, setSections] = useState<CourseSection[]>([])
+    const [isLoading, setIsLoading] = useState(true)
 
     const fetchData = async () => {
         console.log("ID: ",id);
+        setIsLoading(true);
 
         if (!id) return navigate("/");
         try {
@@ -24,8 +26,9 @@ export default function ViewCourse() {
             setCourseTitle(data.title);
             setCourseDescription(data.description);
             setSections(data.sections);
-
+            setIsLoading(false);
         } catch (error) {
+            setIsLoading(false);
             NotificationService.error("Failed to fetch the Course Data");
         }
     }
@@ -216,38 +219,48 @@ export default function ViewCourse() {
 
     return (
         <>
-            <div className="min-h-screen bg-white">
-                <div className="relative overflow-hidden">
-                    <div className="absolute inset-0 bg-gradient-to-t from-indigo-700/40 via-indigo-900/10 to-indigo-500/10"></div>
-                    <div className="absolute inset-0">
-                        <div className="absolute top-20 left-10 w-72 h-72 bg-purple-300 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob"></div>
-                        <div className="absolute top-40 right-10 w-72 h-72 bg-indigo-300 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-2000"></div>
-                        <div className="absolute -bottom-8 left-20 w-72 h-72 bg-purple-900/40 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-4000"></div>
-                    </div>
-                    <div className="relative px-4 sm:px-6 lg:px-8 pt-30 pb-20">
-                        <div className="max-w-4xl mx-auto text-center">
-                            <h1 className={"text-4xl sm:text-5xl lg:text-6xl font-bold text-black mb-6"}>
-                                {courseTitle || "Course Title"}
-                            </h1>
-                            <p className="text-lg sm:text-xl text-black/90 max-w-2xl mx-auto mb-8">
-                                {courseDescription || "Course description goes here"}
-                            </p>
-                        </div>
+            {isLoading ? (
+                <div className="min-h-screen bg-white flex items-center justify-center">
+                    <div className="text-center">
+                        <Loader2 className="h-12 w-12 animate-spin text-indigo-600 mx-auto mb-4" />
+                        <h3 className="text-lg font-medium text-gray-900">Loading course content...</h3>
+                        <p className="text-gray-500 mt-2">Please wait while we prepare your learning materials</p>
                     </div>
                 </div>
+            ) : (
+                <div className="min-h-screen bg-white">
+                    <div className="relative overflow-hidden">
+                        <div className="absolute inset-0 bg-gradient-to-t from-indigo-700/40 via-indigo-900/10 to-indigo-500/10"></div>
+                        <div className="absolute inset-0">
+                            <div className="absolute top-20 left-10 w-72 h-72 bg-purple-300 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob"></div>
+                            <div className="absolute top-40 right-10 w-72 h-72 bg-indigo-300 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-2000"></div>
+                            <div className="absolute -bottom-8 left-20 w-72 h-72 bg-purple-900/40 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-4000"></div>
+                        </div>
+                        <div className="relative px-4 sm:px-6 lg:px-8 pt-30 pb-20">
+                            <div className="max-w-4xl mx-auto text-center">
+                                <h1 className={"text-4xl sm:text-5xl lg:text-6xl font-bold text-black mb-6"}>
+                                    {courseTitle || "Course Title"}
+                                </h1>
+                                <p className="text-lg sm:text-xl text-black/90 max-w-2xl mx-auto mb-8">
+                                    {courseDescription || "Course description goes here"}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
 
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-                    <div className="flex gap-8">
-                        <div className="flex-1">
-                            {sections.map((section) => (
-                                <div key={section.id} id={`section-${section.id}`}>
-                                    {renderSectionPreview(section)}
-                                </div>
-                            ))}
+                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+                        <div className="flex gap-8">
+                            <div className="flex-1">
+                                {sections.map((section) => (
+                                    <div key={section.id} id={`section-${section.id}`}>
+                                        {renderSectionPreview(section)}
+                                    </div>
+                                ))}
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
+            )}
         </>
     )
 }

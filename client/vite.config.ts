@@ -14,6 +14,7 @@ export default defineConfig({
     },
   },
   server: {
+    host: true,
     https: {
       key: './skillustad-privateKey.key',
       cert: './skillustad.crt',

@@ -73,6 +73,8 @@ import CompanyViewJob from './views/Companies/ViewJob';
 import CompanyEditJob from './views/Companies/EditJob';
 import Jobs from './views/Jobs';
 import JobDetail from './views/JobDetail';
+import UserCourse from './views/User/Course';
+import UserCreateCourse from './views/User/CreateCourse';
 
 function App() {
   const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_KEY_TWO;
@@ -199,6 +201,9 @@ function App() {
               <Route path="/user/process-roadmap" element={<><Navbar /><RoadmapProcessing /></>} />
               {/* Courses */}
               <Route path="/user/course-generator" element={<><Navbar /><CourseGenerator /></>} />
+              <Route path="/user/course" element={<><Navbar /><UserCourse /></>} />
+              <Route path="/user/create-course" element={<><Navbar /><UserCreateCourse /></>} />
+
               {/* Quiz */}
               <Route path='/user/quiz' element={<><Navbar /><Quiz /></>} />
               <Route path='/user/quiz-attempt' element={<><Navbar /><UserAttemptQuiz /></>} />

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
 import {
@@ -33,6 +33,7 @@ import {
 } from "recharts"
 import type { IStatsCount } from "@/services/admin-dashboard.service"
 import { Link } from "react-router-dom"
+import AdminDashboardService from "@/services/admin-dashboard.service"
 
 // Sample data for charts
 const userGrowthData = [
@@ -103,8 +104,8 @@ const quickActions = [
 
 const managementTools = [
     {
-        title: "Financial Reports",
-        description: "Track revenue, subscriptions, and financial metrics.",
+        title: "News Letter",
+        description: "Send news letter to those who are subscribed",
         icon: DollarSign,
         color: "from-emerald-500 to-teal-600",
         bgColor: "bg-gradient-to-br from-emerald-50 to-teal-50",
@@ -146,12 +147,29 @@ const managementTools = [
 
 export default function AdminDashboard() {
     const [adminName,] = useState<string>("Admin")
-    const [stats,] = useState<IStatsCount>({
+    const [stats, setStats] = useState<IStatsCount>({
         totalStudents: 0,
         totalCompanies: 0,
         totalMentor: 0,
         companiesPendingRequest: 0
     })
+
+    const [statsLoading, setStatsLoading] = useState(false);
+
+    useEffect(() => {
+        setStatsLoading(true);
+        const fetchStats = async () => {
+            try {
+                const data = await AdminDashboardService.getStatsCount();
+                setStats(data);
+            } catch (error) {
+                console.error("Error fetching stats:", error);
+            } finally {
+                setStatsLoading(false);
+            }
+        }
+        fetchStats();
+    }, [])
 
     return (
         <div className="min-h-screen bg-white">
@@ -194,7 +212,11 @@ export default function AdminDashboard() {
                                         <Users className="w-5 h-5 text-indigo-600 mr-2" />
                                         <span className="text-sm font-medium text-gray-600">Total Students</span>
                                     </div>
-                                    <div className="text-2xl font-bold text-gray-900">{stats.totalStudents.toLocaleString()}</div>
+                                    {statsLoading ? (
+                                        <div className="h-8 bg-gray-200 rounded animate-pulse"></div>
+                                    ) : (
+                                        <div className="text-2xl font-bold text-gray-900">{stats.totalStudents.toLocaleString()}</div>
+                                    )}
                                 </CardContent>
                             </Card>
                             <Card className="bg-white/80 backdrop-blur-sm border-white/50">
@@ -203,7 +225,11 @@ export default function AdminDashboard() {
                                         <GraduationCap className="w-5 h-5 text-green-600 mr-2" />
                                         <span className="text-sm font-medium text-gray-600">Total Mentors</span>
                                     </div>
-                                    <div className="text-2xl font-bold text-gray-900">{stats.totalMentor.toLocaleString()}</div>
+                                    {statsLoading ? (
+                                        <div className="h-8 bg-gray-200 rounded animate-pulse"></div>
+                                    ) : (
+                                        <div className="text-2xl font-bold text-gray-900">{stats.totalMentor.toLocaleString()}</div>
+                                    )}
                                 </CardContent>
                             </Card>
                             <Card className="bg-white/80 backdrop-blur-sm border-white/50">
@@ -212,7 +238,11 @@ export default function AdminDashboard() {
                                         <Building className="w-5 h-5 text-emerald-600 mr-2" />
                                         <span className="text-sm font-medium text-gray-600">Total Companies</span>
                                     </div>
-                                    <div className="text-2xl font-bold text-gray-900">{stats.totalCompanies.toLocaleString()}</div>
+                                    {statsLoading ? (
+                                        <div className="h-8 bg-gray-200 rounded animate-pulse"></div>
+                                    ) : (
+                                        <div className="text-2xl font-bold text-gray-900">{stats.totalCompanies.toLocaleString()}</div>
+                                    )}
                                 </CardContent>
                             </Card>
                             <Card className="bg-white/80 backdrop-blur-sm border-white/50">
@@ -221,7 +251,11 @@ export default function AdminDashboard() {
                                         <AlertTriangle className="w-5 h-5 text-orange-600 mr-2" />
                                         <span className="text-sm font-medium text-gray-600">Pending Company</span>
                                     </div>
-                                    <div className="text-2xl font-bold text-gray-900">{stats.companiesPendingRequest}</div>
+                                    {statsLoading ? (
+                                        <div className="h-8 bg-gray-200 rounded animate-pulse"></div>
+                                    ) : (
+                                        <div className="text-2xl font-bold text-gray-900">{stats.companiesPendingRequest}</div>
+                                    )}
                                 </CardContent>
                             </Card>
                         </div>

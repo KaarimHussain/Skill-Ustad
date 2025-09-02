@@ -141,6 +141,23 @@ export default class JobService {
     }
 
     /**
+ * Get all job applications by the current user
+ */
+    static async getApplicationsByUser(userId: string): Promise<JobApplication[]> {
+        const q = query(
+            collection(db, this.APPLICATIONS_COLLECTION),
+            where("applicantId", "==", userId),
+            orderBy("appliedAt", "desc")
+        )
+
+        const querySnapshot = await getDocs(q)
+        return querySnapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data()
+        } as JobApplication))
+    }
+
+    /**
      * Get a specific job by ID
      */
     static async getJobById(jobId: string): Promise<PostJob | null> {

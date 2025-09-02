@@ -1,5 +1,3 @@
-"use client"
-
 import type React from "react"
 
 import { useState, useEffect } from "react"
@@ -43,7 +41,7 @@ interface CourseSection {
     duration?: number
 }
 
-export default function MentorGenerateCourse() {
+export default function UserCreateCourse() {
     const navigate = useNavigate();
     const [courseTitle, setCourseTitle] = useState("")
     const [courseDescription, setCourseDescription] = useState("")
@@ -272,24 +270,6 @@ export default function MentorGenerateCourse() {
                                 onChange={(e) => updateSection(section.id, "content", e.target.value)}
                                 className="border-red-200 focus:border-red-500"
                             />
-                            <div className="flex items-center gap-2">
-                                <span className="text-sm text-muted-foreground">or</span>
-                                <label className="cursor-pointer">
-                                    <input
-                                        type="file"
-                                        accept="video/*"
-                                        className="hidden"
-                                        onChange={(e) => {
-                                            const file = e.target.files?.[0]
-                                            if (file) handleFileUpload(section.id, file)
-                                        }}
-                                    />
-                                    <Button variant="outline" size="sm" className="flex items-center gap-2 bg-transparent">
-                                        <Upload className="w-4 h-4" />
-                                        Upload Video
-                                    </Button>
-                                </label>
-                            </div>
                         </div>
                     )}
 

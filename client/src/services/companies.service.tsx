@@ -124,7 +124,7 @@ export default class CompaniesService {
         });
         const data = await response.json()
         console.log("ADDITIONAL INFO CHECK (EXIST OR NOT): ", data)
-        if(!data.exists) return false;
+        if (!data.exists) return false;
         return true;
     }
     // Update the AddAdditionalInfo method
@@ -154,4 +154,6 @@ export default class CompaniesService {
             throw new Error(errorMessage);
         }
     }
+
+    
 }

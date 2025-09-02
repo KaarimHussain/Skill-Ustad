@@ -131,8 +131,8 @@ export default function CompanyCreateJobs() {
 
                 <form onSubmit={handleSubmit} className="space-y-8">
                     {/* Basic Information */}
-                    <Card className="shadow-sm border border-gray-200">
-                        <CardHeader className="bg-indigo-500 text-white">
+                    <Card className="shadow-sm border border-gray-200 p-0 overflow-hidden">
+                        <CardHeader className="bg-indigo-500 text-white py-5">
                             <CardTitle className="flex items-center gap-2">
                                 <Briefcase className="w-5 h-5" />
                                 Basic Information
@@ -272,8 +272,8 @@ export default function CompanyCreateJobs() {
                     </Card>
 
                     {/* Salary Information */}
-                    <Card className="shadow-sm border border-gray-200">
-                        <CardHeader className="bg-indigo-500 text-white">
+                    <Card className="shadow-sm border border-gray-200 p-0 overflow-hidden">
+                        <CardHeader className="bg-indigo-500 text-white py-5">
                             <CardTitle className="flex items-center gap-2">
                                 <DollarSign className="w-5 h-5" />
                                 Salary Information
@@ -324,8 +324,8 @@ export default function CompanyCreateJobs() {
                     </Card>
 
                     {/* Job Details */}
-                    <Card className="shadow-sm border border-gray-200">
-                        <CardHeader className="bg-indigo-500 text-white">
+                    <Card className="shadow-sm border border-gray-200 p-0 overflow-hidden">
+                        <CardHeader className="bg-indigo-500 text-white py-5">
                             <CardTitle>Job Details</CardTitle>
                             <CardDescription className="text-indigo-100">
                                 Detailed information about the role
@@ -402,8 +402,8 @@ export default function CompanyCreateJobs() {
                     </Card>
 
                     {/* Skills */}
-                    <Card className="shadow-sm border border-gray-200">
-                        <CardHeader className="bg-indigo-500 text-white">
+                    <Card className="shadow-sm border border-gray-200 p-0 overflow-hidden">
+                        <CardHeader className="bg-indigo-500 text-white py-5">
                             <CardTitle>Required Skills</CardTitle>
                             <CardDescription className="text-indigo-100">
                                 Add relevant skills and technologies (max 20)
@@ -457,8 +457,8 @@ export default function CompanyCreateJobs() {
                     </Card>
 
                     {/* Application Details */}
-                    <Card className="shadow-sm border border-gray-200">
-                        <CardHeader className="bg-indigo-500 text-white">
+                    <Card className="shadow-sm border border-gray-200 p-0 overflow-hidden">
+                        <CardHeader className="bg-indigo-500 text-white py-5">
                             <CardTitle className="flex items-center gap-2">
                                 <Mail className="w-5 h-5" />
                                 Application Details

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -24,29 +24,43 @@ import {
     Globe,
     CheckCircle,
     Send,
-    Heart,
     Share2,
     Tag,
     FileText,
+    Lock,
+    LogIn,
+    Upload,
+    X,
 } from "lucide-react"
 import { Link, useParams } from "react-router-dom"
 import JobService, { type PostJob, type JobApplication } from "@/services/job.service"
 import AuthService from "@/services/auth.service"
+import UploadService from "@/services/upload.service"
 import Logo from "@/components/Logo"
 import { toast } from "sonner"
+import { useAuth } from "@/context/AuthContext"
+import NotificationService from "@/components/Notification"
 
 export default function JobDetail() {
+    // Context
+    const { isAuthenticated, userType } = useAuth()
     const { id } = useParams()
     const [job, setJob] = useState<PostJob | null>(null)
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState("")
     const [applying, setApplying] = useState(false)
     const [showApplicationModal, setShowApplicationModal] = useState(false)
+    const [hasApplied, setHasApplied] = useState(false)
+    const [applicationStatus, setApplicationStatus] = useState<string | null>(null)
+    const [resumeFile, setResumeFile] = useState<File | null>(null)
+    const [uploadingResume, setUploadingResume] = useState(false)
+    const fileInputRef = useRef<HTMLInputElement>(null)
     const [applicationData, setApplicationData] = useState({
         applicantName: "",
         applicantEmail: "",
         coverLetter: "",
-        resume: ""
+        resume: "", // This will store the Cloudinary URL
+        resumeFileName: ""
     })
 
     useEffect(() => {
@@ -56,18 +70,14 @@ export default function JobDetail() {
                 setLoading(false)
                 return
             }
-
             try {
                 setLoading(true)
                 setError("")
-
                 const jobData = await JobService.getJobById(id)
-
                 if (!jobData) {
                     setError("Job not found")
                     return
                 }
-
                 setJob(jobData)
 
                 // Pre-fill user data if authenticated
@@ -80,6 +90,18 @@ export default function JobDetail() {
                         applicantName: userData.name || ""
                     }))
                 }
+
+                const userId = AuthService.getAuthenticatedUserId();
+
+                // 👉 Check if user has already applied
+                if (isAuthenticated && userType === "Student" && userId) {
+                    const applications = await JobService.getApplicationsByUser(userId)
+                    const hasUserApplied = applications.some(app => app.jobId === id)
+                    if (hasUserApplied) {
+                        setHasApplied(true)
+                        setApplicationStatus(applications.find(app => app.jobId === id)?.status || 'pending')
+                    }
+                }
             } catch (error: any) {
                 console.error("Error fetching job:", error)
                 setError(error.message || "Failed to fetch job details")
@@ -87,44 +109,105 @@ export default function JobDetail() {
                 setLoading(false)
             }
         }
-
         fetchJob()
-    }, [id])
+    }, [id, isAuthenticated, userType])
+
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        if (!UploadService.isValidResumeFile(file)) {
+            toast.error("Invalid file format. Please upload a PDF or DOCX file.");
+            return;
+        }
+
+        setResumeFile(file);
+        setApplicationData(prev => ({
+            ...prev,
+            resumeFileName: file.name
+        }));
+    };
+
+    const handleRemoveFile = () => {
+        setResumeFile(null);
+        setApplicationData(prev => ({
+            ...prev,
+            resumeFileName: "",
+            resume: ""
+        }));
+        if (fileInputRef.current) {
+            fileInputRef.current.value = "";
+        }
+    };
 
     const handleApply = async () => {
-        if (!job?.id) return
+        if (!job?.id) return;
+        if (!isAuthenticated) {
+            NotificationService.error("Login Required", "You need to login first in order to apply");
+            return;
+        }
+        // Validate required fields
+        if (!applicationData.applicantName || !applicationData.applicantEmail || !resumeFile) {
+            NotificationService.error("Please fill in all required fields and upload your resume");
+            return;
+        }
 
         try {
-            setApplying(true)
+            setApplying(true);
+            let resumeUrl: string;
 
-            const application: Omit<JobApplication, 'id' | 'appliedAt' | 'applicantId'> = {
+            // Upload the resume file
+            setUploadingResume(true);
+            try {
+                resumeUrl = await UploadService.uploadFile(resumeFile);
+                console.log("RESUME URL: ", resumeUrl);
+                // Ensure we have a valid URL
+                if (!resumeUrl || resumeUrl.trim() === "") {
+                    throw new Error("Upload service returned invalid URL");
+                }
+
+                toast.success("Resume uploaded successfully");
+            } catch (error) {
+                console.error("Error uploading resume:", error);
+                toast.error("Failed to upload resume. Please try again.");
+                setApplying(false);
+                setUploadingResume(false);
+                return;
+            } finally {
+                setUploadingResume(false);
+            }
+
+            const userData = AuthService.getAuthenticatedUserData();
+            const application: Omit<JobApplication, 'id' | 'appliedAt'> = {
                 jobId: job.id,
                 applicantName: applicationData.applicantName,
                 applicantEmail: applicationData.applicantEmail,
-                coverLetter: applicationData.coverLetter,
-                resume: applicationData.resume,
-                status: 'pending'
-            }
+                coverLetter: applicationData.coverLetter || "", // Ensure not undefined
+                resume: resumeUrl, // Now guaranteed to be a valid string
+                status: 'pending',
+                applicantId: userData.uid || ''
+            };
 
-            await JobService.applyForJob(application)
-
-            toast.success("Application submitted successfully!")
-            setShowApplicationModal(false)
+            await JobService.applyForJob(application);
+            toast.success("Application submitted successfully!");
+            setShowApplicationModal(false);
+            setHasApplied(true);
+            setApplicationStatus('pending');
 
             // Update job data to reflect new application count
             if (job) {
                 setJob({
                     ...job,
                     applicationsCount: (job.applicationsCount || 0) + 1
-                })
+                });
             }
         } catch (error: any) {
-            console.error("Error applying for job:", error)
-            toast.error(error.message || "Failed to submit application")
+            console.error("Error applying for job:", error);
+            toast.error(error.message || "Failed to submit application");
         } finally {
-            setApplying(false)
+            setApplying(false);
         }
-    }
+    };
 
     const formatSalary = (min: string, max: string, currency: string) => {
         if (!min && !max) return "Salary not specified"
@@ -203,6 +286,7 @@ export default function JobDetail() {
             toast.success("Job link copied to clipboard!")
         }
     }
+
     if (loading) {
         return (
             <div className="min-h-screen bg-background pt-18">
@@ -268,10 +352,6 @@ export default function JobDetail() {
                             <Button variant="outline" size="sm" onClick={handleShare}>
                                 <Share2 className="h-4 w-4 mr-2" />
                                 <span className="hidden sm:inline">Share</span>
-                            </Button>
-                            <Button variant="outline" size="sm">
-                                <Heart className="h-4 w-4 mr-2" />
-                                <span className="hidden sm:inline">Save</span>
                             </Button>
                         </div>
                     </div>
@@ -346,117 +426,199 @@ export default function JobDetail() {
                             </div>
 
                             <div className="flex flex-col gap-3 lg:min-w-[200px]">
-                                {isDeadlinePassed() ? (
-                                    <Button disabled className="w-full">
-                                        <AlertCircle className="mr-2 w-4 h-4" />
-                                        Application Closed
-                                    </Button>
-                                ) : (
-                                    <Dialog open={showApplicationModal} onOpenChange={setShowApplicationModal}>
-                                        <DialogTrigger asChild>
-                                            <Button className="w-full bg-indigo-500 hover:bg-indigo-600">
-                                                <Send className="mr-2 w-4 h-4" />
-                                                Apply Now
+                                {userType == "Student" && (
+                                    <>
+                                        {isDeadlinePassed() ? (
+                                            <Button disabled className="w-full">
+                                                <AlertCircle className="mr-2 w-4 h-4" />
+                                                Application Closed
                                             </Button>
-                                        </DialogTrigger>
-                                        <DialogContent className="max-w-md">
-                                            <DialogHeader>
-                                                <DialogTitle>Apply for {job.title}</DialogTitle>
-                                            </DialogHeader>
-                                            <div className="space-y-4">
-                                                <div>
-                                                    <Label htmlFor="name">Full Name *</Label>
-                                                    <Input
-                                                        id="name"
-                                                        value={applicationData.applicantName}
-                                                        onChange={(e) => setApplicationData(prev => ({
-                                                            ...prev,
-                                                            applicantName: e.target.value
-                                                        }))}
-                                                        placeholder="Your full name"
-                                                        required
-                                                    />
-                                                </div>
-                                                <div>
-                                                    <Label htmlFor="email">Email Address *</Label>
-                                                    <Input
-                                                        id="email"
-                                                        type="email"
-                                                        value={applicationData.applicantEmail}
-                                                        onChange={(e) => setApplicationData(prev => ({
-                                                            ...prev,
-                                                            applicantEmail: e.target.value
-                                                        }))}
-                                                        placeholder="your.email@example.com"
-                                                        required
-                                                    />
-                                                </div>
-                                                <div>
-                                                    <Label htmlFor="resume">Resume/CV Link</Label>
-                                                    <Input
-                                                        id="resume"
-                                                        value={applicationData.resume}
-                                                        onChange={(e) => setApplicationData(prev => ({
-                                                            ...prev,
-                                                            resume: e.target.value
-                                                        }))}
-                                                        placeholder="Link to your resume (Google Drive, LinkedIn, etc.)"
-                                                    />
-                                                </div>
-                                                <div>
-                                                    <Label htmlFor="coverLetter">Cover Letter</Label>
-                                                    <Textarea
-                                                        id="coverLetter"
-                                                        value={applicationData.coverLetter}
-                                                        onChange={(e) => setApplicationData(prev => ({
-                                                            ...prev,
-                                                            coverLetter: e.target.value
-                                                        }))}
-                                                        placeholder="Tell us why you're interested in this position..."
-                                                        rows={4}
-                                                    />
-                                                </div>
-                                                <div className="flex gap-2 pt-4">
-                                                    <Button
-                                                        variant="outline"
-                                                        onClick={() => setShowApplicationModal(false)}
-                                                        className="flex-1"
-                                                    >
-                                                        Cancel
+                                        ) : hasApplied ? (
+                                            <Button disabled className="w-full bg-green-500">
+                                                <CheckCircle className="mr-2 w-4 h-4" />
+                                                {applicationStatus === 'pending' ? 'Applied (Pending)' :
+                                                    applicationStatus === 'accepted' ? 'Application Accepted' :
+                                                        applicationStatus === 'rejected' ? 'Application Rejected' : 'Applied'}
+                                            </Button>
+                                        ) : (
+                                            <Dialog open={showApplicationModal} onOpenChange={setShowApplicationModal}>
+                                                <DialogTrigger asChild>
+                                                    <Button className="w-full bg-indigo-500 hover:bg-indigo-600">
+                                                        <Send className="mr-2 w-4 h-4" />
+                                                        Apply Now
                                                     </Button>
-                                                    <Button
-                                                        onClick={handleApply}
-                                                        disabled={applying || !applicationData.applicantName || !applicationData.applicantEmail}
-                                                        className="flex-1 bg-indigo-500 hover:bg-indigo-600"
-                                                    >
-                                                        {applying ? (
-                                                            <>
-                                                                <Loader2 className="mr-2 w-4 h-4 animate-spin" />
-                                                                Submitting...
-                                                            </>
-                                                        ) : (
-                                                            <>
-                                                                <Send className="mr-2 w-4 h-4" />
-                                                                Submit Application
-                                                            </>
-                                                        )}
-                                                    </Button>
-                                                </div>
-                                            </div>
-                                        </DialogContent>
-                                    </Dialog>
-                                )}
+                                                </DialogTrigger>
+                                                <DialogContent className="max-w-md">
+                                                    {isAuthenticated ? (
+                                                        <>
+                                                            <DialogHeader>
+                                                                <DialogTitle className="text-3xl mb-3">Apply for {job.title}</DialogTitle>
+                                                            </DialogHeader>
+                                                            <div className="space-y-4">
+                                                                <div>
+                                                                    <Label htmlFor="name">Full Name *</Label>
+                                                                    <Input
+                                                                        id="name"
+                                                                        value={applicationData.applicantName}
+                                                                        onChange={(e) => setApplicationData(prev => ({
+                                                                            ...prev,
+                                                                            applicantName: e.target.value
+                                                                        }))}
+                                                                        placeholder="Your full name"
+                                                                        required
+                                                                    />
+                                                                </div>
+                                                                <div>
+                                                                    <Label htmlFor="email">Email Address *</Label>
+                                                                    <Input
+                                                                        id="email"
+                                                                        type="email"
+                                                                        value={applicationData.applicantEmail}
+                                                                        onChange={(e) => setApplicationData(prev => ({
+                                                                            ...prev,
+                                                                            applicantEmail: e.target.value
+                                                                        }))}
+                                                                        placeholder="your.email@example.com"
+                                                                        required
+                                                                    />
+                                                                </div>
+                                                                <div>
+                                                                    <Label htmlFor="resumeUpload">Resume/CV (PDF or DOCX) *</Label>
+                                                                    <div className="mt-1">
+                                                                        {applicationData.resumeFileName ? (
+                                                                            <div className="flex items-center justify-between p-2 border rounded-md bg-slate-50">
+                                                                                <div className="flex items-center">
+                                                                                    <FileText className="h-4 w-4 mr-2 text-blue-500" />
+                                                                                    <span className="text-sm truncate max-w-[200px]">
+                                                                                        {applicationData.resumeFileName}
+                                                                                    </span>
+                                                                                </div>
+                                                                                <Button
+                                                                                    variant="ghost"
+                                                                                    size="sm"
+                                                                                    onClick={handleRemoveFile}
+                                                                                    type="button"
+                                                                                >
+                                                                                    <X className="h-4 w-4 text-gray-500" />
+                                                                                </Button>
+                                                                            </div>
+                                                                        ) : (
+                                                                            <div className="flex items-center justify-center p-4 border-2 border-dashed rounded-md border-gray-300 cursor-pointer" onClick={() => fileInputRef.current?.click()}>
+                                                                                <div className="space-y-1 text-center">
+                                                                                    <Upload className="mx-auto h-8 w-8 text-gray-400" />
+                                                                                    <div className="text-sm text-gray-600">
+                                                                                        <label htmlFor="file-upload" className="relative cursor-pointer rounded-md font-medium text-indigo-600 hover:text-indigo-500">
+                                                                                            <span>Upload a file</span>
+                                                                                        </label>
+                                                                                        <p className="pl-1">or drag and drop</p>
+                                                                                    </div>
+                                                                                    <p className="text-xs text-gray-500">PDF or DOCX up to 10MB</p>
+                                                                                </div>
+                                                                                <input
+                                                                                    ref={fileInputRef}
+                                                                                    id="resumeUpload"
+                                                                                    name="resumeUpload"
+                                                                                    type="file"
+                                                                                    className="sr-only"
+                                                                                    accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                                                                                    onChange={handleFileChange}
+                                                                                />
+                                                                            </div>
+                                                                        )}
+                                                                    </div>
+                                                                </div>
+                                                                <div>
+                                                                    <Label htmlFor="coverLetter">Cover Letter</Label>
+                                                                    <Textarea
+                                                                        id="coverLetter"
+                                                                        value={applicationData.coverLetter}
+                                                                        onChange={(e) => setApplicationData(prev => ({
+                                                                            ...prev,
+                                                                            coverLetter: e.target.value
+                                                                        }))}
+                                                                        placeholder="Tell us why you're interested in this position..."
+                                                                        rows={4}
+                                                                    />
+                                                                </div>
+                                                                <div className="flex gap-2 pt-4">
+                                                                    <Button
+                                                                        variant="outline"
+                                                                        onClick={() => setShowApplicationModal(false)}
+                                                                        className="flex-1"
+                                                                    >
+                                                                        Cancel
+                                                                    </Button>
+                                                                    <Button
+                                                                        onClick={handleApply}
+                                                                        disabled={applying || uploadingResume || !applicationData.applicantName || !applicationData.applicantEmail || !resumeFile}
+                                                                        className="flex-1 bg-indigo-500 hover:bg-indigo-600"
+                                                                    >
+                                                                        {applying ? (
+                                                                            <>
+                                                                                <Loader2 className="mr-2 w-4 h-4 animate-spin" />
+                                                                                Submitting...
+                                                                            </>
+                                                                        ) : uploadingResume ? (
+                                                                            <>
+                                                                                <Loader2 className="mr-2 w-4 h-4 animate-spin" />
+                                                                                Uploading Resume...
+                                                                            </>
+                                                                        ) : (
+                                                                            <>
+                                                                                <Send className="mr-2 w-4 h-4" />
+                                                                                Submit Application
+                                                                            </>
+                                                                        )}
+                                                                    </Button>
+                                                                </div>
+                                                            </div>
+                                                        </>
+                                                    ) : (
+                                                        <>
+                                                            <DialogHeader>
+                                                                <DialogTitle className="text-2xl font-bold text-center">
+                                                                    <Lock className="w-12 h-12 mx-auto mb-2 text-indigo-500" />
+                                                                    Login Required
+                                                                </DialogTitle>
+                                                            </DialogHeader>
+                                                            <div className="p-6 text-center space-y-4">
+                                                                <p className="text-lg text-muted-foreground">
+                                                                    You need to login first to apply for this position.
+                                                                </p>
+                                                                <div className="flex flex-col gap-3">
+                                                                    <Link to="/login">
+                                                                        <Button className="w-full bg-indigo-500 hover:bg-indigo-600">
+                                                                            <LogIn className="w-4 h-4 mr-2" />
+                                                                            Login to Continue
+                                                                        </Button>
+                                                                    </Link>
+                                                                    <div className="text-sm text-muted-foreground">
+                                                                        Don't have an account?{" "}
+                                                                        <Link to="/register" className="text-indigo-500 hover:underline">
+                                                                            Sign up
+                                                                        </Link>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </>
+                                                    )}
+                                                </DialogContent>
+                                            </Dialog>
+                                        )}
 
-                                {job.applicationDeadline && (
-                                    <div className="text-center text-sm text-muted-foreground">
-                                        <Calendar className="w-4 h-4 inline mr-1" />
-                                        Deadline: {formatDate(new Date(job.applicationDeadline))}
-                                    </div>
+                                        {job.applicationDeadline && (
+                                            <div className="text-center text-sm text-muted-foreground">
+                                                <Calendar className="w-4 h-4 inline mr-1" />
+                                                Deadline: {formatDate(new Date(job.applicationDeadline))}
+                                            </div>
+                                        )}
+                                    </>
                                 )}
                             </div>
                         </div>
                     </CardHeader>
                 </Card>
+
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     {/* Main Content */}
                     <div className="lg:col-span-2 space-y-6">

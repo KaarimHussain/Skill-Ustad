@@ -2,7 +2,6 @@
 
 import React, { useState, useCallback } from "react"
 import { Eye, EyeOff, Mail, Lock, ArrowRight, Building2, AlertCircle, CheckCircle, Loader2, Users } from "lucide-react"
-import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
@@ -312,28 +311,6 @@ export default function CompaniesLogin() {
                 {touched.password && !errors.password && formData.password && (
                   <SuccessMessage message="Password is secure!" />
                 )}
-              </div>
-
-              {/* Remember Me and Forgot Password */}
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-3">
-                  <Checkbox
-                    id="remember"
-                    checked={formData.rememberMe}
-                    onCheckedChange={(checked) => setFormData((prev) => ({ ...prev, rememberMe: !!checked }))}
-                    disabled={isLoading}
-                    className="border-gray-400 data-[state=checked]:bg-indigo-500 data-[state=checked]:border-indigo-500 w-5 h-5"
-                  />
-                  <Label htmlFor="remember" className="text-gray-600 text-base cursor-pointer">
-                    Remember me
-                  </Label>
-                </div>
-                <button
-                  type="button"
-                  className="text-indigo-600 hover:text-indigo-700 text-base font-medium transition-colors hover:underline"
-                >
-                  Forgot password?
-                </button>
               </div>
 
               {/* Login Button */}

@@ -19,6 +19,7 @@ import {
     LayoutDashboard,
     User,
     TriangleAlert,
+    DollarSign,
 } from "lucide-react"
 import navStyle from "../css/Navbar.module.css"
 import clsx from "clsx"
@@ -185,7 +186,7 @@ const DesktopNavigationContent = memo(
                                     </Link>
                                 </NavigationMenuLink>
                             </li>
-                            <li className="row-span-2 col-span-2">
+                            <li className="row-span-1 col-span-2">
                                 <NavigationMenuLink asChild>
                                     <Link
                                         to="/blogs"
@@ -201,6 +202,28 @@ const DesktopNavigationContent = memo(
                                                 </div>
                                                 <p className="text-gray-600 text-xs leading-relaxed">
                                                     Discover insightful articles, tutorials, and industry insights from experts and community members
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </Link>
+                                </NavigationMenuLink>
+                            </li>
+                            <li className="row-span-1 col-span-2">
+                                <NavigationMenuLink asChild>
+                                    <Link
+                                        to="/jobs"
+                                        className="block p-4 rounded-xl bg-cyan-50/60 hover:bg-cyan-100/80 border border-cyan-200/60 hover:border-cyan-300/60 transition-all duration-200 group backdrop-blur-sm"
+                                    >
+                                        <div className="flex items-start gap-3">
+                                            <div className="p-2 bg-cyan-100 rounded-lg group-hover:bg-cyan-200 transition-colors">
+                                                <DollarSign className="w-5 h-5 text-cyan-600" />
+                                            </div>
+                                            <div className="flex-1">
+                                                <div className="font-medium text-gray-900 text-sm mb-1 group-hover:text-cyan-800 transition-colors">
+                                                    Jobs
+                                                </div>
+                                                <p className="text-gray-600 text-xs leading-relaxed">
+                                                    Find your Dream Tech or Non Tech Job!
                                                 </p>
                                             </div>
                                         </div>

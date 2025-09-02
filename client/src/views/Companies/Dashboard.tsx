@@ -15,7 +15,6 @@ export default function CompanyDashboard() {
         totalApplications: 0,
     })
 
-
     const handleCompanyName = async () => {
         const name = CompaniesService.getCompanyName() || "Company";
         console.log(name);

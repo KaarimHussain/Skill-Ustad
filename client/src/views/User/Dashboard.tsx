@@ -70,7 +70,7 @@ const quickLinks = [
         iconBg: "bg-blue-100",
         iconColor: "text-blue-600",
         action: "courses",
-        link: "/user/courses",
+        link: "/courses",
     },
     {
         title: "Take Quiz",
@@ -94,18 +94,29 @@ const quickLinks = [
         action: "progress",
         link: "/community",
     },
+    {
+        title: "Jobs",
+        description: "Find your dream tech job",
+        icon: DollarSign,
+        color: "from-teal-500 to-cyan-600",
+        bgColor: "bg-gradient-to-br from-teal-50 to-cyan-50",
+        iconBg: "bg-teal-100",
+        iconColor: "text-teal-600",
+        action: "jobs",
+        link: "/jobs",
+    },
 ]
 const contentToolLinks = [
     {
         title: "Lessons",
-        description: "A Full fledged course editor where you can manage courses",
+        description: "A Full fledged course editor and manager where you can manage courses",
         icon: BookOpen,
         color: "from-blue-500 to-cyan-500",
         bgColor: "bg-gradient-to-br from-blue-50 to-cyan-50",
         iconBg: "bg-blue-100",
         iconColor: "text-blue-600",
         action: "create_lessons",
-        link: "/users/course",
+        link: "/user/course",
     },
     {
         title: "Schedule Live Sessions",
@@ -189,7 +200,7 @@ export default function UserDashboard() {
 
         const roadmapsCached = cacheManager.has(CACHE_KEYS.USER_ROADMAPS(userId))
         const progressCached = cacheManager.has(CACHE_KEYS.USER_PROGRESS(userId))
-        
+
         setCacheStatus({ roadmaps: roadmapsCached, progress: progressCached })
     }
 
@@ -236,12 +247,12 @@ export default function UserDashboard() {
                 cacheManager.invalidate(CACHE_KEYS.USER_ROADMAPS(userId))
                 cacheManager.invalidate(CACHE_KEYS.USER_PROGRESS(userId))
             }
-            
+
             await Promise.all([
                 getRoadmapData(false), // Force fresh data
                 getProgressData(false)  // Force fresh data
             ])
-            
+
             toast.success("Data refreshed", {
                 description: "Your dashboard has been updated with the latest information."
             })
