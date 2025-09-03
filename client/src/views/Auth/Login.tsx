@@ -206,7 +206,6 @@ export default function Login() {
     },
     [formData, isFormValid],
   )
-
   // Handle OAuth login (for users who registered with OAuth)
   // Handle Google OAuth login: send token to backend, handle response
   const handleOAuthLogin = useCallback(

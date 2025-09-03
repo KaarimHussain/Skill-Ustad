@@ -27,6 +27,7 @@ import {
     MessageCircle,
     Lightbulb,
     RefreshCw,
+    Building,
 } from "lucide-react"
 import {
     AlertDialog,
@@ -149,7 +150,18 @@ const contentToolLinks = [
         iconBg: "bg-purple-100",
         iconColor: "text-purple-600",
         action: "ai_suggestions",
-        link: "/user/find-mentors",
+        link: "/user/find-mentor",
+    },
+    {
+        title: "Find Company",
+        description: "Connect with Enterprises and view there goals",
+        icon: Building,
+        color: "from-red-500 to-rose-500",
+        bgColor: "bg-gradient-to-br from-red-50 to-rose-50",
+        iconBg: "bg-red-100",
+        iconColor: "text-red-600",
+        action: "ai_suggestions",
+        link: "/user/find-company",
     },
 ]
 export default function UserDashboard() {

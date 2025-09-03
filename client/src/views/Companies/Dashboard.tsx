@@ -1,7 +1,7 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { useEffect, useState } from "react";
 import { Calendar, FileUser, BookCopy, User2 } from "lucide-react";
-import CompaniesService from "@/services/companies.service";
+import CompaniesService, { type CompanyDashboardStats } from "@/services/companies.service";
 import { Link, useNavigate } from "react-router-dom";
 import AuthService from "@/services/auth.service";
 
@@ -10,7 +10,7 @@ export default function CompanyDashboard() {
     const navigate = useNavigate();
 
     const [companyName, setCompanyName] = useState<string | null>("Company")
-    const [stats,] = useState({
+    const [stats, setStats] = useState<CompanyDashboardStats>({
         totalJobs: 0,
         totalApplications: 0,
     })
@@ -18,8 +18,16 @@ export default function CompanyDashboard() {
     const handleCompanyName = async () => {
         const name = CompaniesService.getCompanyName() || "Company";
         console.log(name);
-
         setCompanyName(await name);
+    }
+
+    const fetchStats = async () => {
+        try {
+            const statsData = await CompaniesService.GetCompanyStats();
+            setStats(statsData);
+        } catch (error) {
+            console.error("Error fetching stats:", error);
+        }
     }
 
     const InfoCheck = async () => {
@@ -36,7 +44,8 @@ export default function CompanyDashboard() {
     useEffect(() => {
         InfoCheck();
         handleCompanyName();
-    })
+        fetchStats();
+    }, [])
 
     return (
         <div className="min-h-screen bg-gray-50">

@@ -1,6 +1,8 @@
 import axios from "axios"
 import type { StoredUser } from "./auth.service"
 import AuthService from "./auth.service"
+import { db } from "@/lib/firebase"
+import { collection, query, where, getDocs } from "firebase/firestore"
 
 export interface CompanyLoginRequest {
     CompanyEmail: string,
@@ -12,11 +14,6 @@ export interface CompanyRegisterRequest {
     companyEmail: string,
     website: string,
     password: string
-}
-
-export interface CompanyDashboardStats {
-    totalJobs: number,
-    totalApplication: number
 }
 
 // Update your CompanyAdditionalInfo interface to match the backend DTO
@@ -32,6 +29,11 @@ export interface CompanyAdditionalInfoRequest {
     EmployeeCount: number | null;
     CompanyDescription: string;
     LinkedInUrl: string | null;
+}
+
+export interface CompanyDashboardStats {
+    totalJobs: number,
+    totalApplications: number
 }
 
 export default class CompaniesService {
@@ -127,7 +129,6 @@ export default class CompaniesService {
         if (!data.exists) return false;
         return true;
     }
-    // Update the AddAdditionalInfo method
     static async AddAdditionalInfo(request: CompanyAdditionalInfoRequest) {
         try {
             const response = await axios.post(`${this.BASE_URL}/api/company/additional-info/add`, request, {
@@ -154,6 +155,35 @@ export default class CompaniesService {
             throw new Error(errorMessage);
         }
     }
+    static async GetCompanyStats(): Promise<CompanyDashboardStats> {
+        try {
+            const userId = AuthService.getAuthenticatedUserId();
+            if (!userId) {
+                throw new Error("User not authenticated");
+            }
 
-    
+            // Get jobs count
+            const jobsRef = collection(db, "jobs");
+            const jobsQuery = query(jobsRef, where("companyId", "==", userId));
+            const jobsSnapshot = await getDocs(jobsQuery);
+            const totalJobs = jobsSnapshot.size;
+
+            // Get applications count
+            const applicationsRef = collection(db, "job-applications");
+            const applicationsQuery = query(applicationsRef, where("companyId", "==", userId));
+            const applicationsSnapshot = await getDocs(applicationsQuery);
+            const totalApplications = applicationsSnapshot.size;
+
+            return {
+                totalJobs,
+                totalApplications
+            };
+        } catch (error) {
+            console.error("Error fetching company stats:", error);
+            return {
+                totalJobs: 0,
+                totalApplications: 0
+            };
+        }
+    }
 }

@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using SkillUstad.Data;
 using SkillUstad.Service;
+using SkillUstad.Services;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -11,6 +12,10 @@ builder.Services.AddControllers();
 // Adding all the Services
 // builder.Services.AddSingleton<ICloudinaryService, CloudinaryService>();
 builder.Services.AddSingleton<EmailService>();
+builder.Services.AddScoped<IMentorService, MentorService>();
+builder.Services.AddScoped<ICompanyService, CompanyService>();
+
+
 
 builder.Services.AddDbContext<SkillUstadDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("UstadConnection")));

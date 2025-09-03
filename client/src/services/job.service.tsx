@@ -35,6 +35,7 @@ export interface PostJobRequest {
 export interface PostJob extends PostJobRequest {
     id?: string;
     company: CompanyInfo;
+    companyId: string; // Add companyId field for easy querying
     createdAt?: any;
     updatedAt?: any;
     status?: 'active' | 'inactive' | 'closed';
@@ -44,6 +45,7 @@ export interface PostJob extends PostJobRequest {
 export interface JobApplication {
     id?: string;
     jobId: string;
+    companyId: string; // Add companyId field for easy querying
     applicantId: string;
     applicantName: string;
     applicantEmail: string;
@@ -91,6 +93,7 @@ export default class JobService {
         const jobToCreate: Omit<PostJob, 'id'> = {
             ...jobData,
             company: companyInfo,
+            companyId: userId, // Add companyId field for easy querying
             createdAt: serverTimestamp(),
             updatedAt: serverTimestamp(),
             status: 'active',
@@ -113,6 +116,23 @@ export default class JobService {
         const q = query(
             collection(db, this.JOBS_COLLECTION),
             where("company.id", "==", userId),
+            orderBy("createdAt", "desc")
+        );
+
+        const querySnapshot = await getDocs(q);
+        return querySnapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data()
+        } as PostJob));
+    }
+
+    /**
+     * Get all jobs posted by the current company
+     */
+    static async getCompanyJobsById(companyId: string): Promise<PostJob[]> {
+        const q = query(
+            collection(db, this.JOBS_COLLECTION),
+            where("companyId", "==", companyId),
             orderBy("createdAt", "desc")
         );
 
@@ -239,10 +259,25 @@ export default class JobService {
     /**
      * Apply for a job
      */
-    static async applyForJob(application: Omit<JobApplication, 'id' | 'appliedAt' | 'applicantId'>): Promise<string> {
+    static async applyForJob(application: Omit<JobApplication, 'id' | 'appliedAt' | 'applicantId' | 'companyId'>): Promise<string> {
         const userId = AuthService.getAuthenticatedUserId();
         if (!userId) {
             throw new Error("Authentication required to apply for jobs");
+        }
+
+        // Get job details to extract companyId
+        const jobRef = doc(db, this.JOBS_COLLECTION, application.jobId);
+        const jobDoc = await getDoc(jobRef);
+
+        if (!jobDoc.exists()) {
+            throw new Error("Job not found");
+        }
+
+        const jobData = jobDoc.data() as PostJob;
+        const companyId = jobData.companyId || jobData.company?.id;
+
+        if (!companyId) {
+            throw new Error("Company information not found for this job");
         }
 
         // Check if already applied
@@ -260,6 +295,7 @@ export default class JobService {
         const applicationToCreate = {
             ...application,
             applicantId: userId,
+            companyId: companyId, // Add companyId to the application
             appliedAt: serverTimestamp(),
             status: 'pending' as const
         };
@@ -267,10 +303,8 @@ export default class JobService {
         const docRef = await addDoc(collection(db, this.APPLICATIONS_COLLECTION), applicationToCreate);
 
         // Update job applications count
-        const jobRef = doc(db, this.JOBS_COLLECTION, application.jobId);
-        const jobDoc = await getDoc(jobRef);
         if (jobDoc.exists()) {
-            const currentCount = jobDoc.data().applicationsCount || 0;
+            const currentCount = jobData.applicationsCount || 0;
             await updateDoc(jobRef, {
                 applicationsCount: currentCount + 1
             });

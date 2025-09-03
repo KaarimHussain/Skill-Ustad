@@ -71,16 +71,15 @@ export default function Profile() {
         id: "",
         user: null,
         userId: "",
-        name: "John Doe",
+        name: "",
         profilePicture: null,
-        currentLevelOfEducation: "Bachelor's Degree",
-        levelOfExpertise: "Intermediate",
-        fieldOfExpertise: "Software Development",
-        userInterestsAndGoals:
-            "Passionate about building scalable web applications and learning new technologies. Currently focusing on cloud architecture and DevOps practices. Goal is to become a senior technical lead within the next 2 years.",
+        currentLevelOfEducation: "",
+        levelOfExpertise: "",
+        fieldOfExpertise: "",
+        userInterestsAndGoals: "",
         gender: "Male",
-        city: "San Francisco, CA",
-        address: "123 Tech Street, San Francisco, CA 94105",
+        city: "",
+        address: "",
     })
     const [editData, setEditData] = useState(profileData)
     const [settings, setSettings] = useState({
@@ -89,21 +88,42 @@ export default function Profile() {
         showLocation: true,
         showGender: true,
     })
+    const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
+    const [isSettingsDialogOpen, setIsSettingsDialogOpen] = useState(false)
+    const [isSaving, setIsSaving] = useState(false)
+    // const [isLoading, setIsLoading] = useState(true)
 
     const handleSaveProfile = async () => {
+        if (!editData.name.trim()) {
+            NotificationService.error("Validation Error", "Name is required.");
+            return;
+        }
+
+        setIsSaving(true);
         try {
             await ProfileService.updateStudentProfile(profileData.id, editData);
             console.log("Profile saved:", editData);
             setProfileData(editData);
+            setIsEditDialogOpen(false);
             NotificationService.success("Profile updated successfully", "Your changes have been saved.");
         } catch (error: any) {
             console.error("Error updating profile:", error);
-            NotificationService.error("Profile update failed", "An error occurred while updating your profile.");
+            NotificationService.error("Profile update failed", error.message || "An error occurred while updating your profile.");
+        } finally {
+            setIsSaving(false);
         }
     }
 
     const handleSaveSettings = () => {
-        console.log("Settings saved:", settings)
+        // In a real app, you'd save settings to backend
+        console.log("Settings saved:", settings);
+        setIsSettingsDialogOpen(false);
+        NotificationService.success("Settings updated", "Your preferences have been saved.");
+    }
+
+    const handleCancelEdit = () => {
+        setEditData(profileData); // Reset to original data
+        setIsEditDialogOpen(false);
     }
 
     const getData = async () => {
@@ -146,7 +166,7 @@ export default function Profile() {
                                 {/* Action Buttons */}
                                 <div className="absolute top-4 right-4 flex gap-2">
                                     {/* Edit Profile Dialog */}
-                                    <Dialog>
+                                    <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
                                         <DialogTrigger asChild>
                                             <Button size="sm" variant="ghost" className="h-8 w-8 p-0 hover:bg-indigo-100 text-indigo-600">
                                                 <Edit className="h-4 w-4" />
@@ -259,21 +279,27 @@ export default function Profile() {
                                                 </div>
 
                                                 <div className="flex justify-end gap-2 pt-4">
-                                                    <DialogTrigger asChild>
-                                                        <Button variant="outline">Cancel</Button>
-                                                    </DialogTrigger>
-                                                    <DialogTrigger asChild>
-                                                        <Button onClick={handleSaveProfile} className="bg-indigo-600 hover:bg-indigo-700">
-                                                            Save Changes
-                                                        </Button>
-                                                    </DialogTrigger>
+                                                    <Button
+                                                        variant="outline"
+                                                        onClick={handleCancelEdit}
+                                                        disabled={isSaving}
+                                                    >
+                                                        Cancel
+                                                    </Button>
+                                                    <Button
+                                                        onClick={handleSaveProfile}
+                                                        className="bg-indigo-600 hover:bg-indigo-700"
+                                                        disabled={isSaving}
+                                                    >
+                                                        {isSaving ? "Saving..." : "Save Changes"}
+                                                    </Button>
                                                 </div>
                                             </div>
                                         </DialogContent>
                                     </Dialog>
 
                                     {/* Settings Dialog */}
-                                    <Dialog>
+                                    <Dialog open={isSettingsDialogOpen} onOpenChange={setIsSettingsDialogOpen}>
                                         <DialogTrigger asChild>
                                             <Button size="sm" variant="ghost" className="h-8 w-8 p-0 hover:bg-indigo-100 text-indigo-600">
                                                 <Settings className="h-4 w-4" />

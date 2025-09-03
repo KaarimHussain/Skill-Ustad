@@ -31,6 +31,7 @@ import {
     LogIn,
     Upload,
     X,
+    ExternalLink,
 } from "lucide-react"
 import { Link, useParams } from "react-router-dom"
 import JobService, { type PostJob, type JobApplication } from "@/services/job.service"
@@ -151,6 +152,11 @@ export default function JobDetail() {
             NotificationService.error("Please fill in all required fields and upload your resume");
             return;
         }
+        const userId = AuthService.getAuthenticatedUserId();
+
+        if (userId == null) {
+            NotificationService.error("Login Required", "You need to login first in order to apply");
+        }
 
         try {
             setApplying(true);
@@ -179,6 +185,7 @@ export default function JobDetail() {
 
             const userData = AuthService.getAuthenticatedUserData();
             const application: Omit<JobApplication, 'id' | 'appliedAt'> = {
+                companyId: userId!,
                 jobId: job.id,
                 applicantName: applicationData.applicantName,
                 applicantEmail: applicationData.applicantEmail,
@@ -696,7 +703,16 @@ export default function JobDetail() {
                             <CardContent className="space-y-4">
                                 <div>
                                     <div className="text-sm font-medium text-muted-foreground">Company</div>
-                                    <div className="font-medium">{job.company.name}</div>
+                                    <div className="flex gap-2 items-center">
+                                        <div className="font-medium">{job.company.name}</div>
+                                        {userType == "Student" && (
+                                            <Button size="icon" className="bg-indigo-500 hover:bg-indigo-600 cursor-pointer">
+                                                <Link to={`/user/find-company/${job.companyId}`}>
+                                                    <ExternalLink className="w-4 h-4" />
+                                                </Link>
+                                            </Button>
+                                        )}
+                                    </div>
                                 </div>
                                 <div>
                                     <div className="text-sm font-medium text-muted-foreground">Location</div>

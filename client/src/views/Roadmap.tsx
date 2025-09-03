@@ -304,7 +304,7 @@ export default function Roadmap() {
                         <div className="space-y-4">
                             {sortedRoadmaps.map((roadmap) => (
                                 <Link key={roadmap.id} to={`/user/roadmap/${roadmap.id}`}>
-                                    <Card className="hover:shadow-md transition-shadow cursor-pointer">
+                                    <Card className="hover:shadow-md transition-shadow cursor-pointer mb-3">
                                         <CardContent>
                                             <div className="flex flex-col sm:flex-row gap-4">
                                                 {/* Roadmap Content */}

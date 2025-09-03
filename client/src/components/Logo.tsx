@@ -10,8 +10,8 @@ export default function Logo({ varient = "light", logoOnly = false }) {
                     <img className="h-10 w-10 aspect-square object-cover" src={logoDark} alt="Skill-Ustad" />
                     {!logoOnly && (
                         <p className="font-bold text-white lg:text-3xl md:text-2xl sm:text-xl text-xl text-nowrap">
-                        Skill-Ustad
-                    </p>
+                            SKILL-USTAAD
+                        </p>
                     )}
                 </div>
             </Link>
@@ -23,7 +23,7 @@ export default function Logo({ varient = "light", logoOnly = false }) {
                     <img className="h-10 w-10 aspect-square object-cover" src={logoWhite} alt="Skill-Ustad" />
                     {!logoOnly && (
                         <p className="font-bold text-black lg:text-3xl md:text-2xl sm:text-xl text-xl text-nowrap">
-                            Skill-Ustad
+                            SKILL-USTAAD
                         </p>
                     )}
                 </div>

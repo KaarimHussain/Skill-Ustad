@@ -1129,6 +1129,10 @@ export default function LearnRoadmap() {
                                 >
                                     {isInterviewStart ? "Starting..." : "Conduct Interview"}
                                 </Button>
+
+                                <Button variant="outline" onClick={() => navigate("/jobs")}>
+                                    Explore Jobs
+                                </Button>
                                 <Button variant="outline" onClick={() => setShowInterviewDialog(false)}>
                                     Maybe Later
                                 </Button>

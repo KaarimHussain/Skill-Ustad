@@ -75,6 +75,10 @@ import Jobs from './views/Jobs';
 import JobDetail from './views/JobDetail';
 import UserCourse from './views/User/Course';
 import UserCreateCourse from './views/User/CreateCourse';
+import FindMentor from './views/User/FindMentor';
+import FindCompany from './views/User/FindCompany';
+import UserMentorDetails from './views/User/MentorDetails';
+import UserCompanyDetails from './views/User/CompanyDetails';
 
 function App() {
   const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_KEY_TWO;
@@ -199,19 +203,23 @@ function App() {
               {/* Roadmaps */}
               <Route path="/user/roadmap-gen" element={<><Navbar /><GenerateRoadmap /></>} />
               <Route path="/user/process-roadmap" element={<><Navbar /><RoadmapProcessing /></>} />
+              <Route path="/user/learn-roadmap/:id" element={<><Navbar /><LearnRoadmap /></>} />
               {/* Courses */}
               <Route path="/user/course-generator" element={<><Navbar /><CourseGenerator /></>} />
               <Route path="/user/course" element={<><Navbar /><UserCourse /></>} />
               <Route path="/user/create-course" element={<><Navbar /><UserCreateCourse /></>} />
-
               {/* Quiz */}
               <Route path='/user/quiz' element={<><Navbar /><Quiz /></>} />
               <Route path='/user/quiz-attempt' element={<><Navbar /><UserAttemptQuiz /></>} />
               {/* Q&A */}
               <Route path='/user/qa' element={<><Navbar /><UserQA /></>} />
+              {/* Find Mentors & Company */}
+              <Route path='/user/find-mentor' element={<><Navbar /><FindMentor /></>} />
+              <Route path='/user/find-mentor/:id' element={<><Navbar /><UserMentorDetails /></>} />
+              <Route path='/user/find-company' element={<><Navbar /><FindCompany /></>} />
+              <Route path='/user/find-company/:id' element={<><Navbar /><UserCompanyDetails /></>} />
             </Route>
 
-            <Route path="/user/learn-roadmap/:id" element={<><Navbar /><LearnRoadmap /></>} />
 
 
             {/* 🧑‍🏫 Mentor-only route */}
