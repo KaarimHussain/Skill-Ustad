@@ -1,169 +1,209 @@
-# Skill-Ustad
+# Skillistan 🎓✨
+
+**AI-powered skill learning platform** built with **ASP.NET Core**, **FastAPI (Python)**, and **modern frontend frameworks**, enhanced with **AI models like Gemini and Ollama**.
+
+Skillistan is designed to help learners **discover, practice, and master skills** with **personalized AI guidance**. It’s more than just an LMS — it’s a smart, interactive platform that adapts to each learner’s journey.
 
 ---
 
-## 🚀 Overview
+## 🚀 Features
 
-Skill Ustad is an AI-powered skill-learning platform built using **ASP.NET Core (API)** and **React (Frontend)**. It targets **students aged 12–25**, aiming to bridge skill gaps through personalized, interactive, and community-driven learning experiences.
-
----
-
-## 🎯 Core Project Goals
-
-- Teach in-demand skills (coding, design, soft skills, etc.)
-- Use AI to personalize the experience and assist in learning
-- Allow content creation, feedback, and progress tracking
-- Provide smooth file and image handling
-- Ensure modern UI/UX with real-time capabilities
+* 🔐 **Secure Authentication** – User registration, login, and profile management.
+* 🤖 **AI-Powered Learning** – Gemini API + Ollama LLM integration for tutoring, Q\&A, and skill assessments.
+* 📚 **Courses & Modules** – Structured skill-based learning paths with progress tracking.
+* 📝 **Practice & Assignments** – Interactive tasks with AI-driven feedback.
+* 💾 **File & Media Support** – Upload, store, and manage course files and images.
+* 👥 **Team Collaboration** – Built-in support for group learning, discussions, and projects.
+* 📊 **Analytics Dashboard** – User progress, skill mastery levels, and AI-powered recommendations.
+* 🌐 **Multi-Service Backend** – ASP.NET Core for core APIs + FastAPI for LLM/AI tasks.
 
 ---
 
-## 🔑 Phase 1 MVP Features (Already Discussed)
+## 🛠️ Tech Stack
 
-### 1. Skill-Based Course Modules
+### Backend (Core APIs & Logic)
 
-- Categorized courses by skill type
-- Step-by-step lessons with quizzes and content
+* **ASP.NET Core 8.0** – Authentication, course management, REST APIs
+* **C#** – Core backend language
+* **Entity Framework Core** – ORM for database interactions
+* **SQL Server** (preferred) or MySQL – Relational database
 
-### 2. AI Tutor (via Gemini API)
+### AI & Python Services
 
-- AI chatbot for Q&A, explanations, and learning tips
-- Real-time problem-solving support
+* **FastAPI** – Python microservice for AI/LLM workflows
+* **Ollama LLM** – Local/hosted large language models for custom AI use cases
+* **Google Gemini API** – Cloud-based AI assistant integration
+* **LangChain (optional)** – For chaining AI tasks and workflows
 
-### 3. File & Image Uploads
+### Frontend
 
-- Submit assignments, notes, and documents
-- Upload images and voice messages (audio feature added)
+* **React.js** (recommended) – Modern UI with hooks & state management
+* **Tailwind CSS** – Utility-first CSS framework for styling
+* **TypeScript** – For type safety and scalability
 
-### 4. Admin Dashboard
+### DevOps & Tools
 
-- View platform stats
-- Manage users, content, reports, and feedback
-
-### 5. Voice Support
-
-- Upload/playback voice messages
-- Optional voice-to-text transcription (future)
-
-### 6. User Roles & Auth
-
-- JWT or Identity-based authentication
-- Roles for students, mentors, and admins
-
-### 7. Resume Builder
-
-- Auto-generate skill-based resumes
-- Downloadable PDF with templates
-
-### 8. Progress Tracking (Charts)
-
-- Visual feedback of course progress
-- Use of Chart.js or D3.js for analytics
-
-### 9. Help Center
-
-- User FAQs
-- AI-integrated help assistant
-
-### 10. Mentor Marketplace (Optional)
-
-- Mentors can register and offer premium/private sessions
+* **GitHub / Git** – Version control
+* **Docker** (future scope) – Containerization of .NET + FastAPI services
+* **Azure / AWS** (optional) – Deployment and scaling
 
 ---
 
-## 🔥 Recent Innovative Feature Ideas
+## 📂 Project Structure (Proposed)
 
-These features were designed to be **AI-focused**, **UX/UI-enhanced**, and **market-relevant** while still blending into the current stack.
-
-### 1. **AI-Powered Personalized Learning Paths**
-
-- Dynamically adapt course roadmap based on user behavior & quiz scores
-- Recommend next topics using AI logic
-- Built using machine learning + React dashboards
-
-### 3. **Social Gamification & Collaboration**
-
-- Leaderboards, team quests, and live coding challenges
-- Social chat rooms and peer learning features
-- Built with SignalR + React for real-time sync
-
-### 4. **AI Instant Feedback & Tutor Chatbot**
-
-- Chat interface for every lesson or quiz
-- Real-time explanations, corrections, and feedback
-- Gemini API-powered backend with React chat UI
-
-### 5. **Peer-Created Content System**
-
-- Let users build quizzes, mini-lessons, or tutorials
-- AI support to help generate content or provide feedback
-- Upvote, comment, and reuse community content
+```
+Skillistan/
+│── backend-dotnet/             # ASP.NET Core solution
+│   ├── Skillistan.API/          # Controllers, models, services
+│   ├── Skillistan.Data/         # EF Core & migrations
+│   ├── Skillistan.Tests/        # Unit & integration tests
+│
+│── backend-python/              # Python services
+│   ├── app/                     # FastAPI routes & services
+│   │   ├── main.py              # FastAPI entrypoint
+│   │   ├── ai/                  # Ollama & Gemini integration
+│   │   ├── models/              # Pydantic models
+│   ├── requirements.txt
+│
+│── frontend/                    # React/Tailwind app
+│   ├── public/                  # Static assets
+│   ├── src/                     # Components, pages, hooks
+│   ├── package.json
+│
+│── docs/                        # Documentation (API specs, guides)
+│── .gitignore
+│── README.md
+```
 
 ---
 
-## ✨ Additional Add-ons That Fit Seamlessly
+## ⚙️ Getting Started
 
-### ✅ Smart Notifications & Reminders
+### Prerequisites
 
-- Alert users about due assignments or live sessions
-- Real-time or scheduled push notifications
-
-### ✅ Third-Party Integration Support
-
-- Zoom, GitHub, and payment processors like Stripe or PayPal
-
-### ✅ PWA & Mobile-first Responsive Design
-
-- Offline mode support for lessons
-- Seamless mobile UX with installable PWA
-
-### ✅ Dark Mode & Accessibility Options
-
-- Toggle between light/dark UI
-- Screen reader labels & font resizing
-
-### ✅ Scheduling System
-
-- Book slots with mentors
-- Calendar view of sessions & events
+* [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0)
+* [Python 3.10+](https://www.python.org/downloads/)
+* [Node.js](https://nodejs.org/) (v18+)
+* [SQL Server](https://www.microsoft.com/en-us/sql-server/sql-server-downloads)
+* [Ollama](https://ollama.ai/) installed locally (for LLM inference)
 
 ---
 
-## 🧠 Tech Stack Overview
+### Setup
 
-- **Frontend:** React (with Tailwind CSS)
-- **Backend:** ASP.NET Core Web API
-- **Libraries:** shadcn/ui, Chart.js, WebGL
-- **AI:** Gemini API, ML model integrations (if needed)
-- **Database:** PostgreSQL
-- **Auth:** JWT or Identity, Google Auth
-- **Real-time:** SignalR
+1. **Clone the repo**
 
-# ============================================================
-## Dev Guide Overview
-# ============================================================
+   ```bash
+   git clone https://github.com/yourusername/skillistan.git
+   cd skillistan
+   ```
 
+2. **Backend (.NET Core)**
 
-Folder Structure:
+   ```bash
+   cd backend-dotnet/Skillistan.API
+   dotnet restore
+   dotnet ef database update
+   dotnet run
+   ```
 
-Skill-Ustad
-├───README.md
-├──Brain
-│   ├───venv
-│   ├───main.py - Entry Point
-├──Server - ASP .NET Core API
-├──Client - Frontend React + Vite
+   Runs on `https://localhost:5001`.
 
-so there are actually 2 servers as part of backend
+3. **Backend (Python FastAPI)**
 
-1) .NET Web API - Primary Database - For Data processing
-2) Python FastAPI - For TTS
+   ```bash
+   cd backend-python
+   python -m venv venv
+   source venv/bin/activate  # (Linux/macOS)
+   venv\Scripts\activate     # (Windows)
 
-**How to run the backend & frontend servers**
+   pip install -r requirements.txt
+   uvicorn app.main:app --reload --port 8000
+   ```
 
-1) Python - Redirects to brain folder
-   1) cd ./brain && python main.py OR python -m uvicorn main:app --reload
-2) .NET - Redirects to server folder
-   1) cd ./server && dotnet watch run
-3) React - Redirects to client folder
-   1) cd ./client && npm run dev
+   Runs on `http://localhost:8000`.
+
+4. **Frontend (React)**
+
+   ```bash
+   cd frontend
+   npm install
+   npm run dev
+   ```
+
+   Runs on `http://localhost:3000`.
+
+---
+
+## 🔗 API Examples
+
+### Call Gemini API (Python FastAPI)
+
+```python
+from fastapi import APIRouter
+from app.ai.gemini import ask_gemini
+
+router = APIRouter()
+
+@router.post("/ask-gemini")
+async def ask_gemini_route(question: str):
+    response = await ask_gemini(question)
+    return {"answer": response}
+```
+
+### Call Ollama LLM
+
+```python
+import requests
+
+def query_ollama(prompt: str):
+    response = requests.post("http://localhost:11434/api/generate", json={"model": "llama2", "prompt": prompt})
+    return response.json()["response"]
+```
+
+---
+
+## 🛣️ Roadmap
+
+* ✅ Authentication & User Profiles
+* ✅ Gemini API & Ollama LLM Integration
+* ✅ FastAPI Microservice Setup
+* ⬜ AI-Powered Course Recommendations
+* ⬜ Team Collaboration Features
+* ⬜ Docker Compose for .NET + Python services
+* ⬜ CI/CD Pipeline & Cloud Deployment
+
+---
+
+## 🧑‍💻 Contributing
+
+We welcome contributions from the community!
+
+1. Fork the repo
+2. Create a new branch (`feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add new feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Create a Pull Request
+
+---
+
+## 📜 License
+
+This project is licensed under the MIT License. See [LICENSE](LICENSE) for details.
+
+---
+
+## 🙌 Acknowledgements
+
+* [ASP.NET Core](https://dotnet.microsoft.com/apps/aspnet)
+* [FastAPI](https://fastapi.tiangolo.com/)
+* [Ollama](https://ollama.ai/)
+* [React](https://reactjs.org/)
+* [Tailwind CSS](https://tailwindcss.com/)
+* [Google Gemini API](https://ai.google/)
+
+---
+
+⚡ This makes it clear that Skillistan runs on **.NET + Python hybrid backend**, with **AI (Gemini + Ollama)** powering the learning experience.
+
+Want me to also add a **high-level architecture diagram (mermaid.js inside README)** so contributors can instantly “see” how .NET, FastAPI, Ollama, and frontend connect?

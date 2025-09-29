@@ -1,7 +1,7 @@
 import logging
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from routers import tts, ai_chat, gemini_ai, lms, web_search, interview_tts, quiz, roadmap, performance_moniter
+from routers import tts, ai_chat, gemini_ai, lms, web_search, quiz, roadmap, performance_moniter
 from pathlib import Path
 import tempfile
 import os
@@ -38,7 +38,6 @@ app.include_router(ai_chat.router, prefix="/ai", tags=["AI Chat"])
 app.include_router(gemini_ai.router, prefix="/gen-ai", tags=["Gemini Service"])
 app.include_router(lms.router, prefix="/lms", tags=["LM Studios Service"])
 app.include_router(web_search.router, prefix="/web", tags=["Web Search Service"])
-app.include_router(interview_tts.router, prefix="/interview-tts", tags=["Text to Speech for Interview Simulator"])
 app.include_router(quiz.router, prefix="/quiz", tags=["AI based Quiz generation"])
 app.include_router(roadmap.router, prefix="/roadmap", tags=["AI based Roadmap Generation"])
 app.include_router(performance_moniter.router, prefix="/performance", tags=["Performance Moniter"])
