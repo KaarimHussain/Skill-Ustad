@@ -79,6 +79,7 @@ import FindMentor from './views/User/FindMentor';
 import FindCompany from './views/User/FindCompany';
 import UserMentorDetails from './views/User/MentorDetails';
 import UserCompanyDetails from './views/User/CompanyDetails';
+import Test from './views/Test';
 
 function App() {
   const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_KEY_TWO;
@@ -88,7 +89,7 @@ function App() {
       duration: 1.2,
       easing: (t: number) => Math.min(1, 1.001 - Math.pow(2, -10 * t)), // custom easing
       smoothWheel: true,
-      syncTouch: false,
+      syncTouch: true,
       orientation: 'vertical',
     })
 
@@ -128,6 +129,7 @@ function App() {
             <Route path="/qa-responses" element={<><Navbar /><QAResponses /></>} />
             <Route path="/jobs" element={<><Navbar /><Jobs /></>} />
             <Route path="/jobs/:id" element={<><Navbar /><JobDetail /></>} />
+            <Route path="/test" element={<><Test /></>} />
 
             {/* 🔒 Protected URLs */}
             {/* 👤 Auth URLs - public only if NOT logged in */}

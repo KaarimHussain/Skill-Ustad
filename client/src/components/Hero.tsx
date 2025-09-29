@@ -1,74 +1,70 @@
-"use client";
-import { ArrowUpRight, Sparkle } from "lucide-react";
-import style from "../css/Hero.module.css";
-import { GridPattern } from "./magicui/grid-pattern";
-import { Link } from "react-router-dom";
-import { Announcement, AnnouncementTag, AnnouncementTitle } from "./ui/kibo-ui/announcement";
+"use client"
 
-export default function HeroComponent() {
+import { Button } from "@/components/ui/button"
+import { GradientBars } from "@/components/ui/gradient-bars"
+import { TextReveal } from "@/components/ui/text-reveal"
+
+export function Hero() {
     return (
-        <div className="min-h-[100vh] w-full relative overflow-hidden bg-black/30">
-            <GridPattern x={-1} y={-1} height={70} width={70} />
-
-            <div className={style.lightPathContainer}>
-                <div className={style.lightPath1}></div>
-                <div className={style.lightPath2}></div>
-                <div className={style.lightPath3}></div>
-            </div>
-
-            <main className={`${style.heroSection} px-4 sm:px-6`}>
-                {/* Hero Tip */}
-
-                <Announcement className="cursor-pointer" variant={"secondary"}>
-                    <AnnouncementTag>Learn Fast</AnnouncementTag>
-                    <AnnouncementTitle>
-                        Build skills that make you money 💸
-                    </AnnouncementTitle>
-                </Announcement>
-
-                {/* Main Heading */}
-                <div className="text-white text-center flex flex-col items-center">
-                    <h1 className="lg:text-7xl md:text-5xl sm:text-3xl text-4xl font-bold lg:my-5 md:my-4 sm:my-2 my-2 text-black flex items-center justify-center gap-1 text-nowrap"><div className="font-2">Master In-Demand </div>
-                        <span className="bg-indigo-500 rounded-full md:px-7 md:py-4 sm:px-4 sm:py-2 px-3 py-1 text-white lg:text-6xl md:text-5xl sm:text-3xl text-4xl font-2">Skills</span></h1>
-                    <span className="bg-indigo-500 rounded-2xl px-4 py-2 sm:px-6 sm:py-3 text-xl sm:text-3xl font-light inline-block">
-                        Build. Launch. Grow.
-                    </span>
-                </div>
-
-                {/* Subtitles */}
-                <div className="my-5 px-2 sm:px-4">
-                    <div className="max-w-[700px] mx-auto text-center">
-                        <p className="text-white text-base sm:text-lg mb-2 leading-relaxed">
-                            Skill-Ustad is your AI-powered skill-building platform — learn, create, and grow with project-based courses designed for real-world results.
-                        </p>
-                        <p className="flex gap-2 items-center justify-center">
-                            <span className="inline-block rounded-full px-3 py-1 text-sm font-medium bg-indigo-800/20 text-white border border-indigo-500 shadow-sm">
-                                Start free.
-                            </span>
-                            <span className="inline-block rounded-full px-3 py-1 text-sm font-medium bg-indigo-800/20 text-white border border-indigo-500 shadow-sm">Build fast.</span>
-                            <span className="inline-block rounded-full px-3 py-1 text-sm font-medium bg-indigo-800/20 text-white border border-indigo-500 shadow-sm">Upskill for the future.</span>
-                        </p>
+        <section
+            aria-label="Hero"
+            className="relative flex min-h-screen w-full flex-col items-center justify-center overflow-hidden"
+        >
+            <div className="mx-auto max-w-7xl px-6 sm:px-8">
+                {/* Background */}
+                <GradientBars
+                    colors={[
+                        "#6366f1", // indigo-500
+                        "transparent", // indigo-900
+                    ]}
+                />
+                <header className="relative z-10">
+                    {/* Announcement pill */}
+                    <div className="flex justify-center">
+                        <span className="inline-flex items-center gap-2 rounded-full border border-border bg-muted px-3 py-1.5 text-xs text-muted-foreground">
+                            <span className="h-2 w-2 rounded-full bg-primary" />
+                            Learn faster with AI guidance
+                        </span>
                     </div>
-                </div>
 
-                {/* Buttons */}
-                <div className="flex flex-col sm:flex-row gap-3 items-center justify-center w-full px-4">
-                    <Link to={"/signup"} className={`${style.heroButtonPrimary} ${style.heroButton} group w-full sm:w-auto cursor-pointer`}>
-                        Start Learning — It’s Free
-                        <div className="icon-arrow transition-transform duration-300">
-                            <ArrowUpRight size={20} />
+                    {/* Headline */}
+                    <div className="mx-auto mt-6 max-w-3xl text-center">
+                        <h1 className="text-pretty font-sans text-4xl font-semibold tracking-tight sm:text-5xl lg:text-6xl">
+                            <TextReveal from="bottom" duration={1}>
+                                Master job‑ready skills
+                            </TextReveal>
+                            <TextReveal from="bottom" duration={1.1}>
+                                and build a portfolio that hires.
+                            </TextReveal>
+                        </h1>
+
+                        {/* Subheadline */}
+                        <p className="mt-5 text-balance text-base leading-relaxed text-gray-900 dark:text-gray-100 sm:text-lg drop-shadow-sm">
+                            Project-based learning paths with checkpoints, feedback, and real outcomes. Guided by AI. Built for
+                            momentum. Designed to get you hired.
+                        </p>
+
+                        {/* Mini brand line */}
+                        <div className="mt-6 flex justify-center">
+                            <span className="rounded-full bg-indigo-500/90 px-4 py-2 text-sm font-medium text-white shadow-md backdrop-blur">
+                                Build. Launch. Grow.
+                            </span>
                         </div>
-                    </Link>
 
-                    <Link to={"/public/roadmaps"} className={`${style.heroButtonSecondary} ${style.heroButton} group w-full sm:w-auto cursor-pointer`}>
-                        <div className="icon-sparkle transition-transform duration-300 group-hover:rotate-12">
-                            <Sparkle size={20} />
+                        {/* CTAs */}
+                        <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
+                            <Button className="bg-indigo-500 hover:bg-indigo-600 w-full sm:w-auto" size="lg">
+                                Get Started
+                            </Button>
+                            <Button variant="secondary" className="w-full sm:w-auto" size="lg">
+                                Browse roadmaps
+                            </Button>
                         </div>
-                        Browse Roadmaps
-                    </Link>
-                </div>
-
-            </main>
-        </div>
-    );
+                    </div>
+                </header>
+            </div>
+        </section>
+    )
 }
+
+export default Hero
