@@ -10,8 +10,8 @@ import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
-import { User, MapPin, Briefcase, GraduationCap, Tag, ChevronLeft, ChevronRight, Check, X, Plus } from "lucide-react"
-import { useState } from "react"
+import { User, MapPin, Briefcase, GraduationCap, Tag, ChevronLeft, ChevronRight, Check, X, Plus, Mic, MicOff } from "lucide-react"
+import { useState, useEffect, useRef } from "react"
 import AuthService from "@/services/auth.service"
 import AddtionalInfoService from "@/services/additional-info.service"
 import { useNavigate } from "react-router-dom"
@@ -31,7 +31,7 @@ interface MentorExpertiseTag {
 }
 
 export default function MentorAdditionalInfo() {
-    // Navigation Hook
+
     const navigate = useNavigate();
 
     const [currentStep, setCurrentStep] = useState(1)
@@ -49,8 +49,102 @@ export default function MentorAdditionalInfo() {
     const [newTag, setNewTag] = useState("")
     const [isSubmitting, setIsSubmitting] = useState(false)
 
+    // Speech recognition states
+    const [isListening, setIsListening] = useState<{ [key: string]: boolean }>({
+        bio: false,
+        field: false,
+        industry: false,
+        tag: false,
+        city: false,
+        address: false
+    })
+    const [speechSupported, setSpeechSupported] = useState(false)
+    const recognitionRef = useRef<any>(null)
+
     const totalSteps = 4
     const progress = (currentStep / totalSteps) * 100
+
+    // Initialize speech recognition
+    useEffect(() => {
+        if (typeof window !== 'undefined') {
+            const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
+            if (SpeechRecognition) {
+                setSpeechSupported(true)
+                recognitionRef.current = new SpeechRecognition()
+                recognitionRef.current.continuous = true
+                recognitionRef.current.interimResults = true
+                recognitionRef.current.lang = 'en-US'
+            }
+        }
+    }, [])
+
+    const startListening = (field: string) => {
+        if (!recognitionRef.current) return
+
+        setIsListening(prev => ({ ...prev, [field]: true }))
+
+        recognitionRef.current.onresult = (event: any) => {
+            let interimTranscript = ''
+            let finalTranscript = ''
+
+            for (let i = event.resultIndex; i < event.results.length; i++) {
+                const transcript = event.results[i][0].transcript
+                if (event.results[i].isFinal) {
+                    finalTranscript += transcript + ' '
+                } else {
+                    interimTranscript += transcript
+                }
+            }
+
+            const currentText = finalTranscript || interimTranscript
+
+            switch (field) {
+                case 'bio':
+                    setFormData(prev => ({ ...prev, Bio: prev.Bio + currentText }))
+                    break
+                case 'field':
+                    setFormData(prev => ({ ...prev, FieldOfExpertise: prev.FieldOfExpertise + currentText }))
+                    break
+                case 'industry':
+                    setFormData(prev => ({ ...prev, IndustryExperience: prev.IndustryExperience + currentText }))
+                    break
+                case 'tag':
+                    setNewTag(prev => prev + currentText)
+                    break
+                case 'city':
+                    setFormData(prev => ({ ...prev, City: prev.City + currentText }))
+                    break
+                case 'address':
+                    setFormData(prev => ({ ...prev, Address: prev.Address + currentText }))
+                    break
+            }
+        }
+
+        recognitionRef.current.onerror = (event: any) => {
+            console.error('Speech recognition error:', event.error)
+            stopListening(field)
+        }
+
+        recognitionRef.current.start()
+    }
+
+    const stopListening = (field: string) => {
+        if (recognitionRef.current) {
+            recognitionRef.current.stop()
+        }
+        setIsListening(prev => ({ ...prev, [field]: false }))
+    }
+
+    const toggleListening = (field: string) => {
+        if (isListening[field]) {
+            stopListening(field)
+        } else {
+            Object.keys(isListening).forEach(key => {
+                if (isListening[key]) stopListening(key)
+            })
+            startListening(field)
+        }
+    }
 
     const handleInputChange = (field: keyof MentorAdditionalInfo, value: string) => {
         setFormData((prev) => ({ ...prev, [field]: value }))
@@ -164,18 +258,40 @@ export default function MentorAdditionalInfo() {
         },
     ]
 
+    const MicButton = ({ field, className = "" }: { field: string, className?: string }) => {
+        if (!speechSupported) return null
+
+        return (
+            <Button
+                type="button"
+                size="sm"
+                onClick={() => toggleListening(field)}
+                className={`${isListening[field]
+                    ? 'bg-red-500 hover:bg-red-600 animate-pulse'
+                    : 'bg-indigo-500 hover:bg-indigo-600'
+                    } text-white ${className}`}
+            >
+                {isListening[field] ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
+            </Button>
+        )
+    }
+
     return (
-        <div className="min-h-screen w-full bg-gradient-to-br from-white via-indigo-50/30 to-white pt-25">
+        <div className="min-h-screen w-full bg-gradient-to-br from-white via-indigo-50/30 to-white pt-8">
             <div className="container mx-auto px-4 py-8 max-w-4xl">
-                {/* Header */}
                 <div className="text-center mb-8">
                     <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">Additional Information</h1>
                     <p className="text-lg text-gray-600 max-w-2xl mx-auto">
                         To ensure a great experience, we need you to provide us some information about yourself as a mentor.
                     </p>
+                    {speechSupported && (
+                        <p className="text-sm text-indigo-600 mt-2 flex items-center justify-center gap-2">
+                            <Mic className="w-4 h-4" />
+                            Voice input available - click the microphone icons to speak
+                        </p>
+                    )}
                 </div>
 
-                {/* Progress Bar */}
                 <div className="mb-8">
                     <div className="flex items-center justify-between mb-4">
                         <span className="text-sm font-medium text-gray-600">
@@ -186,7 +302,6 @@ export default function MentorAdditionalInfo() {
                     <Progress value={progress} className="h-2 bg-gray-200" />
                 </div>
 
-                {/* Steps Navigation */}
                 <div className="flex justify-center mb-8">
                     <div className="flex items-center space-x-4">
                         {steps.map((step) => {
@@ -221,7 +336,6 @@ export default function MentorAdditionalInfo() {
                     </div>
                 </div>
 
-                {/* Form Card */}
                 <Card className="border-0 shadow-xl bg-white/80 backdrop-blur-sm">
                     <CardHeader className="text-center pb-6">
                         <CardTitle className="text-2xl font-bold text-gray-900">{steps[currentStep - 1].title}</CardTitle>
@@ -229,16 +343,18 @@ export default function MentorAdditionalInfo() {
                     </CardHeader>
 
                     <CardContent className="px-8 pb-8">
-                        {/* Step 1: Professional Bio */}
                         {currentStep === 1 && (
                             <div className="space-y-6">
                                 <div className="space-y-3">
-                                    <Label htmlFor="bio" className="text-base font-medium text-gray-900">
-                                        Professional Bio *
-                                    </Label>
+                                    <div className="flex items-center justify-between">
+                                        <Label htmlFor="bio" className="text-base font-medium text-gray-900">
+                                            Professional Bio *
+                                        </Label>
+                                        <MicButton field="bio" />
+                                    </div>
                                     <Textarea
                                         id="bio"
-                                        placeholder="Write a compelling bio that showcases your expertise, experience, and what makes you a great mentor. Include your background, achievements, and what you're passionate about teaching..."
+                                        placeholder="Write a compelling bio that showcases your expertise, experience, and what makes you a great mentor..."
                                         value={formData.Bio}
                                         onChange={(e) => handleInputChange("Bio", e.target.value)}
                                         rows={6}
@@ -266,7 +382,6 @@ export default function MentorAdditionalInfo() {
                             </div>
                         )}
 
-                        {/* Step 2: Expertise Level */}
                         {currentStep === 2 && (
                             <div className="space-y-6">
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -292,12 +407,15 @@ export default function MentorAdditionalInfo() {
                                     </div>
 
                                     <div className="space-y-3">
-                                        <Label htmlFor="fieldOfExpertise" className="text-base font-medium text-gray-900">
-                                            Primary Field of Expertise *
-                                        </Label>
+                                        <div className="flex items-center justify-between">
+                                            <Label htmlFor="fieldOfExpertise" className="text-base font-medium text-gray-900">
+                                                Primary Field of Expertise *
+                                            </Label>
+                                            <MicButton field="field" />
+                                        </div>
                                         <Input
                                             id="fieldOfExpertise"
-                                            placeholder="e.g., Software Development, Digital Marketing, Data Science"
+                                            placeholder="e.g., Software Development, Digital Marketing"
                                             value={formData.FieldOfExpertise}
                                             onChange={(e) => handleInputChange("FieldOfExpertise", e.target.value)}
                                             className="bg-white/60 border-gray-300 focus:border-indigo-500 h-12"
@@ -319,16 +437,18 @@ export default function MentorAdditionalInfo() {
                             </div>
                         )}
 
-                        {/* Step 3: Experience & Skills */}
                         {currentStep === 3 && (
                             <div className="space-y-6">
                                 <div className="space-y-3">
-                                    <Label htmlFor="industryExperience" className="text-base font-medium text-gray-900">
-                                        Industry Experience *
-                                    </Label>
+                                    <div className="flex items-center justify-between">
+                                        <Label htmlFor="industryExperience" className="text-base font-medium text-gray-900">
+                                            Industry Experience *
+                                        </Label>
+                                        <MicButton field="industry" />
+                                    </div>
                                     <Textarea
                                         id="industryExperience"
-                                        placeholder="Describe your industry experience, key projects, companies you've worked with, and significant achievements that demonstrate your expertise..."
+                                        placeholder="Describe your industry experience, key projects, companies you've worked with..."
                                         value={formData.IndustryExperience}
                                         onChange={(e) => handleInputChange("IndustryExperience", e.target.value)}
                                         rows={4}
@@ -340,7 +460,7 @@ export default function MentorAdditionalInfo() {
                                     <Label className="text-base font-medium text-gray-900">Expertise Tags * (Minimum 3 required)</Label>
                                     <div className="flex gap-2">
                                         <Input
-                                            placeholder="Add a skill or expertise tag (e.g., React, Leadership, SEO)"
+                                            placeholder="Add a skill or expertise tag"
                                             value={newTag}
                                             onChange={(e) => setNewTag(e.target.value)}
                                             onKeyPress={handleKeyPress}
@@ -414,7 +534,6 @@ export default function MentorAdditionalInfo() {
                             </div>
                         )}
 
-                        {/* Step 4: Personal Details */}
                         {currentStep === 4 && (
                             <div className="space-y-6">
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -436,9 +555,12 @@ export default function MentorAdditionalInfo() {
                                     </div>
 
                                     <div className="space-y-3">
-                                        <Label htmlFor="city" className="text-base font-medium text-gray-900">
-                                            City *
-                                        </Label>
+                                        <div className="flex items-center justify-between">
+                                            <Label htmlFor="city" className="text-base font-medium text-gray-900">
+                                                City *
+                                            </Label>
+                                            <MicButton field="city" />
+                                        </div>
                                         <Input
                                             id="city"
                                             placeholder="e.g., New York, London, Tokyo"
@@ -450,12 +572,15 @@ export default function MentorAdditionalInfo() {
                                 </div>
 
                                 <div className="space-y-3">
-                                    <Label htmlFor="address" className="text-base font-medium text-gray-900">
-                                        Full Address (Optional)
-                                    </Label>
+                                    <div className="flex items-center justify-between">
+                                        <Label htmlFor="address" className="text-base font-medium text-gray-900">
+                                            Full Address (Optional)
+                                        </Label>
+                                        <MicButton field="address" />
+                                    </div>
                                     <Input
                                         id="address"
-                                        placeholder="Complete address for location-based matching (kept private)"
+                                        placeholder="Complete address for location-based matching"
                                         value={formData.Address}
                                         onChange={(e) => handleInputChange("Address", e.target.value)}
                                         className="bg-white/60 border-gray-300 focus:border-indigo-500 h-12"
@@ -475,7 +600,6 @@ export default function MentorAdditionalInfo() {
                             </div>
                         )}
 
-                        {/* Navigation Buttons */}
                         <div className="flex justify-between items-center mt-8 pt-6 border-t border-gray-200">
                             <Button
                                 type="button"

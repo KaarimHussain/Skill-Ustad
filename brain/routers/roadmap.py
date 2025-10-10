@@ -342,7 +342,7 @@ async def generate_questions(request: InterviewQuestionRequest):
             "Return ONLY the questions in plain text, separated by newlines."
         )
         response = ollama.generate(
-            model="qwen3:1.7b",
+            model="gemma3:270m",
             prompt=prompt,
             system=system_prompt,
             options={

@@ -8,3 +8,7 @@ python-multipart
 piper-tts
 psutil
 gputil
+ollama
+json_repair
+duckduckgo_search
+bs4
