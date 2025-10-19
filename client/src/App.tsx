@@ -80,6 +80,7 @@ import FindCompany from './views/User/FindCompany';
 import UserMentorDetails from './views/User/MentorDetails';
 import UserCompanyDetails from './views/User/CompanyDetails';
 import Test from './views/Test';
+import Pricing from './views/Pricing';
 
 function App() {
   const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_KEY_TWO;
@@ -130,6 +131,7 @@ function App() {
             <Route path="/jobs" element={<><Navbar /><Jobs /></>} />
             <Route path="/jobs/:id" element={<><Navbar /><JobDetail /></>} />
             <Route path="/test" element={<><Test /></>} />
+            <Route path="/pricing" element={<><Navbar /><Pricing /></>} />
 
             {/* 🔒 Protected URLs */}
             {/* 👤 Auth URLs - public only if NOT logged in */}

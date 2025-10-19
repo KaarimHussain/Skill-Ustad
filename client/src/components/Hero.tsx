@@ -15,7 +15,8 @@ export function Hero() {
                 <GradientBars
                     colors={[
                         "#6366f1", // indigo-500
-                        "transparent", // indigo-900
+                        "#9C9EFF", // indigo-500
+                        "transparent", // transparent
                     ]}
                 />
                 <header className="relative z-10">

@@ -58,7 +58,7 @@ function NavigationMenuItem({
 }
 
 const navigationMenuTriggerStyle = cva(
-  "group inline-flex h-10 w-max items-center justify-center rounded-full bg-transparent px-4 py-2 text-sm font-medium text-white hover:text-zinc-300 focus:text-zinc-300 disabled:pointer-events-none disabled:opacity-50 data-[state=open]:text-zinc-300 focus-visible:ring-white/20 outline-none transition-all duration-200 focus-visible:ring-[2px] focus-visible:outline-1 border border-transparent hover:border-white/10"
+  "group inline-flex h-10 w-max items-center justify-center rounded-full bg-transparent px-4 py-2 text-sm font-medium disabled:pointer-events-none disabled:opacity-50 focus-visible:ring-white/20 outline-none transition-all duration-200 focus-visible:ring-[2px] focus-visible:outline-1 border border-transparent hover:border-white/10"
 )
 
 function NavigationMenuTrigger({
@@ -74,7 +74,7 @@ function NavigationMenuTrigger({
     >
       {children}{" "}
       <ChevronDownIcon
-        className="relative top-[1px] ml-1 size-3 transition duration-300 group-data-[state=open]:rotate-180 text-zinc-400 group-hover:text-zinc-300"
+        className="relative top-[1px] ml-1 size-3 transition duration-300 group-data-[state=open]:rotate-180 group-hover:text-zinc-300"
         aria-hidden="true"
       />
     </NavigationMenuPrimitive.Trigger>
@@ -111,7 +111,7 @@ function NavigationMenuViewport({
       <NavigationMenuPrimitive.Viewport
         data-slot="navigation-menu-viewport"
         className={cn(
-          "origin-top-center bg-black/95 backdrop-blur-xl text-white data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-90 relative mt-1.5 h-[var(--radix-navigation-menu-viewport-height)] w-full overflow-hidden rounded-2xl md:w-[var(--radix-navigation-menu-viewport-width)]",
+          "origin-top-center bg-white text-white data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-90 relative mt-5 h-[var(--radix-navigation-menu-viewport-height)] w-full overflow-hidden rounded-2xl md:w-[var(--radix-navigation-menu-viewport-width)] shadow-2xl z-100",
           className
         )}
         {...props}
