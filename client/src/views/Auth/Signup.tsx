@@ -13,7 +13,6 @@ import {
     ArrowRight,
     CheckCircle,
     Chrome,
-    Github,
     Mail,
     Lock,
     Eye,
@@ -435,7 +434,7 @@ export default function Signup() {
 
     return (
         <>
-            <div className="min-h-screen w-full px-5 py-20 grid grid-flow-col lg:grid-cols-2 md:grid-cols-1 sm:grid-cols-1 grid-cols-1 gap-3">
+            <div className="min-h-screen w-full px-0 sm:px-5 md:px-10 lg:px-20 py-20 grid grid-flow-col lg:grid-cols-2 md:grid-cols-1 sm:grid-cols-1 grid-cols-1 gap-3">
                 <div className="p-10">
                     <div className="py-3">
                         <img src={Logo || "/placeholder.svg"} className="h-15 w-15 aspect-square object-cover" alt="Logo" />

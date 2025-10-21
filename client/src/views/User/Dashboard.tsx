@@ -128,7 +128,7 @@ const contentToolLinks = [
         iconBg: "bg-green-100",
         iconColor: "text-green-600",
         action: "schedule_sessions",
-        link: "/schedule-sessions",
+        link: "/live-session",
     },
     {
         title: "Host Q&A or AMA",

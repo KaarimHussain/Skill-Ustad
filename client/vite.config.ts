@@ -14,7 +14,7 @@ export default defineConfig({
     },
   },
   server: {
-    host: true,
+    host: '0.0.0.0', // This allows external access
     https: {
       key: './skillustad-privateKey.key',
       cert: './skillustad.crt',

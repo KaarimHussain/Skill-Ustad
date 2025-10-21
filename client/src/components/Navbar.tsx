@@ -167,12 +167,12 @@ export default function Navbar() {
         <>
             {/* Desktop Navigation */}
             <motion.nav
-                className="hidden lg:block fixed top-0 left-0 right-0 z-100 p-4"
+                className="hidden lg:block fixed top-0 left-0 right-0 z-100 py-4 px-7"
                 initial={{ y: 0 }}
                 animate={{ y: 0 }}
             >
                 <motion.div
-                    className="rounded-full py-3 px-6 mx-auto flex items-center justify-between"
+                    className="rounded-full py-3 px-6 mx-auto grid grid-cols-3 items-center"
                     initial={{
                         backgroundColor: "rgba(255, 255, 255, 0)",
                         borderColor: "rgba(212, 212, 216, 0)",
@@ -189,8 +189,8 @@ export default function Navbar() {
                     transition={{ duration: 0.3, ease: "easeInOut" }}
                     style={{ borderWidth: "1px", borderStyle: "solid" }}
                 >
-                    {/* Navigation Links */}
-                    <div className="flex items-center gap-1">
+                    {/* Left: Navigation Links */}
+                    <div className="flex items-center gap-1 justify-start">
                         {navigationData.map((data, index) => (
                             <NavigationMenu key={index}>
                                 <NavigationMenuList>
@@ -245,13 +245,13 @@ export default function Navbar() {
                         ))}
                     </div>
 
-                    {/* Logo */}
-                    <div className="flex-shrink-0">
+                    {/* Center: Logo */}
+                    <div className="flex justify-center">
                         <Logo logoOnly />
                     </div>
 
-                    {/* Auth Buttons */}
-                    <div className="flex items-center gap-2 flex-shrink-0">
+                    {/* Right: Auth Buttons */}
+                    <div className="flex items-center gap-2 justify-end">
                         {isAuthenticated ? (
                             <>
                                 <TooltipProvider>
