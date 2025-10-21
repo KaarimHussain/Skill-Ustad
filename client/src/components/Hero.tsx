@@ -3,6 +3,7 @@
 import { Button } from "@/components/ui/button"
 import { GradientBars } from "@/components/ui/gradient-bars"
 import { TextReveal } from "@/components/ui/text-reveal"
+import { Link } from "react-router-dom"
 
 export function Hero() {
     return (
@@ -15,7 +16,8 @@ export function Hero() {
                 <GradientBars
                     colors={[
                         "#6366f1", // indigo-500
-                        "transparent", // indigo-900
+                        "#9C9EFF", // indigo-500
+                        "transparent", // transparent
                     ]}
                 />
                 <header className="relative z-10">
@@ -53,12 +55,16 @@ export function Hero() {
 
                         {/* CTAs */}
                         <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
-                            <Button className="bg-indigo-500 hover:bg-indigo-600 w-full sm:w-auto" size="lg">
-                                Get Started
-                            </Button>
-                            <Button variant="secondary" className="w-full sm:w-auto" size="lg">
-                                Browse roadmaps
-                            </Button>
+                            <Link to={"/login"}>
+                                <Button className="bg-indigo-500 hover:bg-indigo-600 w-full sm:w-auto" size="lg">
+                                    Get Started
+                                </Button>
+                            </Link>
+                            <Link to={"/public/roadmaps"}>
+                                <Button variant="secondary" className="w-full sm:w-auto" size="lg">
+                                    Browse roadmaps
+                                </Button>
+                            </Link>
                         </div>
                     </div>
                 </header>

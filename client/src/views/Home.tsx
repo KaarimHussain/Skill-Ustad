@@ -1,9 +1,8 @@
 import Benefits from "@/components/Benefits";
 import Hero from "@/components/Hero";
+import ProductFeatures from "@/components/ProductFeatures";
 import ReadyToLearn from "@/components/ReadToLearn";
-import TopSkillCourses from "@/components/TopSkillCourses";
 import TrustedByLearners from "@/components/TrustedByLearners";
-import RoadmapShowcase from "@/components/RoadmapsShowcase";
 
 export default function Home() {
     return (
@@ -11,8 +10,7 @@ export default function Home() {
             <Hero />
             <Benefits />
             <TrustedByLearners />
-            <TopSkillCourses />
-            <RoadmapShowcase />
+            <ProductFeatures/>
             <ReadyToLearn />
         </>
     )

@@ -6,9 +6,13 @@ import Logo from "@/components/Logo"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { ArrowLeft, Briefcase, Calendar, Globe, MapPin, User } from "lucide-react"
+import { Textarea } from "@/components/ui/textarea"
+import { Label } from "@/components/ui/label"
+import { ArrowLeft, Briefcase, Calendar, Globe, MapPin, Star, User } from "lucide-react"
 import { useEffect, useState } from "react"
 import { useNavigate, useParams } from "react-router-dom"
+import MentorFeedbackService from "@/services/mentor-feedback.service"
+import AuthService from "@/services/auth.service"
 
 export default function UserMentorDetails() {
     const { id } = useParams<{ id: string }>()
@@ -16,6 +20,13 @@ export default function UserMentorDetails() {
     const [mentor, setMentor] = useState<any | null>(null)
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
+    const [feedback, setFeedback] = useState("")
+    const [rating, setRating] = useState<number>(0)
+    const [hoveredRating, setHoveredRating] = useState<number>(0)
+    const [isSubmitting, setIsSubmitting] = useState(false)
+    const [feedbackSubmitted, setFeedbackSubmitted] = useState(false)
+    const [mentorFeedbacks, setMentorFeedbacks] = useState<any[]>([])
+    const [feedbacksLoading, setFeedbacksLoading] = useState(true)
 
     const fetchMentor = async () => {
         const BASE_URL = import.meta.env.VITE_SERVER_URL
@@ -40,6 +51,22 @@ export default function UserMentorDetails() {
         }
     }
 
+    // Function to fetch existing feedbacks for the mentor
+    const fetchMentorFeedbacks = async () => {
+        if (!id) return;
+
+        setFeedbacksLoading(true);
+        try {
+            const feedbacks = await MentorFeedbackService.getFeedbacksByMentorId(id);
+            setMentorFeedbacks(feedbacks);
+        } catch (error) {
+            console.error("Error fetching mentor feedbacks:", error);
+            NotificationService.error("Error", "Failed to load feedbacks");
+        } finally {
+            setFeedbacksLoading(false);
+        }
+    };
+
     useEffect(() => {
         if (id) {
             fetchMentor()
@@ -48,6 +75,55 @@ export default function UserMentorDetails() {
             setLoading(false)
         }
     }, [id])
+
+    useEffect(() => {
+        if (mentor) {
+            fetchMentorFeedbacks();
+        }
+    }, [mentor])
+
+    // Function to submit feedback
+    const handleSubmitFeedback = async (e: React.FormEvent) => {
+        e.preventDefault();
+
+        if (!rating) {
+            NotificationService.error("Invalid Rating", "Please select a rating");
+            return;
+        }
+
+        if (feedback.trim().length < 10) {
+            NotificationService.error("Invalid Feedback", "Feedback must be at least 10 characters long");
+            return;
+        }
+
+        const userId = AuthService.getAuthenticatedUserId();
+        if (!userId) {
+            NotificationService.error("Authentication Error", "Please log in to submit feedback");
+            return;
+        }
+
+        setIsSubmitting(true);
+
+        try {
+            await MentorFeedbackService.submitFeedback({
+                mentorId: id!,
+                userId: userId,
+                rating: rating,
+                feedback: feedback
+            });
+
+            NotificationService.success("Success", "Feedback submitted successfully!");
+            setFeedback("");
+            setRating(0);
+            setFeedbackSubmitted(true);
+            // Optionally, refetch feedbacks to show the new one
+        } catch (error: any) {
+            console.error("Error submitting feedback:", error);
+            NotificationService.error("Error", "Failed to submit feedback. Please try again.");
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
 
     // Loading state
     if (loading) {
@@ -269,6 +345,128 @@ export default function UserMentorDetails() {
                                         </div>
                                     </div>
                                 </div>
+                            )}
+                        </div>
+
+                        {/* Feedback Section */}
+                        <div className="mt-8">
+                            <h3 className="text-xl font-semibold text-gray-900 mb-4">Feedback</h3>
+
+                            {/* Display existing feedbacks */}
+                            <div className="mb-6">
+                                {feedbacksLoading ? (
+                                    <div className="text-center py-4">
+                                        <p className="text-gray-600">Loading feedbacks...</p>
+                                    </div>
+                                ) : mentorFeedbacks.length > 0 ? (
+                                    <div className="space-y-4">
+                                        <h4 className="text-lg font-medium text-gray-800">Recent Feedbacks</h4>
+                                        {mentorFeedbacks.map((feedbackItem) => (
+                                            <Card key={feedbackItem.id} className="p-4 bg-white border border-gray-200">
+                                                <div className="flex items-start">
+                                                    <div className="flex-1">
+                                                        <div className="flex items-center mb-1">
+                                                            <div className="flex">
+                                                                {[...Array(5)].map((_, i) => (
+                                                                    <Star
+                                                                        key={i}
+                                                                        className={`w-4 h-4 ${i < feedbackItem.rating
+                                                                                ? "text-yellow-400 fill-current"
+                                                                                : "text-gray-300"
+                                                                            }`}
+                                                                    />
+                                                                ))}
+                                                            </div>
+                                                            <span className="ml-2 text-sm text-gray-500">
+                                                                {feedbackItem.createdAt?.toDate ?
+                                                                    new Date(
+                                                                        feedbackItem.createdAt.toDate()
+                                                                    ).toLocaleDateString()
+                                                                    :
+                                                                    'Date unknown'}
+                                                            </span>
+                                                        </div>
+                                                        <p className="text-gray-700">{feedbackItem.feedback}</p>
+                                                    </div>
+                                                </div>
+                                            </Card>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <p className="text-gray-600 italic">No feedbacks yet. Be the first to share your experience!</p>
+                                )}
+                            </div>
+
+                            {/* Feedback submission form */}
+                            {!feedbackSubmitted ? (
+                                <Card className="p-6 bg-indigo-50 border border-indigo-100">
+                                    <h4 className="text-lg font-medium text-gray-800 mb-4">Add Your Feedback</h4>
+                                    <form onSubmit={handleSubmitFeedback}>
+                                        <div className="mb-4">
+                                            <Label className="text-gray-700 mb-2 block">Rating</Label>
+                                            <div className="flex space-x-1">
+                                                {[1, 2, 3, 4, 5].map((star) => (
+                                                    <button
+                                                        type="button"
+                                                        key={star}
+                                                        className={`text-2xl focus:outline-none ${star <= (hoveredRating || rating)
+                                                                ? "text-yellow-400"
+                                                                : "text-gray-300"
+                                                            }`}
+                                                        onClick={() => setRating(star)}
+                                                        onMouseEnter={() => setHoveredRating(star)}
+                                                        onMouseLeave={() => setHoveredRating(rating)}
+                                                        disabled={isSubmitting}
+                                                    >
+                                                        <Star
+                                                            className={
+                                                                star <= (hoveredRating || rating)
+                                                                    ? "fill-current text-yellow-400"
+                                                                    : "text-gray-300"
+                                                            }
+                                                        />
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
+                                        <div className="mb-4">
+                                            <Label htmlFor="feedback" className="text-gray-700 mb-2 block">
+                                                Your Feedback
+                                            </Label>
+                                            <Textarea
+                                                id="feedback"
+                                                value={feedback}
+                                                onChange={(e) => setFeedback(e.target.value)}
+                                                placeholder="Share your experience with this mentor..."
+                                                rows={4}
+                                                className="w-full"
+                                                required
+                                                disabled={isSubmitting}
+                                            />
+                                        </div>
+                                        <Button
+                                            type="submit"
+                                            className="bg-indigo-500 hover:bg-indigo-600 text-white"
+                                            disabled={isSubmitting || !rating}
+                                        >
+                                            {isSubmitting ? (
+                                                <>
+                                                    <span className="flex items-center">
+                                                        <span className="ml-2">Submitting...</span>
+                                                    </span>
+                                                </>
+                                            ) : (
+                                                "Submit Feedback"
+                                            )}
+                                        </Button>
+                                    </form>
+                                </Card>
+                            ) : (
+                                <Card className="p-6 bg-green-50 border border-green-200 text-center">
+                                    <p className="text-green-700 font-medium">
+                                        Thank you for your feedback! Your rating and comments will help others.
+                                    </p>
+                                </Card>
                             )}
                         </div>
                     </CardContent>

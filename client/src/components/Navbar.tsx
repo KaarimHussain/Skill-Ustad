@@ -1,28 +1,6 @@
-"use client"
-
-import { Link, useNavigate } from "react-router-dom"
-import {
-    BookOpen,
-    Brain,
-    HelpCircle,
-    Map,
-    MapPin,
-    Menu,
-    MessageCircle,
-    MessageSquare,
-    Sparkle,
-    Target,
-    Trophy,
-    UserCheck,
-    Users,
-    LogOut,
-    LayoutDashboard,
-    User,
-    TriangleAlert,
-    DollarSign,
-} from "lucide-react"
-import navStyle from "../css/Navbar.module.css"
-import clsx from "clsx"
+import { useState, useEffect, useCallback } from "react"
+import { motion, AnimatePresence } from "framer-motion"
+import { Button } from "@/components/ui/button"
 import {
     NavigationMenu,
     NavigationMenuContent,
@@ -31,10 +9,27 @@ import {
     NavigationMenuList,
     NavigationMenuTrigger,
 } from "@/components/ui/navigation-menu"
-import { Sheet, SheetContent, SheetTrigger } from "./ui/sheet"
-import { useState, useCallback, memo, useEffect } from "react"
-import { Button } from "./ui/button"
-import Logo from "./Logo"
+import {
+    GraduationCap,
+    Trophy,
+    Workflow,
+    Users,
+    MessageCircle,
+    Menu,
+    X,
+    BrainCircuit,
+    BadgeDollarSign,
+    BookOpen,
+    LogOut,
+    LayoutDashboard,
+    User,
+    TriangleAlert
+} from "lucide-react"
+import Logo from "@/components/Logo"
+import { Link, useNavigate } from "react-router-dom"
+import AuthService from "@/services/auth.service"
+import { useAuth } from "@/context/AuthContext"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import {
     AlertDialog,
     AlertDialogAction,
@@ -46,622 +41,481 @@ import {
     AlertDialogTitle,
     AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
-import AuthService from "@/services/auth.service"
-import { useAuth } from "@/context/AuthContext"
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./ui/tooltip"
 
-// Memoized navigation item component to prevent unnecessary re-renders
-const NavigationItem = memo(
-    ({
-        to,
-        icon: Icon,
-        title,
-        description,
-        className = "",
-        onClick,
-        badge,
-        isLive = false,
-    }: {
-        to: string
-        icon: any
-        title: string
-        description: string
-        className?: string
-        onClick?: () => void
-        badge?: string
-        isLive?: boolean
-    }) => (
-        <Link
-            to={to}
-            className={`flex items-center gap-3 p-4 rounded-xl transition-all duration-200 group ${className}`}
-            onClick={onClick}
-        >
-            <div className="p-2 rounded-lg transition-colors">
-                <Icon className="w-4 h-4 text-gray-700" />
-            </div>
-            <div className="flex-1">
-                <div className="font-medium text-gray-900 text-sm">{title}</div>
-                <div className="text-gray-600 text-xs">{description}</div>
-            </div>
-            {badge && <div className="text-xs bg-indigo-100 text-indigo-700 px-2 py-1 rounded-full">{badge}</div>}
-            {isLive && (
-                <div className="flex items-center gap-1">
-                    <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                    <span className="text-xs text-green-600">Live</span>
-                </div>
-            )}
-        </Link>
-    ),
-)
-
-// Memoized desktop navigation menu content
-const DesktopNavigationContent = memo(
-    () => (
-        <NavigationMenu>
-            <NavigationMenuList>
-                <NavigationMenuItem>
-                    <NavigationMenuLink className="bg-transparent p-0 m-0 border-none hover:bg-transparent">
-                        <Link to={"/"}>
-                            <Button className="py-3 border-none bg-transparent shadow-transparent text-gray-700 hover:text-gray-900 hover:bg-gray-100/50 rounded-full cursor-pointer">
-                                Home
-                            </Button>
-                        </Link>
-                    </NavigationMenuLink>
-                </NavigationMenuItem>
-                <NavigationMenuItem>
-                    <NavigationMenuTrigger className="bg-transparent p-0 m-0 border-none hover:bg-transparent">
-                        <Button className="py-3 border-none bg-transparent shadow-transparent text-gray-700 hover:text-gray-900 hover:bg-gray-100/50 rounded-full cursor-pointer">
-                            Features
-                        </Button>
-                    </NavigationMenuTrigger>
-                    <NavigationMenuContent className="bg-white">
-                        <ul className="grid gap-3 md:w-[450px] lg:w-[550px] lg:grid-cols-[1fr_.8fr] bg-white p-4 rounded-2xl shadow-xl shadow-gray-200/50">
-                            <li className="row-span-3">
-                                <NavigationMenuLink asChild>
-                                    <Link
-                                        to="/courses"
-                                        className="transition-all ease-in-out flex h-full w-full flex-col justify-end rounded-xl bg-gradient-to-br from-indigo-50 to-purple-50 hover:from-indigo-100 hover:to-purple-100 p-6 no-underline outline-hidden select-none focus:shadow-md border border-indigo-200/50 hover:border-indigo-300/60 group relative overflow-hidden"
-                                    >
-                                        <div className="absolute inset-0 bg-gradient-to-br from-indigo-100/20 to-purple-100/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                                        <div className="relative z-10">
-                                            <div className="p-2 bg-indigo-100 rounded-lg w-fit mb-4 group-hover:bg-indigo-200 transition-colors">
-                                                <BookOpen className="w-6 h-6 text-indigo-600" />
-                                            </div>
-                                            <h1 className="mt-4 mb-2 font-bold text-gray-900 text-2xl group-hover:text-gray-800 transition-colors">
-                                                Courses
-                                            </h1>
-                                            <p className="text-gray-600 text-sm leading-relaxed group-hover:text-gray-700 transition-colors">
-                                                Comprehensive learning paths with hands-on projects, AI assistance, and expert mentorship
-                                            </p>
-                                            <div className="mt-4 flex items-center gap-2 text-xs text-indigo-600">
-                                                <span>50+ Courses Available</span>
-                                                <div className="w-1 h-1 bg-indigo-600 rounded-full"></div>
-                                                <span>New courses weekly</span>
-                                            </div>
-                                        </div>
-                                    </Link>
-                                </NavigationMenuLink>
-                            </li>
-                            <li>
-                                <NavigationMenuLink asChild>
-                                    <Link
-                                        to="/public/roadmaps"
-                                        className="block p-4 rounded-xl bg-blue-50/60 hover:bg-blue-100/80 border border-gray-200/60 hover:border-gray-300/60 transition-all duration-200 group backdrop-blur-sm"
-                                    >
-                                        <div className="flex items-start gap-3">
-                                            <div className="p-2 bg-blue-100 rounded-lg group-hover:bg-blue-200 transition-colors">
-                                                <Map className="w-5 h-5 text-blue-600" />
-                                            </div>
-                                            <div className="flex-1">
-                                                <div className="font-medium text-gray-900 text-sm mb-1 group-hover:text-blue-800 transition-colors">
-                                                    Roadmaps
-                                                </div>
-                                                <p className="text-gray-600 text-xs leading-relaxed">
-                                                    Step-by-step learning paths tailored to your career goals and skill level
-                                                </p>
-                                            </div>
-                                        </div>
-                                    </Link>
-                                </NavigationMenuLink>
-                            </li>
-                            <li>
-                                <NavigationMenuLink asChild>
-                                    <Link
-                                        to="/challenges"
-                                        className="block p-4 rounded-xl bg-orange-50/60 hover:bg-orange-100/60 border border-orange-200/60 hover:border-orange-300/60 transition-all duration-200 group backdrop-blur-sm"
-                                    >
-                                        <div className="flex items-start gap-3">
-                                            <div className="p-2 bg-orange-100 rounded-lg group-hover:bg-orange-200 transition-colors">
-                                                <Trophy className="w-5 h-5 text-orange-600" />
-                                            </div>
-                                            <div className="flex-1">
-                                                <div className="font-medium text-gray-900 text-sm mb-1 group-hover:text-orange-800 transition-colors">
-                                                    Challenges
-                                                </div>
-                                                <p className="text-gray-600 text-xs leading-relaxed">
-                                                    Test your skills with coding challenges and real-world problem-solving tasks
-                                                </p>
-                                            </div>
-                                        </div>
-                                    </Link>
-                                </NavigationMenuLink>
-                            </li>
-                            <li className="row-span-1 col-span-2">
-                                <NavigationMenuLink asChild>
-                                    <Link
-                                        to="/blogs"
-                                        className="block p-4 rounded-xl bg-amber-50/60 hover:bg-amber-100/80 border border-amber-200/60 hover:border-amber-300/60 transition-all duration-200 group backdrop-blur-sm"
-                                    >
-                                        <div className="flex items-start gap-3">
-                                            <div className="p-2 bg-amber-100 rounded-lg group-hover:bg-amber-200 transition-colors">
-                                                <BookOpen className="w-5 h-5 text-amber-600" />
-                                            </div>
-                                            <div className="flex-1">
-                                                <div className="font-medium text-gray-900 text-sm mb-1 group-hover:text-amber-800 transition-colors">
-                                                    Blogs
-                                                </div>
-                                                <p className="text-gray-600 text-xs leading-relaxed">
-                                                    Discover insightful articles, tutorials, and industry insights from experts and community members
-                                                </p>
-                                            </div>
-                                        </div>
-                                    </Link>
-                                </NavigationMenuLink>
-                            </li>
-                            <li className="row-span-1 col-span-2">
-                                <NavigationMenuLink asChild>
-                                    <Link
-                                        to="/jobs"
-                                        className="block p-4 rounded-xl bg-cyan-50/60 hover:bg-cyan-100/80 border border-cyan-200/60 hover:border-cyan-300/60 transition-all duration-200 group backdrop-blur-sm"
-                                    >
-                                        <div className="flex items-start gap-3">
-                                            <div className="p-2 bg-cyan-100 rounded-lg group-hover:bg-cyan-200 transition-colors">
-                                                <DollarSign className="w-5 h-5 text-cyan-600" />
-                                            </div>
-                                            <div className="flex-1">
-                                                <div className="font-medium text-gray-900 text-sm mb-1 group-hover:text-cyan-800 transition-colors">
-                                                    Jobs
-                                                </div>
-                                                <p className="text-gray-600 text-xs leading-relaxed">
-                                                    Find your Dream Tech or Non Tech Job!
-                                                </p>
-                                            </div>
-                                        </div>
-                                    </Link>
-                                </NavigationMenuLink>
-                            </li>
-                        </ul>
-                    </NavigationMenuContent>
-                </NavigationMenuItem>
-                <NavigationMenuItem>
-                    <NavigationMenuTrigger className="bg-transparent p-0 m-0 border-none hover:bg-transparent">
-                        <Button className="py-3 border-none bg-transparent shadow-transparent text-gray-700 hover:text-gray-900 hover:bg-gray-100/50 rounded-full cursor-pointer">
-                            Community
-                        </Button>
-                    </NavigationMenuTrigger>
-                    <NavigationMenuContent className="bg-white">
-                        <ul className="grid gap-3 md:w-[400px] lg:w-[500px] lg:grid-cols-[1fr_.8fr] bg-white p-4 rounded-2xl">
-                            <li className="row-span-2 col-span-2">
-                                <NavigationMenuLink asChild>
-                                    <Link
-                                        to="/community"
-                                        className="transition-all ease-in-out flex h-full w-full flex-col justify-end rounded-xl bg-gradient-to-br from-emerald-50 to-teal-50 hover:from-emerald-100 hover:to-teal-100 p-6 no-underline outline-hidden select-none focus:shadow-md border border-emerald-200/50 hover:border-emerald-300/60 group relative overflow-hidden"
-                                    >
-                                        <div className="absolute inset-0 bg-gradient-to-br from-emerald-100/20 to-teal-100/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                                        <div className="relative z-10">
-                                            <div className="p-2 bg-emerald-100 rounded-lg w-fit mb-4 group-hover:bg-emerald-200 transition-colors">
-                                                <Users className="w-6 h-6 text-emerald-600" />
-                                            </div>
-                                            <h1 className="mt-4 mb-2 font-bold text-gray-900 text-2xl group-hover:text-gray-800 transition-colors">
-                                                Community
-                                            </h1>
-                                            <p className="text-gray-600 text-sm leading-relaxed group-hover:text-gray-700 transition-colors">
-                                                Connect with 50,000+ learners, share projects, get help, and grow together in our supportive
-                                                community
-                                            </p>
-                                            <div className="mt-4 flex items-center gap-2 text-xs text-emerald-600">
-                                                <span>24/7 Active Support</span>
-                                                <div className="w-1 h-1 bg-emerald-600 rounded-full"></div>
-                                                <span>1,200+ online now</span>
-                                            </div>
-                                        </div>
-                                    </Link>
-                                </NavigationMenuLink>
-                            </li>
-                            <li className="row-span-2 col-span-2">
-                                <NavigationMenuLink asChild>
-                                    <Link
-                                        to="/public/roadmaps"
-                                        className="block p-4 rounded-xl bg-blue-50/60 hover:bg-blue-100/80 border border-gray-200/60 hover:border-gray-300/60 transition-all duration-200 group backdrop-blur-sm"
-                                    >
-                                        <div className="flex items-start gap-3">
-                                            <div className="p-2 bg-blue-100 rounded-lg group-hover:bg-blue-200 transition-colors">
-                                                <Map className="w-5 h-5 text-blue-600" />
-                                            </div>
-                                            <div className="flex-1">
-                                                <div className="font-medium text-gray-900 text-sm mb-1 group-hover:text-blue-800 transition-colors">
-                                                    Roadmaps
-                                                </div>
-                                                <p className="text-gray-600 text-xs leading-relaxed">
-                                                    Step-by-step learning paths tailored to your career goals and skill level
-                                                </p>
-                                            </div>
-                                        </div>
-                                    </Link>
-                                </NavigationMenuLink>
-                            </li>
-                            <li className="row-span-2 col-span-2">
-                                <NavigationMenuLink asChild>
-                                    <Link
-                                        to="/qa"
-                                        className="block p-4 rounded-xl bg-violet-50/60 hover:bg-violet-100/60 border border-violet-200/60 hover:border-violet-300/60 transition-all duration-200 group backdrop-blur-sm"
-                                    >
-                                        <div className="flex items-start gap-3">
-                                            <div className="p-2 bg-violet-100 rounded-lg group-hover:bg-violet-200 transition-colors">
-                                                <HelpCircle className="w-5 h-5 text-violet-600" />
-                                            </div>
-                                            <div className="flex-1">
-                                                <div className="font-medium text-gray-900 text-sm mb-1 group-hover:text-violet-800 transition-colors">
-                                                    Q&A Hub
-                                                </div>
-                                                <p className="text-gray-600 text-xs leading-relaxed">
-                                                    Get instant answers to your coding questions from our AI assistant and community experts
-                                                </p>
-                                            </div>
-                                        </div>
-                                    </Link>
-                                </NavigationMenuLink>
-                            </li>
-                        </ul>
-                    </NavigationMenuContent>
-                </NavigationMenuItem>
-                <NavigationMenuItem>
-                    <NavigationMenuLink className="bg-transparent p-0 m-0 border-none hover:bg-transparent">
-                        <Link to={"/ai/tools"}>
-                            <Button className="py-3 border-none bg-transparent shadow-transparent text-gray-700 hover:text-gray-900 hover:bg-gray-100/50 rounded-full cursor-pointer">
-                                AI Tools
-                            </Button>
-                        </Link>
-                    </NavigationMenuLink>
-                </NavigationMenuItem>
-            </NavigationMenuList>
-        </NavigationMenu>
-    ),
-)
-
-// Memoized mobile menu content
-const MobileMenuContent = memo(
-    ({
-        onClose,
-        isAuthenticated,
-        userType,
-        handleLogout,
-    }: { onClose: () => void; isAuthenticated: boolean; userType: string | null; handleLogout: () => void }) => {
-        const handleLinkClick = useCallback(() => {
-            onClose()
-        }, [onClose])
-
-        return (
-            <div className="flex flex-col h-full">
-                {/* Mobile Header */}
-                <div className="flex items-center justify-between pb-6 border-b border-gray-200/60">
-                    <div className="flex items-center gap-2">
-                        <Logo />
-                    </div>
-                </div>
-
-                {/* Mobile Navigation Content */}
-                <div className="flex-1 py-6 space-y-8 overflow-y-auto">
-                    {/* Main Navigation */}
-                    <div>
-                        <h3 className="text-gray-500 text-xs font-semibold uppercase tracking-wider mb-4 px-2">Navigation</h3>
-                        <div className="space-y-2">
-                            <NavigationItem
-                                to="/"
-                                icon={Sparkle}
-                                title="Home"
-                                description="Back to homepage"
-                                className="bg-gray-100/60 hover:bg-gray-200/60 border border-gray-200/60 hover:border-gray-300/60"
-                                onClick={handleLinkClick}
-                            />
-                            {isAuthenticated && (
-                                <NavigationItem
-                                    to={AuthService.getRedirectUrl(userType || "student")}
-                                    icon={LayoutDashboard}
-                                    title="Dashboard"
-                                    description={`Your ${userType || "User"} Dashboard`}
-                                    className="bg-indigo-50/60 hover:bg-indigo-100/60 border border-indigo-200/60 hover:border-indigo-300/60"
-                                    onClick={handleLinkClick}
-                                />
-                            )}
-                        </div>
-                    </div>
-
-                    {/* Features Section */}
-                    <div>
-                        <h3 className="text-gray-500 text-xs font-semibold uppercase tracking-wider mb-4 px-2">Features</h3>
-                        <div className="space-y-2">
-                            <NavigationItem
-                                to="/courses"
-                                icon={BookOpen}
-                                title="Courses"
-                                description="50+ comprehensive learning paths"
-                                className="bg-gradient-to-r from-indigo-50 to-purple-50 border border-indigo-200/60 hover:border-indigo-300/60"
-                                onClick={handleLinkClick}
-                            />
-                            <NavigationItem
-                                to="/roadmaps"
-                                icon={Map}
-                                title="Roadmaps"
-                                description="Step-by-step learning paths"
-                                className="bg-gray-100/60 hover:bg-gray-200/60 border border-gray-200/60 hover:border-gray-300/60"
-                                onClick={handleLinkClick}
-                            />
-                            <NavigationItem
-                                to="/challenges"
-                                icon={Trophy}
-                                title="Challenges"
-                                description="Test your skills"
-                                className="bg-gray-100/60 hover:bg-gray-200/60 border border-gray-200/60 hover:border-gray-300/60"
-                                onClick={handleLinkClick}
-                            />
-                            <NavigationItem
-                                to="/advisor"
-                                icon={UserCheck}
-                                title="Advisor"
-                                description="Expert guidance"
-                                className="bg-gray-100/60 hover:bg-gray-200/60 border border-gray-200/60 hover:border-gray-300/60"
-                                onClick={handleLinkClick}
-                            />
-                        </div>
-                    </div>
-
-                    {/* AI Tools Section */}
-                    <div>
-                        <h3 className="text-gray-500 text-xs font-semibold uppercase tracking-wider mb-4 px-2 flex items-center gap-2">
-                            <Brain className="w-3 h-3" />
-                            AI Tools
-                        </h3>
-                        <div className="space-y-2">
-                            <NavigationItem
-                                to="/ai/interview-simulator"
-                                icon={MessageSquare}
-                                title="Interview Simulator"
-                                description="Practice with AI feedback"
-                                className="bg-gray-100/60 hover:bg-gray-200/60 border border-gray-200/60 hover:border-gray-300/60"
-                                onClick={handleLinkClick}
-                            />
-                            <NavigationItem
-                                to="/ai/quiz-taker"
-                                icon={HelpCircle}
-                                title="AI Quiz Taker"
-                                description="Adaptive learning quizzes"
-                                className="bg-gray-100/60 hover:bg-gray-200/60 border border-gray-200/60 hover:border-gray-300/60"
-                                onClick={handleLinkClick}
-                            />
-                            <NavigationItem
-                                to="/ai/career-suggestion"
-                                icon={Target}
-                                title="Career Suggestion"
-                                description="Personalized career paths"
-                                className="bg-gray-100/60 hover:bg-gray-200/60 border border-gray-200/60 hover:border-gray-300/60"
-                                onClick={handleLinkClick}
-                            />
-                        </div>
-                    </div>
-
-                    {/* Community Section */}
-                    <div>
-                        <h3 className="text-gray-500 text-xs font-semibold uppercase tracking-wider mb-4 px-2 flex items-center gap-2">
-                            <Users className="w-3 h-3" />
-                            Community
-                        </h3>
-                        <div className="space-y-2">
-                            <NavigationItem
-                                to="/community"
-                                icon={Users}
-                                title="Community Hub"
-                                description="Connect with 50,000+ learners"
-                                className="bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200/60 hover:border-emerald-300/60"
-                                onClick={handleLinkClick}
-                            />
-                            <NavigationItem
-                                to="/community/roadmaps"
-                                icon={MapPin}
-                                title="Community Roadmaps"
-                                description="Member-created learning paths"
-                                className="bg-gray-100/60 hover:bg-gray-200/60 border border-gray-200/60 hover:border-gray-300/60"
-                                onClick={handleLinkClick}
-                            />
-                            <NavigationItem
-                                to="/community/forums"
-                                icon={MessageCircle}
-                                title="Discussion Forums"
-                                description="Ask questions & share knowledge"
-                                className="bg-gray-100/60 hover:bg-gray-200/60 border border-gray-200/60 hover:border-gray-300/60"
-                                onClick={handleLinkClick}
-                            />
-                        </div>
-                    </div>
-                </div>
-
-                {/* Mobile Auth Buttons */}
-                <div className="border-t border-gray-200/60 pt-6 space-y-3">
-                    {isAuthenticated ? (
-                        <Button
-                            className="cursor-pointer w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-xl font-medium transition-all duration-200 shadow-lg hover:shadow-indigo-200/50"
-                            onClick={() => {
-                                handleLogout()
-                                handleLinkClick() // Close menu after logout
-                            }}
-                        >
-                            <div className="flex items-center justify-center gap-2">
-                                <LogOut className="w-4 h-4" />
-                                <span>Logout</span>
-                            </div>
-                        </Button>
-                    ) : (
-                        <>
-                            <Link to={"/login"} className="w-full">
-                                <Button
-                                    className="cursor-pointer w-full bg-white hover:bg-gray-50 text-gray-900 hover:text-gray-700 border border-gray-300 py-3 rounded-xl transition-all duration-200"
-                                    onClick={handleLinkClick}
-                                >
-                                    <div className="flex items-center justify-center gap-2">
-                                        <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
-                                        <span>Login</span>
-                                    </div>
-                                </Button>
-                            </Link>
-                            <Link to={"/signup"} className="w-full">
-                                <Button
-                                    className="cursor-pointer w-full bg-indigo-500 hover:bg-indigo-600 text-white py-3 rounded-xl font-medium transition-all duration-200 shadow-lg hover:shadow-indigo-200/50"
-                                    onClick={handleLinkClick}
-                                >
-                                    <div className="flex items-center justify-center gap-2">
-                                        <span>Get Started Free</span>
-                                    </div>
-                                </Button>
-                            </Link>
-                        </>
-                    )}
-                </div>
-            </div>
-        )
+const navigationData = [
+    {
+        linkName: "Products",
+        linkData: [
+            {
+                title: "Roadmaps",
+                description: "Step by step learning paths tailored to your career goals and skills level.",
+                icon: Workflow,
+                href: "/public/roadmaps",
+                color: "from-blue-500/20 to-blue-500/20",
+                iconColor: "text-blue-600",
+                borderColor: "hover:border-blue-500/50",
+                bgColor: "bg-blue-50",
+            },
+            {
+                title: "Courses",
+                description: "Comprehensive learning paths with hands on projects, AI Assistance, and expert mentorship",
+                icon: GraduationCap,
+                href: "/courses",
+                color: "from-purple-500/20 to-purple-500/20",
+                iconColor: "text-purple-600",
+                borderColor: "hover:border-purple-500/50",
+                bgColor: "bg-purple-50",
+            },
+            {
+                title: "Challenges",
+                description: "Test your skills with coding challenges and real-world problem-solving tasks.",
+                icon: Trophy,
+                href: "/challenges",
+                color: "from-emerald-500/20 to-emerald-500/20",
+                iconColor: "text-emerald-600",
+                borderColor: "hover:border-emerald-500/50",
+                bgColor: "bg-emerald-50",
+            },
+            {
+                title: "Blogs",
+                description: "Discover insightful articles, tutorials, and industry insights from experts and community members.",
+                icon: BookOpen,
+                href: "/blogs",
+                color: "from-rose-500/20 to-rose-500/20",
+                iconColor: "text-rose-600",
+                borderColor: "hover:border-rose-500/50",
+                bgColor: "bg-rose-50",
+            },
+        ]
     },
-)
+    {
+        linkName: "Features",
+        linkData: [
+            {
+                title: "Community",
+                description: "Connect with learners worldwide, share knowledge, and grow together.",
+                icon: Users,
+                href: "/community",
+                color: "from-orange-500/20 to-red-500/20",
+                iconColor: "text-orange-600",
+                borderColor: "hover:border-orange-500/50",
+                bgColor: "bg-orange-50",
+            },
+            {
+                title: "Jobs",
+                description: "Find your Dream Tech or Non Tech Job!",
+                icon: BadgeDollarSign,
+                href: "/jobs",
+                color: "from-teal-500/20 to-cyan-600/20",
+                iconColor: "text-teal-600",
+                borderColor: "hover:border-teal-500/50",
+                bgColor: "bg-teal-50",
+            },
+            {
+                title: "Q&A Hub",
+                description: "Get answers to your questions from experts and fellow learners.",
+                icon: MessageCircle,
+                href: "/qa",
+                color: "from-yellow-500/20 to-amber-500/20",
+                iconColor: "text-yellow-600",
+                borderColor: "hover:border-yellow-500/50",
+                bgColor: "bg-yellow-50",
+            },
+            {
+                title: "AI Tools",
+                description: "Skill-Ustad's AI Tools Hub gives you instant access to free, no-code tools that help you build with the power of AI.",
+                icon: BrainCircuit,
+                href: "/ai/tools",
+                color: "from-fuchsia-500/20 to-fuchsia-500/20",
+                iconColor: "text-fuchsia-600",
+                borderColor: "hover:border-fuchsia-500/50",
+                bgColor: "bg-fuchsia-50",
+            },
+        ]
+    },
+]
 
-// Main Navbar Container
 export default function Navbar() {
     const navigate = useNavigate()
     const { isAuthenticated, userType, refreshAuth } = useAuth()
-    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
-    const [role, setRole] = useState("Student");
+    const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+    const [mobileSubmenuOpen, setMobileSubmenuOpen] = useState<number | null>(null)
+    const [isScrolled, setIsScrolled] = useState(false)
+    const [role, setRole] = useState("Student")
 
-    const handleMobileMenuClose = useCallback(() => {
-        setIsMobileMenuOpen(false)
+    useEffect(() => {
+        const handleScroll = () => {
+            setIsScrolled(window.scrollY > 20)
+        }
+
+        window.addEventListener('scroll', handleScroll)
+        return () => window.removeEventListener('scroll', handleScroll)
     }, [])
 
     useEffect(() => {
-        var userType = AuthService.getUserType();
-        setRole(userType ?? "Student");
-    }, [role])
+        var userType = AuthService.getUserType()
+        setRole(userType ?? "Student")
+    }, [])
 
-    // Actual logout logic
     const doLogout = useCallback(() => {
         AuthService.logout()
-        refreshAuth() // 👈 this updates Navbar immediately
+        refreshAuth()
         navigate("/login")
     }, [navigate, refreshAuth])
 
     return (
-        <div className={clsx(navStyle.nav, navStyle.navbarFade)}>
-            <nav className="flex items-center justify-between py-4 lg:px-50 md:px-30 sm:px-5 px-5 border-b border-gray-200/60">
-                <div className="flex items-center gap-2">{<Logo />}</div>
-                <div className="md:hidden sm:hidden lg:block hidden">
-                    <DesktopNavigationContent />
-                </div>
-                <div className="flex gap-2">
-                    {isAuthenticated ? (
-                        <div className="flex gap-2">
-                            <TooltipProvider>
-                                <Tooltip>
-                                    <TooltipTrigger asChild>
-                                        <Link to={role == "Mentor" ? "/mentor/profile" : "/user/profile"}>
-                                            <Button variant="ghost" size="icon" className="text-gray-700 hover:bg-gray-100/60">
-                                                <User className="w-5 h-5" />
-                                            </Button>
-                                        </Link>
-                                    </TooltipTrigger>
-                                    <TooltipContent>
-                                        <p>View Profile</p>
-                                    </TooltipContent>
-                                </Tooltip>
-                            </TooltipProvider>
+        <>
+            {/* Desktop Navigation */}
+            <motion.nav
+                className="hidden lg:block fixed top-0 left-0 right-0 z-100 py-4 px-7"
+                initial={{ y: 0 }}
+                animate={{ y: 0 }}
+            >
+                <motion.div
+                    className="rounded-full py-3 px-6 mx-auto grid grid-cols-3 items-center"
+                    initial={{
+                        backgroundColor: "rgba(255, 255, 255, 0)",
+                        borderColor: "rgba(212, 212, 216, 0)",
+                        backdropFilter: "blur(0px)",
+                        maxWidth: "90rem"
+                    }}
+                    animate={{
+                        backgroundColor: isScrolled ? "rgba(255, 255, 255, 0.7)" : "rgba(255, 255, 255, 0)",
+                        borderColor: isScrolled ? "rgba(212, 212, 216, 1)" : "rgba(212, 212, 216, 0)",
+                        backdropFilter: isScrolled ? "blur(24px)" : "blur(0px)",
+                        maxWidth: isScrolled ? "72rem" : "90rem",
+                        boxShadow: isScrolled ? "0 1px 3px 0 rgb(0 0 0 / 0.05)" : "0 0 0 0 rgb(0 0 0 / 0)"
+                    }}
+                    transition={{ duration: 0.3, ease: "easeInOut" }}
+                    style={{ borderWidth: "1px", borderStyle: "solid" }}
+                >
+                    {/* Left: Navigation Links */}
+                    <div className="flex items-center gap-1 justify-start">
+                        {navigationData.map((data, index) => (
+                            <NavigationMenu key={index}>
+                                <NavigationMenuList>
+                                    <NavigationMenuItem>
+                                        <NavigationMenuTrigger className="text-black hover:text-indigo-600 bg-transparent hover:bg-gray-100 rounded-full px-4 py-2 transition-colors">
+                                            {data.linkName}
+                                        </NavigationMenuTrigger>
+                                        <NavigationMenuContent>
+                                            <motion.div
+                                                className="w-screen max-w-5xl p-4"
+                                                initial={{ opacity: 0, y: -10 }}
+                                                animate={{ opacity: 1, y: 0 }}
+                                                transition={{ duration: 0.2 }}
+                                            >
+                                                <div className="grid lg:grid-cols-4 md:grid-cols-2 grid-cols-1 gap-4">
+                                                    {data.linkData.map((linkData, idx) => {
+                                                        const IconComponent = linkData.icon
+                                                        return (
+                                                            <NavigationMenuLink key={idx} asChild>
+                                                                <Link to={linkData.href}>
+                                                                    <motion.div
+                                                                        className={`group relative flex flex-col gap-3 rounded-2xl p-5 transition-all duration-300 border-1 overflow-hidden h-full`}
+                                                                        whileHover={{ scale: 1.02 }}
+                                                                        transition={{ duration: 0.2 }}
+                                                                    >
+                                                                        {/* Gradient Background */}
+                                                                        <div className={`absolute inset-0 bg-gradient-to-br ${linkData.color} opacity-0 group-hover:opacity-100 transition-opacity duration-300 h-full`}></div>
 
-                            <TooltipProvider>
-                                <Tooltip>
-                                    <TooltipTrigger asChild>
-                                        <Link to={AuthService.getRedirectUrl(userType || "student")}>
-                                            <Button variant="ghost" size="icon" className="text-indigo-600 hover:bg-indigo-50/60">
-                                                <LayoutDashboard className="w-5 h-5" />
-                                            </Button>
-                                        </Link>
-                                    </TooltipTrigger>
-                                    <TooltipContent>
-                                        <p>Go to Dashboard</p>
-                                    </TooltipContent>
-                                </Tooltip>
-                            </TooltipProvider>
-
-                            <AlertDialog>
-                                <AlertDialogTrigger asChild>
-                                    <Button variant="destructive" size="icon">
-                                        <LogOut className="w-5 h-5" />
-                                    </Button>
-                                </AlertDialogTrigger>
-                                <AlertDialogContent>
-                                    <AlertDialogHeader>
-                                        <AlertDialogTitle className="flex gap-3 items-center">
-                                            <div className="aspect-square bg-red-100 rounded-full p-3">
-                                                <TriangleAlert className="text-red-500" size={25} />
-                                            </div>
-                                            <div>
-                                                <h1 className="text-3xl font-bold">Are you sure?</h1>
-                                            </div>
-                                        </AlertDialogTitle>
-                                        <AlertDialogDescription>
-                                            Are you sure you want to sign out of your account? You'll need to sign in again to access your
-                                            dashboard.
-                                        </AlertDialogDescription>
-                                    </AlertDialogHeader>
-                                    <AlertDialogFooter>
-                                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                        <AlertDialogAction
-                                            className="bg-red-500 hover:bg-red-600 text-white cursor-pointer"
-                                            onClick={doLogout}
-                                        >
-                                            Continue
-                                        </AlertDialogAction>
-                                    </AlertDialogFooter>
-                                </AlertDialogContent>
-                            </AlertDialog>
-                        </div>
-                    ) : (
-                        <>
-                            <Link to={"/login"}>
-                                <Button className="shadow-transparent bg-transparent hover:bg-gray-100/60 text-gray-700 hover:text-gray-900 md:hidden sm:hidden lg:block hidden cursor-pointer">
-                                    Login
-                                </Button>
-                            </Link>
-                            <Link to={"/signup"}>
-                                <Button className="bg-indigo-500 hover:bg-indigo-600 text-white cursor-pointer">Get Started</Button>
-                            </Link>
-                        </>
-                    )}
-                    {/* Mobile Menu Button */}
-                    <div className="lg:hidden">
-                        <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
-                            <SheetTrigger asChild>
-                                <Button variant="ghost" size="icon" className="text-gray-700 hover:bg-gray-100/60">
-                                    <Menu className="h-6 w-6" />
-                                </Button>
-                            </SheetTrigger>
-                            <SheetContent
-                                side="left"
-                                className="w-[320px] z-[110] bg-white/90 backdrop-blur-3xl border-gray-200/60 p-3"
-                            >
-                                <MobileMenuContent
-                                    isAuthenticated={isAuthenticated}
-                                    userType={userType}
-                                    handleLogout={doLogout}
-                                    onClose={handleMobileMenuClose}
-                                />
-                            </SheetContent>
-                        </Sheet>
+                                                                        {/* Content */}
+                                                                        <div className="relative z-10">
+                                                                            <div className={`w-12 h-12 rounded-xl ${linkData.bgColor} flex items-center justify-center group-hover:scale-110 transition-transform duration-300 mb-3`}>
+                                                                                <IconComponent className={`w-6 h-6 ${linkData.iconColor}`} />
+                                                                            </div>
+                                                                            <h3 className="font-bold text-gray-900 mb-2 text-lg">
+                                                                                {linkData.title}
+                                                                            </h3>
+                                                                            <p className="text-sm text-gray-600 leading-relaxed">
+                                                                                {linkData.description}
+                                                                            </p>
+                                                                        </div>
+                                                                    </motion.div>
+                                                                </Link>
+                                                            </NavigationMenuLink>
+                                                        )
+                                                    })}
+                                                </div>
+                                            </motion.div>
+                                        </NavigationMenuContent>
+                                    </NavigationMenuItem>
+                                </NavigationMenuList>
+                            </NavigationMenu>
+                        ))}
                     </div>
-                </div>
-            </nav>
-        </div>
+
+                    {/* Center: Logo */}
+                    <div className="flex justify-center">
+                        <Logo logoOnly />
+                    </div>
+
+                    {/* Right: Auth Buttons */}
+                    <div className="flex items-center gap-2 justify-end">
+                        {isAuthenticated ? (
+                            <>
+                                <TooltipProvider>
+                                    <Tooltip>
+                                        <TooltipTrigger asChild>
+                                            <Link to={role === "Mentor" ? "/mentor/profile" : "/user/profile"}>
+                                                <Button variant="ghost" size="icon" className="text-gray-700 hover:bg-gray-100/60 rounded-full">
+                                                    <User className="w-5 h-5" />
+                                                </Button>
+                                            </Link>
+                                        </TooltipTrigger>
+                                        <TooltipContent>
+                                            <p>View Profile</p>
+                                        </TooltipContent>
+                                    </Tooltip>
+                                </TooltipProvider>
+
+                                <TooltipProvider>
+                                    <Tooltip>
+                                        <TooltipTrigger asChild>
+                                            <Link to={AuthService.getRedirectUrl(userType || "student")}>
+                                                <Button variant="ghost" size="icon" className="text-indigo-600 hover:bg-indigo-50/60 rounded-full">
+                                                    <LayoutDashboard className="w-5 h-5" />
+                                                </Button>
+                                            </Link>
+                                        </TooltipTrigger>
+                                        <TooltipContent>
+                                            <p>Go to Dashboard</p>
+                                        </TooltipContent>
+                                    </Tooltip>
+                                </TooltipProvider>
+
+                                <AlertDialog>
+                                    <AlertDialogTrigger asChild>
+                                        <Button variant="destructive" size="icon" className="rounded-full">
+                                            <LogOut className="w-5 h-5" />
+                                        </Button>
+                                    </AlertDialogTrigger>
+                                    <AlertDialogContent>
+                                        <AlertDialogHeader>
+                                            <AlertDialogTitle className="flex gap-3 items-center">
+                                                <div className="aspect-square bg-red-100 rounded-full p-3">
+                                                    <TriangleAlert className="text-red-500" size={25} />
+                                                </div>
+                                                <div>
+                                                    <h1 className="text-3xl font-bold">Are you sure?</h1>
+                                                </div>
+                                            </AlertDialogTitle>
+                                            <AlertDialogDescription>
+                                                Are you sure you want to sign out of your account? You'll need to sign in again to access your dashboard.
+                                            </AlertDialogDescription>
+                                        </AlertDialogHeader>
+                                        <AlertDialogFooter>
+                                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                            <AlertDialogAction
+                                                className="bg-red-500 hover:bg-red-600 text-white cursor-pointer"
+                                                onClick={doLogout}
+                                            >
+                                                Continue
+                                            </AlertDialogAction>
+                                        </AlertDialogFooter>
+                                    </AlertDialogContent>
+                                </AlertDialog>
+                            </>
+                        ) : (
+                            <>
+                                <Link to="/login">
+                                    <Button variant="secondary" size="default" className="rounded-full">
+                                        Login
+                                    </Button>
+                                </Link>
+                                <Link to="/signup">
+                                    <Button size="default" className="rounded-full bg-indigo-500 hover:bg-indigo-600 text-white shadow-md">
+                                        Register
+                                    </Button>
+                                </Link>
+                            </>
+                        )}
+                    </div>
+                </motion.div>
+            </motion.nav>
+
+            {/* Mobile Navigation */}
+            <motion.nav
+                className="lg:hidden fixed top-0 left-0 right-0 z-100 p-4"
+                initial={{ y: 0 }}
+                animate={{ y: 0 }}
+            >
+                <motion.div
+                    className="rounded-full py-3 px-4 flex items-center justify-between"
+                    initial={{
+                        backgroundColor: "rgba(255, 255, 255, 0)",
+                        borderColor: "rgba(212, 212, 216, 0)",
+                        backdropFilter: "blur(0px)"
+                    }}
+                    animate={{
+                        backgroundColor: isScrolled ? "rgba(255, 255, 255, 0.7)" : "rgba(255, 255, 255, 0)",
+                        borderColor: isScrolled ? "rgba(212, 212, 216, 1)" : "rgba(212, 212, 216, 0)",
+                        backdropFilter: isScrolled ? "blur(24px)" : "blur(0px)",
+                        boxShadow: isScrolled ? "0 1px 3px 0 rgb(0 0 0 / 0.05)" : "0 0 0 0 rgb(0 0 0 / 0)"
+                    }}
+                    transition={{ duration: 0.3, ease: "easeInOut" }}
+                    style={{ borderWidth: "1px", borderStyle: "solid" }}
+                >
+                    <Logo logoOnly />
+
+                    <motion.button
+                        onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                        className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                        aria-label="Toggle menu"
+                        whileTap={{ scale: 0.95 }}
+                    >
+                        <AnimatePresence mode="wait">
+                            {mobileMenuOpen ? (
+                                <motion.div
+                                    key="close"
+                                    initial={{ rotate: -90, opacity: 0 }}
+                                    animate={{ rotate: 0, opacity: 1 }}
+                                    exit={{ rotate: 90, opacity: 0 }}
+                                    transition={{ duration: 0.2 }}
+                                >
+                                    <X className="w-6 h-6 text-gray-700" />
+                                </motion.div>
+                            ) : (
+                                <motion.div
+                                    key="menu"
+                                    initial={{ rotate: 90, opacity: 0 }}
+                                    animate={{ rotate: 0, opacity: 1 }}
+                                    exit={{ rotate: -90, opacity: 0 }}
+                                    transition={{ duration: 0.2 }}
+                                >
+                                    <Menu className="w-6 h-6 text-gray-700" />
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
+                    </motion.button>
+                </motion.div>
+
+                {/* Mobile Menu Dropdown */}
+                <AnimatePresence>
+                    {mobileMenuOpen && (
+                        <motion.div
+                            className="mt-2 bg-white/95 backdrop-blur-2xl rounded-3xl border border-zinc-300 shadow-xl overflow-hidden z-100 relative"
+                            initial={{ opacity: 0, y: -20, scale: 0.95 }}
+                            animate={{ opacity: 1, y: 0, scale: 1 }}
+                            exit={{ opacity: 0, y: -20, scale: 0.95 }}
+                            transition={{ duration: 0.2, ease: "easeOut" }}
+                        >
+                            <div className="p-4 space-y-2">
+                                {navigationData.map((data, index) => (
+                                    <div key={index}>
+                                        <motion.button
+                                            onClick={() => setMobileSubmenuOpen(mobileSubmenuOpen === index ? null : index)}
+                                            className="w-full text-left px-4 py-3 hover:bg-gray-100 rounded-xl font-medium text-gray-700 transition-colors"
+                                            whileTap={{ scale: 0.98 }}
+                                        >
+                                            {data.linkName}
+                                        </motion.button>
+                                        <AnimatePresence>
+                                            {mobileSubmenuOpen === index && (
+                                                <motion.div
+                                                    className="mt-2 ml-2 space-y-2 overflow-hidden"
+                                                    initial={{ height: 0, opacity: 0 }}
+                                                    animate={{ height: "auto", opacity: 1 }}
+                                                    exit={{ height: 0, opacity: 0 }}
+                                                    transition={{ duration: 0.3, ease: "easeInOut" }}
+                                                >
+                                                    {data.linkData.map((linkData, idx) => {
+                                                        const IconComponent = linkData.icon
+                                                        return (
+                                                            <Link key={idx} to={linkData.href} onClick={() => setMobileMenuOpen(false)}>
+                                                                <motion.div
+                                                                    className={`flex items-start gap-3 p-4 rounded-xl transition-all duration-300 border-2 border-transparent ${linkData.borderColor} relative overflow-hidden group`}
+                                                                    initial={{ x: -20, opacity: 0 }}
+                                                                    animate={{ x: 0, opacity: 1 }}
+                                                                    transition={{ delay: idx * 0.05 }}
+                                                                    whileTap={{ scale: 0.98 }}
+                                                                >
+                                                                    {/* Gradient Background */}
+                                                                    <div className={`absolute inset-0 bg-gradient-to-br ${linkData.color} opacity-50`}></div>
+
+                                                                    {/* Content */}
+                                                                    <div className={`relative z-10 w-10 h-10 rounded-lg ${linkData.bgColor} flex items-center justify-center flex-shrink-0`}>
+                                                                        <IconComponent className={`w-5 h-5 ${linkData.iconColor}`} />
+                                                                    </div>
+                                                                    <div className="relative z-10">
+                                                                        <h3 className="font-semibold text-gray-900 text-sm mb-1">
+                                                                            {linkData.title}
+                                                                        </h3>
+                                                                        <p className="text-xs text-gray-600 leading-relaxed">
+                                                                            {linkData.description}
+                                                                        </p>
+                                                                    </div>
+                                                                </motion.div>
+                                                            </Link>
+                                                        )
+                                                    })}
+                                                </motion.div>
+                                            )}
+                                        </AnimatePresence>
+                                    </div>
+                                ))}
+
+                                <Link
+                                    to="/pricing"
+                                    className="block px-4 py-3 hover:bg-gray-100 rounded-xl font-medium text-gray-700 transition-colors"
+                                    onClick={() => setMobileMenuOpen(false)}
+                                >
+                                    Pricing
+                                </Link>
+
+                                <motion.div
+                                    className="pt-4 border-t border-gray-200 mt-4 space-y-2 flex flex-col"
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: 1 }}
+                                    transition={{ delay: 0.2 }}
+                                >
+                                    {isAuthenticated ? (
+                                        <>
+                                            <Link to={role === "Mentor" ? "/mentor/profile" : "/user/profile"}>
+                                                <Button variant="secondary" size="default" className="w-full rounded-xl" onClick={() => setMobileMenuOpen(false)}>
+                                                    <User className="w-4 h-4 mr-2" />
+                                                    Profile
+                                                </Button>
+                                            </Link>
+                                            <Link to={AuthService.getRedirectUrl(userType || "student")}>
+                                                <Button variant="secondary" size="default" className="w-full rounded-xl" onClick={() => setMobileMenuOpen(false)}>
+                                                    <LayoutDashboard className="w-4 h-4 mr-2" />
+                                                    Dashboard
+                                                </Button>
+                                            </Link>
+                                            <Button
+                                                variant="destructive"
+                                                size="default"
+                                                className="w-full rounded-xl"
+                                                onClick={() => {
+                                                    doLogout()
+                                                    setMobileMenuOpen(false)
+                                                }}
+                                            >
+                                                <LogOut className="w-4 h-4 mr-2" />
+                                                Logout
+                                            </Button>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Link to="/login">
+                                                <Button variant="secondary" size="default" className="w-full rounded-xl" onClick={() => setMobileMenuOpen(false)}>
+                                                    Login
+                                                </Button>
+                                            </Link>
+                                            <Link to="/signup">
+                                                <Button size="default" className="w-full rounded-xl bg-indigo-500 hover:bg-indigo-600 text-white" onClick={() => setMobileMenuOpen(false)}>
+                                                    Register
+                                                </Button>
+                                            </Link>
+                                        </>
+                                    )}
+                                </motion.div>
+                            </div>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
+            </motion.nav>
+        </>
     )
 }

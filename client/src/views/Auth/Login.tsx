@@ -8,65 +8,14 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { memo } from "react"
 import { Link, useNavigate } from "react-router-dom"
 import { useGoogleLogin } from "@react-oauth/google"
 import AuthService, { type LoginRequest, type ApiError } from "@/services/auth.service"
 import { useAuth } from "@/context/AuthContext"
 import type GoogleLoginRequest from "@/dtos/GoogleLoginRequest"
+import img from "@/assets/img/Signup-Form-Background.png"
+import Logo from "@/components/Logo"
 
-// Background elements with reduced brightness and added visual interest
-const LoginBackground = memo(() => (
-  <>
-    {/* Solid light background instead of gradient */}
-    <div className="absolute inset-0 bg-gray-50" />
-    {/* Subtle geometric pattern overlay */}
-    <div className="absolute inset-0 opacity-[0.04]">
-      <div
-        className="h-full w-full"
-        style={{
-          backgroundImage: `
-            radial-gradient(circle at 25% 25%, rgba(99, 102, 241, 0.1) 2px, transparent 2px),
-            radial-gradient(circle at 75% 75%, rgba(147, 51, 234, 0.1) 1px, transparent 1px),
-            linear-gradient(rgba(99, 102, 241, 0.05) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(99, 102, 241, 0.05) 1px, transparent 1px)
-          `,
-          backgroundSize: "60px 60px, 40px 40px, 20px 20px, 20px 20px",
-          backgroundPosition: "0 0, 30px 30px, 0 0, 0 0",
-        }}
-      />
-    </div>
-    {/* Subtle texture overlay */}
-    <div className="absolute inset-0 opacity-[0.02]">
-      <div
-        className="h-full w-full"
-        style={{
-          backgroundImage: `
-            repeating-linear-gradient(
-              45deg,
-              transparent,
-              transparent 2px,
-              rgba(0, 0, 0, 0.01) 2px,
-              rgba(0, 0, 0, 0.01) 4px
-            )
-          `,
-        }}
-      />
-    </div>
-    {/* Muted floating shapes */}
-    <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-indigo-100/20 rounded-full blur-3xl" />
-    <div className="absolute bottom-1/4 right-1/4 w-48 h-48 bg-purple-100/15 rounded-full blur-3xl" />
-    <div className="absolute top-1/3 right-1/3 w-32 h-32 bg-blue-100/10 rounded-full blur-2xl" />
-    {/* Subtle decorative elements */}
-    <div className="absolute top-20 left-20 w-1 h-1 bg-gray-300 rounded-full opacity-40" />
-    <div className="absolute top-40 right-32 w-0.5 h-0.5 bg-gray-400 rounded-full opacity-30" />
-    <div className="absolute bottom-32 left-40 w-1 h-1 bg-gray-300 rounded-full opacity-35" />
-    <div className="absolute bottom-20 right-20 w-1.5 h-1.5 bg-gray-400 rounded-full opacity-25" />
-    {/* Subtle corner accents */}
-    <div className="absolute top-0 left-0 w-32 h-32 border-l-2 border-t-2 border-gray-200/50 rounded-tl-3xl" />
-    <div className="absolute bottom-0 right-0 w-32 h-32 border-r-2 border-b-2 border-gray-200/50 rounded-br-3xl" />
-  </>
-))
 
 // Validation functions
 const validateEmail = (email: string): string => {
@@ -327,229 +276,258 @@ export default function Login() {
   )
 
   return (
-    <section className="min-h-screen pt-32 pb-10 w-full flex items-center justify-center p-4 relative overflow-hidden">
-      <LoginBackground />
-      {/* Main Form Container */}
-      <div className="relative z-10 w-full max-w-lg mx-auto">
-        <div
-          className="bg-white/70 backdrop-blur-xl border border-white/60 rounded-2xl p-10 shadow-2xl hover:shadow-indigo-500/10 transition-all duration-300 hover:bg-white/80 hover:border-white/80"
-          style={{
-            boxShadow: "0 25px 50px rgba(99, 102, 241, 0.15)",
-          }}
-        >
-          {/* Background gradient overlay */}
-          <div className="absolute inset-0 bg-gradient-to-br from-indigo-50/30 to-purple-50/20 rounded-2xl pointer-events-none"></div>
-          <div className="relative z-10">
-            {/* Header */}
-            <div className="text-center mb-10">
-              <h2 className="text-4xl text-gray-900 font-bold mb-3">Welcome Back</h2>
-              <p className="text-gray-600 text-base">Start where you left off</p>
+    <div className="min-h-screen w-full px-0 sm:px-5 md:px-10 lg:px-20 py-20 grid grid-flow-col lg:grid-cols-2 md:grid-cols-1 sm:grid-cols-1 grid-cols-1 gap-3">
+      {/* Abstract Image and Quote Section - LEFT SIDE */}
+      <div className="p-7 lg:block md:hidden sm:hidden hidden relative w-full overflow-hidden">
+        <div className="grayscale hover:grayscale-0 transition-all duration-500 relative rounded-4xl min-h-[100vh] w-full overflow-hidden">
+          <img
+            src={img}
+            className="h-full w-full object-cover object-center"
+            alt="Background"
+          />
+          <div className="absolute inset-0 bg-gradient-to-br from-black/60 via-black/40 to-black/70"></div>
+
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-lg px-8">
+            <div className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-3xl p-8 shadow-2xl">
+              <div className="mb-6">
+                <svg className="w-12 h-12 text-white/30" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h4v10h-10z" />
+                </svg>
+              </div>
+
+              <h1 className="font-extralight text-white text-4xl xl:text-5xl mb-6">Welcome Back to Your Journey</h1>
+
+              <p className="text-white/90 text-lg xl:text-xl font-medium leading-relaxed mb-6">
+                Continue your path to mastery. Every login is a step forward in your learning adventure.
+              </p>
+
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-0.5 bg-gradient-to-r from-indigo-400 to-purple-400 rounded-full"></div>
+                <small className="text-white/70 text-sm font-medium">Your growth never stops</small>
+              </div>
             </div>
 
-            {/* API Error/Success Messages */}
-            {apiError && (
-              <Alert className="mb-6 border-red-200 bg-red-50">
-                <AlertCircle className="h-4 w-4 text-red-600" />
-                <AlertDescription className="text-red-600">{apiError}</AlertDescription>
-              </Alert>
-            )}
+            <div className="absolute -top-6 -right-6 w-24 h-24 bg-gradient-to-br from-indigo-400/20 to-purple-400/20 rounded-full blur-xl"></div>
+            <div className="absolute -bottom-8 -left-8 w-32 h-32 bg-gradient-to-br from-blue-400/15 to-cyan-400/15 rounded-full blur-xl"></div>
+          </div>
 
-            {successMessage && (
-              <Alert className="mb-6 border-green-200 bg-green-50">
-                <CheckCircle className="h-4 w-4 text-green-600" />
-                <AlertDescription className="text-green-600">{successMessage}</AlertDescription>
-              </Alert>
-            )}
+          <div className="absolute top-8 right-8 w-20 h-20 border-2 border-white/20 rounded-2xl rotate-12"></div>
+          <div className="absolute bottom-8 left-8 w-16 h-16 bg-gradient-to-br from-indigo-400/30 to-purple-400/30 rounded-xl rotate-45"></div>
+        </div>
+      </div>
 
-            <div className="space-y-8" onKeyDown={handleKeyDown}>
-              {/* Email Field */}
-              <div className="space-y-3">
-                <Label htmlFor="email" className="text-gray-700 font-medium text-base">
-                  Email Address
-                </Label>
-                <div className="relative group">
-                  <div className="absolute left-4 top-1/2 -translate-y-1/2 z-10">
-                    <Mail className="w-5 h-5 text-gray-500 group-focus-within:text-indigo-500 transition-colors" />
-                  </div>
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder="Enter your email address"
-                    value={formData.email}
-                    onChange={(e) => handleInputChange("email", e.target.value)}
-                    onBlur={() => handleBlur("email")}
-                    onKeyDown={handleKeyDown}
-                    disabled={isLoading || socialAuthLoading}
-                    className={`pl-14 pr-4 py-6 text-base bg-white/60 border-gray-300 focus:border-indigo-500 focus:bg-white/80 text-gray-900 placeholder-gray-500 rounded-xl transition-all duration-200 backdrop-blur-sm h-14 hover:bg-white/70 ${errors.email ? "border-red-500 focus:border-red-500" : ""
-                      } ${touched.email && !errors.email && formData.email ? "border-green-500 focus:border-green-500" : ""
-                      } ${isLoading || socialAuthLoading ? "opacity-50 cursor-not-allowed" : ""}`}
-                    autoComplete="email"
-                  />
-                  {/* Success/Error Icon */}
-                  {touched.email && formData.email && (
-                    <div className="absolute right-4 top-1/2 -translate-y-1/2">
-                      {errors.email ? (
-                        <AlertCircle className="w-5 h-5 text-red-500" />
-                      ) : (
-                        <CheckCircle className="w-5 h-5 text-green-500" />
-                      )}
-                    </div>
-                  )}
-                </div>
-                {errors.email && <ErrorMessage message={errors.email} />}
-                {touched.email && !errors.email && formData.email && <SuccessMessage message="Email looks good!" />}
-              </div>
+      {/* Login Form Section - RIGHT SIDE */}
+      <div className="p-10">
+        <div className="py-3">
+          <Logo logoOnly />
+        </div>
+        <h1 className="font-bold text-5xl">Welcome Back</h1>
+        <p className="font-light pt-2">Enter your credentials to access your account and features!</p>
 
-              {/* Password Field */}
-              <div className="space-y-3">
-                <Label htmlFor="password" className="text-gray-700 font-medium text-base">
-                  Password
-                </Label>
-                <div className="relative group">
-                  <div className="absolute left-4 top-1/2 -translate-y-1/2 z-10">
-                    <Lock className="w-5 h-5 text-gray-500 group-focus-within:text-indigo-500 transition-colors" />
-                  </div>
-                  <Input
-                    id="password"
-                    type={showPassword ? "text" : "password"}
-                    placeholder="Enter your password"
-                    value={formData.password}
-                    onChange={(e) => handleInputChange("password", e.target.value)}
-                    onBlur={() => handleBlur("password")}
-                    onKeyDown={handleKeyDown}
-                    disabled={isLoading || socialAuthLoading}
-                    className={`pl-14 pr-14 py-6 text-base bg-white/60 border-gray-300 focus:border-indigo-500 focus:bg-white/80 text-gray-900 placeholder-gray-500 rounded-xl transition-all duration-200 backdrop-blur-sm h-14 hover:bg-white/70 ${errors.password ? "border-red-500 focus:border-red-500" : ""
-                      } ${touched.password && !errors.password && formData.password
-                        ? "border-green-500 focus:border-green-500"
-                        : ""
-                      } ${isLoading || socialAuthLoading ? "opacity-50 cursor-not-allowed" : ""}`}
-                    autoComplete="current-password"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    disabled={isLoading || socialAuthLoading}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 transition-colors disabled:opacity-50"
-                  >
-                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                  </button>
-                </div>
-                {errors.password && <ErrorMessage message={errors.password} />}
-                {touched.password && !errors.password && formData.password && (
-                  <SuccessMessage message="Password is secure!" />
-                )}
-              </div>
+        {/* API Error/Success Messages */}
+        {apiError && (
+          <Alert className="mt-4 border-red-200 bg-red-50 p-4 rounded-xl">
+            <AlertCircle className="h-4 w-4 text-red-600" />
+            <AlertDescription className="text-red-600">{apiError}</AlertDescription>
+          </Alert>
+        )}
 
-              {/* Remember Me and Forgot Password */}
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-3">
-                  <Checkbox
-                    id="remember"
-                    checked={formData.rememberMe}
-                    onCheckedChange={(checked) => setFormData((prev) => ({ ...prev, rememberMe: !!checked }))}
-                    disabled={isLoading || socialAuthLoading}
-                    className="border-gray-400 data-[state=checked]:bg-indigo-500 data-[state=checked]:border-indigo-500 w-5 h-5"
-                  />
-                  <Label htmlFor="remember" className="text-gray-600 text-base cursor-pointer">
-                    Remember me
-                  </Label>
-                </div>
-                <Link
-                  to={"/forget-password"}
-                  className="text-indigo-600 hover:text-indigo-700 text-base font-medium transition-colors hover:underline"
-                >
-                  Forgot password?
-                </Link>
-              </div>
+        {successMessage && (
+          <Alert className="mt-4 border-green-200 bg-green-50 p-4 rounded-xl">
+            <CheckCircle className="h-4 w-4 text-green-600" />
+            <AlertDescription className="text-green-600">{successMessage}</AlertDescription>
+          </Alert>
+        )}
 
-              {/* Login Button */}
-              <Button
-                type="button"
-                onClick={handleSubmit}
-                disabled={isLoading || socialAuthLoading || !isFormValid}
-                className="w-full bg-indigo-500 hover:bg-indigo-600 text-white py-6 text-base rounded-xl font-medium transition-all duration-200 hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 group h-14 shadow-lg hover:shadow-xl hover:shadow-indigo-200/50"
-              >
-                {isLoading ? (
-                  <div className="flex items-center justify-center gap-3">
-                    <Loader2 className="w-5 h-5 animate-spin" />
-                    Signing in...
-                  </div>
-                ) : (
-                  <div className="flex items-center justify-center gap-3">
-                    Sign In
-                    <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                  </div>
-                )}
-              </Button>
-
-              {/* Form Validation Summary */}
-              {(touched.email || touched.password) && !isFormValid && !isLoading && (
-                <div className="bg-red-50 border border-red-200 rounded-xl p-4">
-                  <div className="flex items-center gap-2 text-red-600 text-sm">
-                    <AlertCircle className="w-4 h-4 flex-shrink-0" />
-                    <span>Please fix the errors above to continue</span>
-                  </div>
-                </div>
+        {/* Social Login */}
+        <div className="py-6">
+          <div className="grid grid-cols-1 gap-4 w-full">
+            <button
+              type="button"
+              onClick={() => handleSocialLogin("Google")}
+              disabled={isLoading || socialAuthLoading}
+              className={`w-full cursor-pointer flex items-center justify-center gap-3 py-4 px-4 bg-white/60 hover:bg-white/80 border border-gray-300 hover:border-gray-400 rounded-xl text-gray-700 hover:text-gray-900 transition-all duration-200 backdrop-blur-sm group h-14 hover:shadow-lg hover:shadow-gray-200/50 ${isLoading || socialAuthLoading ? "opacity-50 cursor-not-allowed" : ""
+                }`}
+            >
+              {socialAuthLoading ? (
+                <Loader2 className="w-5 h-5 animate-spin" />
+              ) : (
+                <Chrome className="w-5 h-5 group-hover:scale-110 transition-transform" />
               )}
-
-              {/* Divider */}
-              <div className="relative">
-                <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-gray-300" />
-                </div>
-                <div className="relative flex justify-center text-sm">
-                  <span className="px-4 bg-white/70 text-gray-600 backdrop-blur-sm">Or continue with</span>
-                </div>
-              </div>
-
-              {/* Social Login Buttons */}
-              <div className="grid grid-cols-1 gap-4">
-                <button
-                  type="button"
-                  onClick={() => handleSocialLogin("Google")}
-                  disabled={isLoading || socialAuthLoading}
-                  className={`cursor-pointer flex items-center justify-center gap-3 py-4 px-4 bg-white/60 hover:bg-white/80 border border-gray-300 hover:border-gray-400 rounded-xl text-gray-700 hover:text-gray-900 transition-all duration-200 backdrop-blur-sm group h-14 hover:shadow-lg hover:shadow-gray-200/50 ${isLoading || socialAuthLoading ? "opacity-50 cursor-not-allowed" : ""
-                    }`}
-                >
-                  {socialAuthLoading ? (
-                    <Loader2 className="w-5 h-5 animate-spin" />
-                  ) : (
-                    <Chrome className="w-5 h-5 group-hover:scale-110 transition-transform" />
-                  )}
-                  <span className="font-medium">Google</span>
-                </button>
-              </div>
-
-              {/* Sign Up Link */}
-              <div className="text-center pt-6 border-t border-gray-200">
-                <p className="text-gray-600 text-base">
-                  Don't have an account?{" "}
-                  <Link
-                    to={"/signup"}
-                    className="text-indigo-600 hover:text-indigo-700 font-medium transition-colors hover:underline"
-                  >
-                    Create account
-                  </Link>
-                </p>
-              </div>
-            </div>
+              <span className="font-medium">Continue with Google</span>
+            </button>
           </div>
         </div>
 
-        {/* Additional Info */}
+        {/* Divider */}
+        <div className="relative py-4">
+          <div className="absolute inset-0 flex items-center">
+            <div className="w-full border-t border-gray-300" />
+          </div>
+          <div className="relative flex justify-center text-sm">
+            <span className="px-4 bg-white text-gray-600">Or continue with email</span>
+          </div>
+        </div>
+
+        {/* Login Form */}
+        <div className="space-y-8" onKeyDown={handleKeyDown}>
+          {/* Email Field */}
+          <div className="space-y-3">
+            <Label htmlFor="email" className="text-gray-700 font-medium text-base">
+              Email Address
+            </Label>
+            <div className="relative group">
+              <div className="absolute left-4 top-1/2 -translate-y-1/2 z-10">
+                <Mail className="w-5 h-5 text-gray-500 group-focus-within:text-indigo-500 transition-colors" />
+              </div>
+              <Input
+                id="email"
+                type="email"
+                placeholder="Enter your email address"
+                value={formData.email}
+                onChange={(e) => handleInputChange("email", e.target.value)}
+                onBlur={() => handleBlur("email")}
+                onKeyDown={handleKeyDown}
+                disabled={isLoading || socialAuthLoading}
+                className={`w-full pl-14 pr-4 py-6 text-base bg-white/60 border-gray-300 focus:border-indigo-500 focus:bg-white/80 text-gray-900 placeholder-gray-500 rounded-xl transition-all duration-200 backdrop-blur-sm h-14 hover:bg-white/70 border focus:outline-none focus:ring-2 focus:ring-indigo-500/20 ${errors.email ? "border-red-500 focus:border-red-500" : ""
+                  } ${touched.email && !errors.email && formData.email ? "border-green-500 focus:border-green-500" : ""
+                  } ${isLoading || socialAuthLoading ? "opacity-50 cursor-not-allowed" : ""}`}
+                autoComplete="email"
+              />
+              {touched.email && formData.email && (
+                <div className="absolute right-4 top-1/2 -translate-y-1/2">
+                  {errors.email ? (
+                    <AlertCircle className="w-5 h-5 text-red-500" />
+                  ) : (
+                    <CheckCircle className="w-5 h-5 text-green-500" />
+                  )}
+                </div>
+              )}
+            </div>
+            {errors.email && <ErrorMessage message={errors.email} />}
+            {touched.email && !errors.email && formData.email && <SuccessMessage message="Email looks good!" />}
+          </div>
+
+          {/* Password Field */}
+          <div className="space-y-3">
+            <Label htmlFor="password" className="text-gray-700 font-medium text-base">
+              Password
+            </Label>
+            <div className="relative group">
+              <div className="absolute left-4 top-1/2 -translate-y-1/2 z-10">
+                <Lock className="w-5 h-5 text-gray-500 group-focus-within:text-indigo-500 transition-colors" />
+              </div>
+              <Input
+                id="password"
+                type={showPassword ? "text" : "password"}
+                placeholder="Enter your password"
+                value={formData.password}
+                onChange={(e) => handleInputChange("password", e.target.value)}
+                onBlur={() => handleBlur("password")}
+                onKeyDown={handleKeyDown}
+                disabled={isLoading || socialAuthLoading}
+                className={`w-full pl-14 pr-14 py-6 text-base bg-white/60 border-gray-300 focus:border-indigo-500 focus:bg-white/80 text-gray-900 placeholder-gray-500 rounded-xl transition-all duration-200 backdrop-blur-sm h-14 hover:bg-white/70 border focus:outline-none focus:ring-2 focus:ring-indigo-500/20 ${errors.password ? "border-red-500 focus:border-red-500" : ""
+                  } ${touched.password && !errors.password && formData.password
+                    ? "border-green-500 focus:border-green-500"
+                    : ""
+                  } ${isLoading || socialAuthLoading ? "opacity-50 cursor-not-allowed" : ""}`}
+                autoComplete="current-password"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                disabled={isLoading || socialAuthLoading}
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 transition-colors disabled:opacity-50"
+              >
+                {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+              </button>
+            </div>
+            {errors.password && <ErrorMessage message={errors.password} />}
+            {touched.password && !errors.password && formData.password && (
+              <SuccessMessage message="Password is secure!" />
+            )}
+          </div>
+
+          {/* Remember Me and Forgot Password */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <Checkbox
+                id="remember"
+                checked={formData.rememberMe}
+                onCheckedChange={(checked) => setFormData((prev) => ({ ...prev, rememberMe: !!checked }))}
+                disabled={isLoading || socialAuthLoading}
+                className="border-gray-400 w-5 h-5 rounded accent-indigo-500"
+              />
+              <Label htmlFor="remember" className="text-gray-600 text-base cursor-pointer">
+                Remember me
+              </Label>
+            </div>
+            <a
+              href="/forget-password"
+              className="text-indigo-600 hover:text-indigo-700 text-base font-medium transition-colors hover:underline"
+            >
+              Forgot password?
+            </a>
+          </div>
+
+          {/* Login Button */}
+          <Button
+            type="button"
+            onClick={handleSubmit}
+            disabled={isLoading || socialAuthLoading || !isFormValid}
+            className="w-full bg-indigo-500 hover:bg-indigo-600 text-white py-6 text-base rounded-xl font-medium transition-all duration-200 hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 group h-14 shadow-lg hover:shadow-xl hover:shadow-indigo-200/50"
+          >
+            {isLoading ? (
+              <div className="flex items-center justify-center gap-3">
+                <Loader2 className="w-5 h-5 animate-spin" />
+                Signing in...
+              </div>
+            ) : (
+              <div className="flex items-center justify-center gap-3">
+                Sign In
+                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+              </div>
+            )}
+          </Button>
+
+          {/* Form Validation Summary */}
+          {(touched.email || touched.password) && !isFormValid && !isLoading && (
+            <div className="bg-red-50 border border-red-200 rounded-xl p-4">
+              <div className="flex items-center gap-2 text-red-600 text-sm">
+                <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                <span>Please fix the errors above to continue</span>
+              </div>
+            </div>
+          )}
+
+          {/* Sign Up Link */}
+          <div className="text-center pt-6 border-t border-gray-200">
+            <p className="text-gray-600 text-base">
+              Don't have an account?{" "}
+              <Link
+                to="/signup"
+                className="text-indigo-600 hover:text-indigo-700 font-medium transition-colors hover:underline"
+              >
+                Create account
+              </Link>
+            </p>
+          </div>
+        </div>
+
+        {/* Terms */}
         <div className="text-center mt-8">
           <p className="text-gray-500 text-sm">
             By signing in, you agree to our{" "}
-            <Link to="/terms" className="text-indigo-600 hover:text-indigo-700 transition-colors hover:underline">
+            <a href="/terms" className="text-indigo-600 hover:text-indigo-700 transition-colors hover:underline">
               Terms of Service
-            </Link>{" "}
+            </a>{" "}
             and{" "}
-            <Link to="/privacy" className="text-indigo-600 hover:text-indigo-700 transition-colors hover:underline">
+            <a href="/privacy" className="text-indigo-600 hover:text-indigo-700 transition-colors hover:underline">
               Privacy Policy
-            </Link>
+            </a>
           </p>
         </div>
       </div>
-    </section>
+    </div>
   )
 }

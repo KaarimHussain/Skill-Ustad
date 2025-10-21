@@ -8,6 +8,7 @@ import { ArrowRight, BarChart2, User, Users } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { motion } from "framer-motion"
 import { Code, Layers, Zap } from "lucide-react"
+import { HeaderSection } from "./HeaderTitle"
 
 interface BentoGridItemProps {
     title: string
@@ -147,20 +148,16 @@ const BentoGrid1 = () => {
 /* ------------------------------------------------------------------ */
 export default function Benefits() {
     return (
-        <section className="relative min-h-screen w-full flex flex-col items-center justify-center py-20 px-4 overflow-hidden bg-radial-[at_25%_100%] from-indigo-50 via-indigo-100 to-indigo-200 to-90%">
+        <section className="relative min-h-screen w-full flex flex-col items-center justify-center py-20 px-4 overflow-hidden"
+        >
             <div className="relative z-20 max-w-7xl mx-auto w-full">
                 {/* Header */}
-                <div className="text-center mb-16">
-                    <div className="translate-y-8 animate-fade-in-up">
-                        <h1 className="font-bold text-5xl md:text-6xl text-gray-900 mb-4">
-                            Built Different — Here&rsquo;s How
-                        </h1>
-                        <p className="text-gray-600 text-lg md:text-xl max-w-3xl mx-auto leading-relaxed">
-                            Skill-Ustad blends AI with hands-on learning to help you master
-                            real skills—faster, smarter, better
-                        </p>
-                    </div>
-                </div>
+                <HeaderSection
+                    title="Why Choose Our Platform?"
+                    description="Empower your learning journey with features designed for success."
+                    highlightText="Benefits"
+                    variant="dark"
+                />
 
                 {/* NEW BENTO GRID */}
                 <BentoGrid1 />
