@@ -16,7 +16,6 @@ import {
     FolderOpen,
     CheckCircle,
     Loader2,
-    Move,
     Puzzle,
     BrainCircuit,
     Tag,
@@ -433,89 +432,70 @@ export default function RoadmapViewer() {
         <TooltipProvider>
             <div className={`${isFullscreen ? "fixed inset-0 z-50" : "h-screen"} w-full flex flex-col bg-gray-50`}>
                 {/* Enhanced Header */}
-                <div className="bg-white border-b shadow-sm flex-shrink-0 mt-18">
-                    <div className="p-4">
-                        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                            <div className="flex flex-col gap-4">
-                                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                                    <div className="flex-1 min-w-0">
-                                        <div className="flex items-center gap-2 mb-2">
-                                            <h1 className="text-xl sm:text-2xl font-bold text-gray-900 truncate">{roadmapData.title}</h1>
-                                            <Badge variant="secondary" className="text-xs flex-shrink-0">
-                                                {roadmapData.nodes?.length || 0} steps
-                                            </Badge>
-                                        </div>
-                                        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-gray-600">
-                                            <div className="flex items-center gap-1">
-                                                <Workflow className="w-4 h-4" />
-                                                <span>{roadmapData.nodes.length || 0} Nodes</span>
-                                            </div>
-                                            <div className="flex items-center gap-1">
-                                                <Cable className="w-4 h-4" />
-                                                <span>{roadmapData.edges?.length || 0} connections</span>
-                                            </div>
-                                            <DifficultyBadge difficulty={difficulty || "Medium"} />
-                                        </div>
+                <div className="bg-white/70 backdrop-blur-xl rounded-2xl border border-gray-200 shadow-sm mt-20 mx-3">
+                    <div className="px-4 py-2">
+                        {/* Main Row - Everything in one line on desktop */}
+                        <div className="flex flex-col lg:flex-row items-start lg:items-center gap-4 lg:gap-6">
+                            <div className="flex">
+                                <Button onClick={() => navigate("/public/roadmaps")} variant="outline" className="flex items-center gap-2">
+                                    <ArrowLeft className="w-4 h-4" />
+                                    Go Back
+                                </Button>
+                            </div>
+                            {/* Left: Title & Stats */}
+                            <div className="flex-1 min-w-0">
+
+                                <div className="flex items-center gap-3 mb-2">
+                                    <h1 className="text-xl font-bold text-gray-900 truncate">
+                                        {roadmapData.title}
+                                    </h1>
+                                    <Badge variant="secondary" className="text-xs flex-shrink-0">
+                                        {roadmapData.nodes?.length || 0} steps
+                                    </Badge>
+                                </div>
+
+                                <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600">
+                                    <div className="flex items-center gap-1.5">
+                                        <Workflow className="w-4 h-4 text-indigo-500" />
+                                        <span>{roadmapData.nodes.length || 0} Nodes</span>
                                     </div>
-                                    <div className="flex-shrink-0">
-                                        <Dialog>
-                                            <DialogTrigger asChild>
-                                                <Button disabled={isCreatedProgress} className="w-full sm:w-auto bg-indigo-500 hover:bg-indigo-600" size="default">
-                                                    {isCreatedProgress ? "Creating..." : "Learn the Roadmap"}
-                                                </Button>
-                                            </DialogTrigger>
-                                            <DialogContent>
-                                                <DialogHeader>
-                                                    <DialogTitle>Start Learning Journey</DialogTitle>
-                                                    <DialogDescription>
-                                                        Are you ready to begin your interactive learning journey through "{roadmapData.title}"?
-                                                        This will guide you step-by-step through the roadmap content.
-                                                    </DialogDescription>
-                                                </DialogHeader>
-                                                <DialogFooter>
-                                                    <DialogClose asChild>
-                                                        <Button className="cursor-pointer" variant="outline">Cancel</Button>
-                                                    </DialogClose>
-                                                    <Button disabled={isCreatedProgress} className="bg-indigo-500 hover:bg-indigo-600 cursor-pointer" onClick={() => handleStartTheRoadmap()}>
-                                                        {isCreatedProgress ? "Creating..." : "Start Learning"}
-                                                    </Button>
-                                                </DialogFooter>
-                                            </DialogContent>
-                                        </Dialog>
+                                    <div className="flex items-center gap-1.5">
+                                        <Cable className="w-4 h-4 text-indigo-500" />
+                                        <span>{roadmapData.edges?.length || 0} Connections</span>
                                     </div>
+                                    <DifficultyBadge difficulty={difficulty || "Medium"} />
                                 </div>
                             </div>
 
-                            {/* Controls */}
-                            <div className="flex flex-wrap justify-end items-center gap-2 mt-4 md:mt-0">
-                                <div className="hidden md:flex items-center gap-1 text-xs text-gray-500 mr-4">
-                                    <Move className="w-3 h-3" />
-                                    <span>Drag to pan • Scroll to zoom • Click nodes for details</span>
-                                </div>
-
+                            {/* Center: View Controls - Compact Group */}
+                            <div className="flex items-center gap-2 px-4 py-2 bg-gray-50 rounded-xl border border-gray-200">
                                 <Tooltip>
                                     <TooltipTrigger asChild>
-                                        <Button onClick={zoomOut} variant="outline" size="sm">
+                                        <Button onClick={zoomOut} variant="ghost" size="sm" className="h-8 w-8 p-0">
                                             <ZoomOut className="w-4 h-4" />
                                         </Button>
                                     </TooltipTrigger>
                                     <TooltipContent>Zoom Out</TooltipContent>
                                 </Tooltip>
 
-                                <span className="text-sm text-gray-600 min-w-[3rem] text-center">{Math.round(scale * 100)}%</span>
+                                <span className="text-sm font-medium text-gray-700 min-w-[3rem] text-center">
+                                    {Math.round(scale * 100)}%
+                                </span>
 
                                 <Tooltip>
                                     <TooltipTrigger asChild>
-                                        <Button onClick={zoomIn} variant="outline" size="sm">
+                                        <Button onClick={zoomIn} variant="ghost" size="sm" className="h-8 w-8 p-0">
                                             <ZoomIn className="w-4 h-4" />
                                         </Button>
                                     </TooltipTrigger>
                                     <TooltipContent>Zoom In</TooltipContent>
                                 </Tooltip>
 
+                                <div className="w-px h-6 bg-gray-300 mx-1" />
+
                                 <Tooltip>
                                     <TooltipTrigger asChild>
-                                        <Button onClick={resetView} variant="outline" size="sm">
+                                        <Button onClick={resetView} variant="ghost" size="sm" className="h-8 w-8 p-0">
                                             <RotateCcw className="w-4 h-4" />
                                         </Button>
                                     </TooltipTrigger>
@@ -524,23 +504,56 @@ export default function RoadmapViewer() {
 
                                 <Tooltip>
                                     <TooltipTrigger asChild>
-                                        <Button onClick={toggleFullscreen} variant="outline" size="sm">
+                                        <Button onClick={toggleFullscreen} variant="ghost" size="sm" className="h-8 w-8 p-0">
                                             {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
                                         </Button>
                                     </TooltipTrigger>
                                     <TooltipContent>{isFullscreen ? "Exit Fullscreen" : "Fullscreen"}</TooltipContent>
                                 </Tooltip>
                             </div>
+
+                            {/* Right: CTA Button */}
+                            <div className="flex-shrink-0">
+                                <Dialog>
+                                    <DialogTrigger asChild>
+                                        <Button
+                                            disabled={isCreatedProgress}
+                                            className="bg-indigo-500 hover:bg-indigo-600 shadow-md min-w-[160px]"
+                                            size="default"
+                                        >
+                                            {isCreatedProgress ? "Creating..." : "Start Learning"}
+                                        </Button>
+                                    </DialogTrigger>
+                                    <DialogContent>
+                                        <DialogHeader>
+                                            <DialogTitle>Start Learning Journey</DialogTitle>
+                                            <DialogDescription>
+                                                Are you ready to begin your interactive learning journey through "{roadmapData.title}"?
+                                                This will guide you step-by-step through the roadmap content.
+                                            </DialogDescription>
+                                        </DialogHeader>
+                                        <DialogFooter>
+                                            <DialogClose asChild>
+                                                <Button className="cursor-pointer" variant="outline">Cancel</Button>
+                                            </DialogClose>
+                                            <Button
+                                                disabled={isCreatedProgress}
+                                                className="bg-indigo-500 hover:bg-indigo-600 cursor-pointer"
+                                                onClick={() => handleStartTheRoadmap()}
+                                            >
+                                                {isCreatedProgress ? "Creating..." : "Start Learning"}
+                                            </Button>
+                                        </DialogFooter>
+                                    </DialogContent>
+                                </Dialog>
+                            </div>
+                        </div>
+
+                        {/* Interaction Hint - Hidden on desktop, shown on mobile */}
+                        <div className="flex lg:hidden items-center gap-1.5 text-xs text-gray-500 mt-3 pt-3 border-t border-gray-200">
+                            <span>💡 Drag to pan • Pinch to zoom • Tap nodes for details</span>
                         </div>
                     </div>
-                </div>
-
-                {/* Go Back Button */}
-                <div className="top-25 left-0 p-3">
-                    <Button onClick={() => navigate("/public/roadmaps")} variant="outline" className="flex items-center gap-2">
-                        <ArrowLeft className="w-4 h-4" />
-                        Go Back
-                    </Button>
                 </div>
 
                 {/* Main Content Area */}

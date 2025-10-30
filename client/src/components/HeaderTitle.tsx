@@ -36,7 +36,7 @@ export const HeaderSection = ({
                 <div>
                     <h2
                         className={cn(
-                            "text-8xl md:text-7xl absolute -top-10 left-1/2 -translate-x-1/2 whitespace-nowrap font-extrabold text-transparent select-none pointer-events-none text-center uppercase",
+                            "text-5xl sm:text-6xl md:text-7xl lg:text-8xl absolute -top-6 sm:-top-8 md:-top-10 left-1/2 -translate-x-1/2 whitespace-nowrap font-extrabold text-transparent select-none pointer-events-none text-center uppercase",
                             styles.bgText
                         )}
                         style={{
@@ -52,10 +52,20 @@ export const HeaderSection = ({
 
             <div className="text-center relative z-10">
                 <div className="animate-fade-in-up">
-                    <h1 className={cn("font-bold text-5xl md:text-6xl mb-4", styles.title)}>
+                    <h1
+                        className={cn(
+                            "font-bold text-3xl sm:text-4xl md:text-6xl mb-3 sm:mb-4",
+                            styles.title
+                        )}
+                    >
                         {title}
                     </h1>
-                    <p className={cn("text-lg md:text-xl max-w-3xl mx-auto leading-relaxed", styles.desc)}>
+                    <p
+                        className={cn(
+                            "text-base sm:text-lg md:text-xl max-w-xs sm:max-w-2xl md:max-w-3xl mx-auto leading-relaxed",
+                            styles.desc
+                        )}
+                    >
                         {description}
                     </p>
                 </div>

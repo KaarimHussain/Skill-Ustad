@@ -197,7 +197,7 @@ export default function Jobs() {
     return (
         <div className="min-h-screen bg-background pt-18">
             {/* Header */}
-            <header className="border-b bg-card/50 backdrop-blur-sm sticky top-18 z-50">
+            <header className="border-b bg-card/50 backdrop-blur-sm top-18 z-50">
                 <div className="container mx-auto px-4 py-4">
                     <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
                         <div className="flex items-center justify-between">

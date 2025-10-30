@@ -227,7 +227,7 @@ export default function UserAttemptQuiz() {
         if (!quiz || !startTime) return
 
         const userId = AuthService.getAuthenticatedUserId();
-        if(userId == null) return navigate("/user/quiz");
+        if (userId == null) return navigate("/user/quiz");
         const endTime = new Date()
         const timeSpent = Math.floor((endTime.getTime() - startTime.getTime()) / 1000)
         const correctAnswers = quiz.questions.filter(
@@ -427,7 +427,7 @@ export default function UserAttemptQuiz() {
                     <div className="absolute top-40 right-10 w-72 h-72 bg-indigo-300 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-2000"></div>
                     <div className="absolute -bottom-8 left-20 w-72 h-72 bg-purple-900/40 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-4000"></div>
                 </div>
-                <div className="relative px-4 sm:px-6 lg:px-8 pb-12 pt-8">
+                <div className="relative px-4 sm:px-6 lg:px-8 pb-12 pt-20">
                     <div className="max-w-4xl mx-auto">
                         <div className="flex items-center justify-between mb-6">
                             <Link to="/quiz">
